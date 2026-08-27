@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
+import { useAuth } from '../../auth/AuthContext';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
 import { TaxonomyCodeGenerator } from '../common/TaxonomyCodeGenerator';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
@@ -26,7 +27,6 @@ import {
 
 export const AgencyDashboard: React.FC = () => {
   const {
-    currentPersona,
     brands,
     channels,
     campaigns,
@@ -35,6 +35,7 @@ export const AgencyDashboard: React.FC = () => {
     showToast,
     selectedMarket
   } = usePersona();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'registry' | 'generator' | 'dictionary'>('builder');
 
@@ -57,10 +58,6 @@ export const AgencyDashboard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
-  const totalCampaignsCount = campaigns.length;
-  const totalTacticsCount = campaigns.reduce((acc, c) => acc + 3, 0); // 3 tactics per campaign average
-  const totalProgramsCount = programs.length;
-
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!campaignName) {
@@ -81,7 +78,7 @@ export const AgencyDashboard: React.FC = () => {
         targetAudience,
         region: selectedMarket || region,
         quarter,
-        agencyOwner: currentPersona?.organization || 'Havas Health',
+        agencyOwner: user?.organization || 'Havas Health',
         status: 'submitted',
         notes
       });
@@ -104,50 +101,14 @@ export const AgencyDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
-      {/* Detailed Overview Metrics: Programs, Campaigns, Tactics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-600 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Master Programs</span>
-            <Briefcase className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{totalProgramsCount}</div>
-          <p className="text-[11px] text-rose-700 font-bold flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Core Strategic Initiatives
-          </p>
-        </div>
 
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-500 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Total Campaigns</span>
-            <FilePlus className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{totalCampaignsCount}</div>
-          <p className="text-[11px] text-rose-700 font-bold">
-            100% Topic & Subtopic Mapped
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-slate-700 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Active Tactics</span>
-            <Layers className="w-4 h-4 text-slate-700" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{totalTacticsCount}</div>
-          <p className="text-[11px] text-slate-600 font-bold">
-            Emails, Banners & Rep Assets
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-slate-900 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Market Context</span>
-            <Globe className="w-4 h-4 text-slate-800" />
-          </div>
-          <div className="text-lg font-bold text-slate-900 truncate">{selectedMarket}</div>
-          <p className="text-[11px] text-slate-500 font-medium">Agency Partner: {currentPersona?.organization}</p>
-        </div>
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Campaign Builder</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Build compliant campaign taxonomy, generate tracking codes, and submit for marketer approval
+          &mdash; {selectedMarket} &middot; {user?.organization}
+        </p>
       </div>
 
       {/* Navigation Sub-Tabs for Agency User */}

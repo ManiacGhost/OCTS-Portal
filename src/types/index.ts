@@ -1,4 +1,4 @@
-export type UserRole = 'agency' | 'marketer' | 'analytics' | 'it' | 'superadmin';
+export type UserRole = 'agency' | 'marketer' | 'analytics' | 'superadmin';
 
 export interface UserPersona {
   id: string;
@@ -169,17 +169,6 @@ export interface AnalyticsSummary {
     severity: 'critical' | 'warning' | 'info';
     resolved: boolean;
   }[];
-}
-
-export interface ConnectorConfig {
-  id: string;
-  name: string;
-  type: 'Veeva' | 'SFMC' | 'Adobe' | 'Doximity';
-  status: 'connected' | 'error' | 'syncing' | 'disabled';
-  lastSync: string;
-  endpointUrl: string;
-  syncedFieldsCount: number;
-  schemaRules: string[];
 }
 
 export interface SystemAuditLog {

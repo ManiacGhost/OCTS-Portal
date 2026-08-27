@@ -8,9 +8,7 @@ import {
   ChannelTaxonomy,
   CampaignTaxonomy,
   AnalyticsSummary,
-  ConnectorConfig,
   SystemAuditLog,
-  UserRole,
   ProgramOverview,
 } from '../types';
 import * as api from '../services/api';
@@ -23,17 +21,15 @@ interface NotificationToast {
 }
 
 interface PersonaContextType {
+  // Directory (read-only list used by SuperAdmin + Overview counts)
   personas: UserPersona[];
-  currentPersona: UserPersona | null;
-  isLoading: boolean;
-  activeRole: UserRole;
-  switchPersona: (personaId: string) => Promise<void>;
-  hasPermission: (permission: string) => boolean;
+  refreshPersonas: () => Promise<void>;
 
-  // Agencies & User Management
+  isLoading: boolean;
+
+  // Agencies & User Management (SuperAdmin)
   agencies: AgencyPartner[];
   refreshAgencies: () => Promise<void>;
-  refreshPersonas: () => Promise<void>;
   onboardAgency: (data: Partial<AgencyPartner>) => Promise<boolean>;
   editAgency: (id: string, updates: Partial<AgencyPartner>) => Promise<boolean>;
   removeAgency: (id: string) => Promise<boolean>;
@@ -64,20 +60,14 @@ interface PersonaContextType {
   analytics: AnalyticsSummary | null;
   refreshAnalytics: () => Promise<void>;
 
-  // IT Connectors & Audit
-  connectors: ConnectorConfig[];
+  // Audit trail
   auditLogs: SystemAuditLog[];
-  refreshITData: () => Promise<void>;
-  triggerSync: (connectorId: string) => Promise<void>;
+  refreshAuditLogs: () => Promise<void>;
 
   // Toasts
   toasts: NotificationToast[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
-
-  // Active View Tab inside role dashboard
-  activeViewTab: string;
-  setActiveViewTab: (tab: string) => void;
 }
 
 const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
@@ -85,7 +75,6 @@ const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
 export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [personas, setPersonas] = useState<UserPersona[]>([]);
   const [agencies, setAgencies] = useState<AgencyPartner[]>([]);
-  const [currentPersona, setCurrentPersona] = useState<UserPersona | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedMarket, setSelectedMarket] = useState<string>('US Commercial');
 
@@ -93,15 +82,13 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [brands, setBrands] = useState<Brand[]>([]);
   const [keyMessages, setKeyMessages] = useState<KeyMessageCategory[]>([]);
   const [channels, setChannels] = useState<ChannelTaxonomy[]>([]);
-  const [programs, setPrograms] = useState<ProgramOverview[]>(INITIAL_PROGRAMS);
+  const [programs] = useState<ProgramOverview[]>(INITIAL_PROGRAMS);
 
   const [campaigns, setCampaigns] = useState<CampaignTaxonomy[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
-  const [connectors, setConnectors] = useState<ConnectorConfig[]>([]);
   const [auditLogs, setAuditLogs] = useState<SystemAuditLog[]>([]);
 
   const [toasts, setToasts] = useState<NotificationToast[]>([]);
-  const [activeViewTab, setActiveViewTab] = useState<string>('dashboard');
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = `toast-${Date.now()}-${Math.random()}`;
@@ -133,37 +120,39 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const refreshAuditLogs = async () => {
+    try {
+      const data = await api.fetchAuditLogs();
+      setAuditLogs(data.auditLogs || []);
+    } catch (err) {
+      console.error('Failed to fetch audit logs:', err);
+    }
+  };
+
   const loadInitialData = async () => {
     setIsLoading(true);
     try {
-      const pData = await api.fetchPersonas();
+      const [pData, agencyData, taxData, campData, anaData, logData] = await Promise.all([
+        api.fetchPersonas(),
+        api.fetchAgencies(),
+        api.fetchTaxonomyMaster(),
+        api.fetchCampaigns(),
+        api.fetchAnalytics(),
+        api.fetchAuditLogs(),
+      ]);
+
       setPersonas(pData.personas);
-      const active = pData.personas.find(p => p.id === pData.currentPersonaId) || pData.personas[0];
-      setCurrentPersona(active);
-
-      const agencyData = await api.fetchAgencies();
       setAgencies(agencyData.agencies || []);
-
-      const taxData = await api.fetchTaxonomyMaster();
       setTherapeuticAreas(taxData.therapeuticAreas);
       setBrands(taxData.brands);
       setKeyMessages(taxData.keyMessages);
       setChannels(taxData.channels);
-
-      const campData = await api.fetchCampaigns();
       setCampaigns(campData.campaigns);
-
-      const anaData = await api.fetchAnalytics();
       setAnalytics(anaData.analytics);
-
-      const connData = await api.fetchConnectors();
-      setConnectors(connData.connectors);
-
-      const logData = await api.fetchAuditLogs();
       setAuditLogs(logData.auditLogs);
     } catch (err) {
-      console.error('Failed to initialize OCTS data:', err);
-      showToast('Error connecting to OCTS taxonomy backend.', 'error');
+      console.error('Failed to initialize Omnia data:', err);
+      showToast('Error connecting to the Omnia taxonomy backend.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -172,26 +161,6 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     loadInitialData();
   }, []);
-
-  const handleSwitchPersona = async (personaId: string) => {
-    try {
-      const res = await api.switchPersona(personaId);
-      if (res.success) {
-        setCurrentPersona(res.currentPersona);
-        setActiveViewTab('dashboard'); // reset tab on role switch
-        showToast(`Switched persona to ${res.currentPersona.name} (${res.currentPersona.roleTitle})`, 'info');
-        refreshITData();
-      }
-    } catch (err) {
-      showToast('Failed to switch persona.', 'error');
-    }
-  };
-
-  const hasPermission = (perm: string): boolean => {
-    if (!currentPersona) return false;
-    if (currentPersona.permissions.includes('*')) return true;
-    return currentPersona.permissions.includes(perm);
-  };
 
   const refreshTaxonomy = async () => {
     const taxData = await api.fetchTaxonomyMaster();
@@ -211,13 +180,6 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setAnalytics(anaData.analytics);
   };
 
-  const refreshITData = async () => {
-    const connData = await api.fetchConnectors();
-    setConnectors(connData.connectors);
-    const logData = await api.fetchAuditLogs();
-    setAuditLogs(logData.auditLogs);
-  };
-
   const addCampaign = async (campaignData: Partial<CampaignTaxonomy>): Promise<CampaignTaxonomy | null> => {
     try {
       const res = await api.createCampaign(campaignData);
@@ -225,6 +187,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         showToast(`Campaign Taxonomy "${res.campaign.campaignName}" created successfully!`, 'success');
         await refreshCampaigns();
         await refreshAnalytics();
+        await refreshAuditLogs();
         return res.campaign;
       }
       return null;
@@ -245,24 +208,13 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         showToast(`Campaign status updated to ${status.toUpperCase()}`, 'success');
         await refreshCampaigns();
         await refreshAnalytics();
+        await refreshAuditLogs();
         return true;
       }
       return false;
     } catch (err) {
       showToast('Failed to update campaign status.', 'error');
       return false;
-    }
-  };
-
-  const triggerSync = async (connectorId: string) => {
-    try {
-      const res = await api.syncConnector(connectorId);
-      if (res.success) {
-        showToast(`Connector ${res.connector.name} synced successfully!`, 'success');
-        await refreshITData();
-      }
-    } catch (err) {
-      showToast('Connector sync failed.', 'error');
     }
   };
 
@@ -273,6 +225,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setAgencies(res.agencies);
         showToast(`Agency "${res.agency.name}" onboarded successfully!`, 'success');
         await refreshAnalytics();
+        await refreshAuditLogs();
         return true;
       }
       return false;
@@ -304,6 +257,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setAgencies(res.agencies);
         showToast('Agency removed from active roster.', 'info');
         await refreshAnalytics();
+        await refreshAuditLogs();
         return true;
       }
       return false;
@@ -319,6 +273,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (res.success) {
         setPersonas(res.personas);
         showToast(`User "${res.persona.name}" created successfully as ${res.persona.role.toUpperCase()}!`, 'success');
+        await refreshAuditLogs();
         return true;
       }
       return false;
@@ -334,6 +289,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (res.success) {
         setPersonas(res.personas);
         showToast('User profile updated.', 'success');
+        await refreshAuditLogs();
         return true;
       }
       return false;
@@ -349,6 +305,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (res.success) {
         setPersonas(res.personas);
         showToast('User removed.', 'info');
+        await refreshAuditLogs();
         return true;
       }
       return false;
@@ -358,21 +315,16 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const activeRole: UserRole = currentPersona?.role || 'agency';
-
   return (
     <PersonaContext.Provider
       value={{
         personas,
-        currentPersona,
+        refreshPersonas,
+
         isLoading,
-        activeRole,
-        switchPersona: handleSwitchPersona,
-        hasPermission,
 
         agencies,
         refreshAgencies,
-        refreshPersonas,
         onboardAgency,
         editAgency,
         removeAgency,
@@ -398,17 +350,12 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         analytics,
         refreshAnalytics,
 
-        connectors,
         auditLogs,
-        refreshITData,
-        triggerSync,
+        refreshAuditLogs,
 
         toasts,
         showToast,
         removeToast,
-
-        activeViewTab,
-        setActiveViewTab,
       }}
     >
       {children}

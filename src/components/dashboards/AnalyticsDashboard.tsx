@@ -49,46 +49,13 @@ export const AnalyticsDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 text-slate-900">
-      
-      {/* Analytics KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-600 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Overall Compliance Rate</span>
-            <CheckCircle2 className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{analytics.overallComplianceRate}%</div>
-          <p className="text-[11px] text-rose-700 font-bold">Target: &gt;95.0% (Passing Audit)</p>
-        </div>
 
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-500 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Master Programs Tracked</span>
-            <Briefcase className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{programs?.length || 5}</div>
-          <p className="text-[11px] text-rose-700 font-bold">100% Topic & Subtopic Mapped</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-amber-500 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Open Discrepancies</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {analytics.recentDiscrepancies.filter(d => !d.resolved).length}
-          </div>
-          <p className="text-[11px] text-amber-700 font-bold">Requires Resolution</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-slate-700 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Tracked Campaigns</span>
-            <BarChart3 className="w-4 h-4 text-slate-700" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{analytics.totalCampaigns}</div>
-          <p className="text-[11px] text-slate-500 font-medium">Across {analytics.activeAgencies} Partner Agencies</p>
-        </div>
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Compliance</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Monitor taxonomy compliance across downstream engines, audit discrepancies, and export governance data.
+        </p>
       </div>
 
       {/* Analytics Tabs */}

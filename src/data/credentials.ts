@@ -2,7 +2,7 @@ export interface UserCredentials {
   email: string;
   password: string;
   personaId: string;
-  role: 'agency' | 'marketer' | 'analytics' | 'it' | 'superadmin';
+  role: 'agency' | 'marketer' | 'analytics' | 'superadmin';
   name: string;
   roleTitle: string;
   organization: string;
@@ -47,18 +47,6 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
     avatarBg: 'bg-purple-600',
     description: 'Monitors global taxonomy compliance, audits metadata drift across Veeva CRM, SFMC, and Adobe.'
-  },
-  {
-    email: 'david.kim@biopharma-enterprise.com',
-    password: 'it123',
-    personaId: 'persona-it',
-    role: 'it',
-    name: 'David Kim',
-    roleTitle: 'Enterprise Integration & Data Architect',
-    organization: 'Global Commercial Operations',
-    badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
-    avatarBg: 'bg-amber-600',
-    description: 'Manages enterprise API connectors for Veeva, SFMC, and Adobe, enforcing field schema validation rules.'
   },
   {
     email: 'alexis.thorne@biopharma-enterprise.com',

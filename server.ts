@@ -11,9 +11,9 @@ import {
   INITIAL_CHANNELS,
   INITIAL_CAMPAIGNS,
   INITIAL_ANALYTICS,
-  INITIAL_CONNECTORS,
   INITIAL_AUDIT_LOGS,
 } from './src/data/mockData.js';
+import { DUMMY_CREDENTIALS } from './src/data/credentials.js';
 import { CampaignTaxonomy, KeyMessageCategory, KeyMessageSubcategory, SystemAuditLog, AgencyPartner, UserPersona } from './src/types/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +32,6 @@ let keyMessages = [...INITIAL_KEY_MESSAGES];
 let channels = [...INITIAL_CHANNELS];
 let campaigns: CampaignTaxonomy[] = [...INITIAL_CAMPAIGNS];
 let analytics = { ...INITIAL_ANALYTICS };
-let connectors = [...INITIAL_CONNECTORS];
 let auditLogs: SystemAuditLog[] = [...INITIAL_AUDIT_LOGS];
 
 function addAuditLog(user: string, role: any, action: string, target: string, details: string) {
@@ -55,11 +54,40 @@ function addAuditLog(user: string, role: any, action: string, target: string, de
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    system: 'OCTS (Omnichannel Commercial Taxonomy & Governance Suite)',
+    system: 'Omnia — Digital Content Taxonomy & Metadata (DCTM)',
     client: 'Global Commercial Operations',
     version: '2.4.0',
     timestamp: new Date().toISOString()
   });
+});
+
+// Authentication (dummy, credential-list backed)
+app.post('/api/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const cred = DUMMY_CREDENTIALS.find(
+    c => c.email.toLowerCase() === String(email || '').trim().toLowerCase() && c.password === password
+  );
+  if (!cred) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+  const persona = personas.find(p => p.id === cred.personaId);
+  if (!persona) {
+    return res.status(404).json({ error: 'Linked persona not found.' });
+  }
+  currentPersonaId = persona.id;
+  addAuditLog(persona.name, persona.role, 'USER_LOGIN', persona.roleTitle, `${persona.name} signed in as ${persona.roleTitle}`);
+  res.json({ success: true, user: persona });
+});
+
+// Re-pin the server-side persona from a persisted client session (no password needed)
+app.post('/api/auth/session', (req: Request, res: Response) => {
+  const { personaId } = req.body;
+  const persona = personas.find(p => p.id === personaId);
+  if (!persona) {
+    return res.status(404).json({ error: 'Session persona not found.' });
+  }
+  currentPersonaId = persona.id;
+  res.json({ success: true, user: persona });
 });
 
 // Personas & Access Control
@@ -68,17 +96,6 @@ app.get('/api/personas', (req: Request, res: Response) => {
     personas,
     currentPersonaId
   });
-});
-
-app.post('/api/personas/switch', (req: Request, res: Response) => {
-  const { personaId } = req.body;
-  const targetPersona = personas.find(p => p.id === personaId);
-  if (!targetPersona) {
-    return res.status(404).json({ error: 'Persona not found' });
-  }
-  currentPersonaId = personaId;
-  addAuditLog(targetPersona.name, targetPersona.role, 'PERSONA_SWITCHED', targetPersona.roleTitle, `User switched view to ${targetPersona.name} (${targetPersona.roleTitle})`);
-  res.json({ success: true, currentPersona: targetPersona });
 });
 
 // Create User / Persona (SuperAdmin Action)
@@ -110,7 +127,6 @@ app.post('/api/personas', (req: Request, res: Response) => {
     agency: { bg: 'bg-emerald-600', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
     marketer: { bg: 'bg-blue-600', badge: 'bg-blue-100 text-blue-800 border-blue-200' },
     analytics: { bg: 'bg-purple-600', badge: 'bg-purple-100 text-purple-800 border-purple-200' },
-    it: { bg: 'bg-amber-600', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
     superadmin: { bg: 'bg-slate-800', badge: 'bg-slate-200 text-slate-900 border-slate-300' }
   };
 
@@ -528,23 +544,6 @@ app.post('/api/analytics/discrepancy/resolve', (req: Request, res: Response) => 
   res.json({ success: true, recentDiscrepancies: analytics.recentDiscrepancies });
 });
 
-// IT Connectors & Schema API
-app.get('/api/connectors', (req: Request, res: Response) => {
-  res.json({ connectors });
-});
-
-app.post('/api/connectors/:id/sync', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const connector = connectors.find(c => c.id === id);
-  if (connector) {
-    connector.status = 'connected';
-    connector.lastSync = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
-  }
-  const curPersona = personas.find(p => p.id === currentPersonaId);
-  addAuditLog(curPersona?.name || 'IT Admin', curPersona?.role || 'it', 'CONNECTOR_SYNCED', connector?.name || id, 'Manual sync triggered from OCTS IT Dashboard.');
-  res.json({ success: true, connector });
-});
-
 // Audit Logs
 app.get('/api/audit-logs', (req: Request, res: Response) => {
   res.json({ auditLogs });
@@ -578,6 +577,7 @@ app.get('/api/export/csv', (req: Request, res: Response) => {
 // ---------------------- FRONTEND VITE INTEGRATION ----------------------
 async function startServer() {
   const PORT = 3000;
+  const HOST = process.env.HOST || '127.0.0.1';
 
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static('dist'));
@@ -595,8 +595,8 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[OCTS Backend] Omnichannel Commercial Taxonomy & Governance Suite server running at http://0.0.0.0:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`[Omnia] Digital Content Taxonomy & Metadata (DCTM) server running at http://${HOST}:${PORT}`);
   });
 }
 

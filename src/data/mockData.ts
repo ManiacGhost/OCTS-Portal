@@ -7,7 +7,6 @@ import {
   ChannelTaxonomy,
   CampaignTaxonomy,
   AnalyticsSummary,
-  ConnectorConfig,
   SystemAuditLog,
   ProgramOverview,
 } from '../types';
@@ -156,26 +155,6 @@ export const INITIAL_PERSONAS: UserPersona[] = [
       'Export master taxonomy reports for cross-channel attribution'
     ],
     permissions: ['analytics:view_all', 'discrepancy:resolve', 'export:master_taxonomy', 'autotag:audit', 'taxonomy:view']
-  },
-  {
-    id: 'persona-it',
-    name: 'David Kim',
-    email: 'david.kim@biopharma-enterprise.com',
-    role: 'it',
-    roleTitle: 'Enterprise Integration & Data Architect',
-    department: 'Commercial IT Solutions',
-    organization: 'Global Commercial Operations',
-    avatarBg: 'bg-amber-600',
-    badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
-    description: 'Configures field schema validation rules, manages Veeva Vault/SFMC/Adobe connectors, and monitors system synchronization webhooks.',
-    status: 'active',
-    primaryTasks: [
-      'Configure field schema validation & character limits',
-      'Manage API connectors for Veeva, SFMC & Adobe',
-      'Monitor webhook sync logs & payload errors',
-      'Inspect JSON API payloads & database schemas'
-    ],
-    permissions: ['it:schema_edit', 'it:connector_manage', 'it:logs_view', 'it:api_inspect', 'taxonomy:view']
   },
   {
     id: 'persona-superadmin',
@@ -573,52 +552,8 @@ export const INITIAL_ANALYTICS: AnalyticsSummary = {
   ]
 };
 
-export const INITIAL_CONNECTORS: ConnectorConfig[] = [
-  {
-    id: 'conn-veeva',
-    name: 'Veeva Vault Promomats & CRM',
-    type: 'Veeva',
-    status: 'connected',
-    lastSync: '2026-08-07 07:30:00 UTC',
-    endpointUrl: 'https://promomats.veevavault.com/api/v24.2/taxonomy',
-    syncedFieldsCount: 42,
-    schemaRules: ['Veeva_Doc_Number_Required', 'Approved_Email_KeyMessage_Map', 'Max_UTM_Length_255']
-  },
-  {
-    id: 'conn-sfmc',
-    name: 'Salesforce Marketing Cloud (SFMC)',
-    type: 'SFMC',
-    status: 'connected',
-    lastSync: '2026-08-07 07:15:00 UTC',
-    endpointUrl: 'https://mc.exacttarget.com/rest/v1/dataextension/commercial_taxonomy',
-    syncedFieldsCount: 28,
-    schemaRules: ['DataExtension_Key_Validation', 'SubscriberKey_Formatting']
-  },
-  {
-    id: 'conn-aem',
-    name: 'Adobe Experience Platform / AEM Assets',
-    type: 'Adobe',
-    status: 'connected',
-    lastSync: '2026-08-07 06:00:00 UTC',
-    endpointUrl: 'https://assets.adobeaemcloud.com/api/assets/taxonomy',
-    syncedFieldsCount: 36,
-    schemaRules: ['Metadata_Property_Namespace', 'Keyword_Taxonomy_Tagging']
-  },
-  {
-    id: 'conn-doximity',
-    name: 'Doximity & Google Ads Connector',
-    type: 'Doximity',
-    status: 'syncing',
-    lastSync: '2026-08-07 07:40:00 UTC',
-    endpointUrl: 'https://api.doximity.com/v2/commercial/campaigns/taxonomy',
-    syncedFieldsCount: 19,
-    schemaRules: ['UTM_Source_Strict_Lookup', 'AdGroup_Naming_Convention']
-  }
-];
-
 export const INITIAL_AUDIT_LOGS: SystemAuditLog[] = [
   { id: 'log-1', timestamp: '2026-08-07 07:35:12 UTC', user: 'Sarah Chen', role: 'agency', action: 'CAMPAIGN_TAXONOMY_CREATED', target: 'COMM-ONC-TRD-2026Q3-HCP-EFF01', details: 'Generated standardized UTM parameters and running AutoTag analysis.' },
   { id: 'log-2', timestamp: '2026-08-07 06:40:00 UTC', user: 'Dr. Marcus Vance', role: 'marketer', action: 'CAMPAIGN_APPROVED', target: 'COMM-HIV-BIK-2026Q3-HCP-EFF02', details: 'Approved campaign taxonomy submission for US Commercial launch.' },
-  { id: 'log-3', timestamp: '2026-08-06 19:10:00 UTC', user: 'David Kim', role: 'it', action: 'CONNECTOR_SYNC_TRIGGERED', target: 'Veeva Vault Promomats', details: 'Re-synced 42 master key message fields to Veeva Vault.' },
   { id: 'log-4', timestamp: '2026-08-06 14:00:00 UTC', user: 'Alexis Thorne', role: 'superadmin', action: 'KEYMESSAGE_SUBCATEGORY_ADDED', target: 'KM-DOS-02', details: 'Added new long-acting Subcutaneous dosing subcategory.' }
 ];

@@ -35,13 +35,10 @@ import {
 export const SuperAdminDashboard: React.FC = () => {
   const {
     personas,
-    currentPersona,
-    switchPersona,
     keyMessages,
     auditLogs,
     refreshTaxonomy,
     showToast,
-    programs,
     agencies,
     onboardAgency,
     editAgency,
@@ -276,53 +273,13 @@ export const SuperAdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 text-slate-900">
-      
-      {/* SuperAdmin KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-600 p-4 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Governance</span>
-            <ShieldAlert className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 tracking-tight">Super Admin</div>
-          <p className="text-[11px] text-rose-700 font-bold">Unrestricted Master Access</p>
-        </div>
 
-        <div className="bg-white border border-slate-200 border-l-4 border-l-emerald-600 p-4 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Partner Agencies</span>
-            <Building2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{agencies.length} Onboarded</div>
-          <p className="text-[11px] text-emerald-700 font-medium">Active Omnichannel Partners</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-blue-600 p-4 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Marketers</span>
-            <Users className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{marketersList.length} Active</div>
-          <p className="text-[11px] text-blue-700 font-medium">Brand Strategy & Approvers</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-purple-600 p-4 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Analytics Team</span>
-            <BarChart3 className="w-4 h-4 text-purple-600" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{analyticsList.length} Leads</div>
-          <p className="text-[11px] text-purple-700 font-medium">Data Integrity & Compliance</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-slate-700 p-4 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Master Topics</span>
-            <Layers className="w-4 h-4 text-slate-700" />
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{keyMessages.length} Categories</div>
-          <p className="text-[11px] text-rose-700 font-bold">Taxonomy Classification</p>
-        </div>
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Administration</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Onboard agencies, manage marketer &amp; analytics users, edit the master taxonomy, and review the audit trail.
+        </p>
       </div>
 
       {/* Navigation Tabs */}
@@ -583,12 +540,6 @@ export const SuperAdminDashboard: React.FC = () => {
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => switchPersona(m.id)}
-                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg text-xs font-bold transition"
-                          >
-                            Emulate
-                          </button>
-                          <button
                             onClick={() => handleOpenUserModal('marketer', m)}
                             className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition"
                             title="Edit Marketer"
@@ -687,12 +638,6 @@ export const SuperAdminDashboard: React.FC = () => {
 
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => switchPersona(a.id)}
-                            className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-lg text-xs font-bold transition"
-                          >
-                            Emulate
-                          </button>
                           <button
                             onClick={() => handleOpenUserModal('analytics', a)}
                             className="p-1.5 text-slate-600 hover:text-purple-600 hover:bg-slate-100 rounded-lg transition"
@@ -838,7 +783,6 @@ export const SuperAdminDashboard: React.FC = () => {
                   <th className="p-3">Organization</th>
                   <th className="p-3">Primary Focus & Form Customization</th>
                   <th className="p-3">Granted Permissions</th>
-                  <th className="p-3 text-right">Switch</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -858,14 +802,6 @@ export const SuperAdminDashboard: React.FC = () => {
                           </span>
                         ))}
                       </div>
-                    </td>
-                    <td className="p-3 text-right">
-                      <button
-                        onClick={() => switchPersona(p.id)}
-                        className="bg-slate-100 hover:bg-slate-200 text-rose-800 px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 shadow-sm"
-                      >
-                        Emulate
-                      </button>
                     </td>
                   </tr>
                 ))}

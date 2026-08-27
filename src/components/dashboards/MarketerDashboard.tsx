@@ -24,7 +24,6 @@ import {
 
 export const MarketerDashboard: React.FC = () => {
   const {
-    currentPersona,
     campaigns,
     brands,
     keyMessages,
@@ -57,44 +56,13 @@ export const MarketerDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 text-slate-900">
-      
-      {/* Marketer KPI Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 border-l-4 border-l-amber-500 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Pending Approvals</span>
-            <Clock className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{pendingCampaigns.length}</div>
-          <p className="text-[11px] text-amber-700 font-bold">Action Required</p>
-        </div>
 
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-600 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Approved Campaigns</span>
-            <CheckCircle2 className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{approvedCampaigns.length}</div>
-          <p className="text-[11px] text-rose-700 font-bold">Ready for SFMC & Veeva</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-rose-500 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Master Programs</span>
-            <Briefcase className="w-4 h-4 text-rose-600" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{programs?.length || 5} Active</div>
-          <p className="text-[11px] text-rose-700 font-bold">Oncology & Virology Scope</p>
-        </div>
-
-        <div className="bg-white border border-slate-200 border-l-4 border-l-slate-700 p-5 rounded-2xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Topic SOV Share</span>
-            <BarChart2 className="w-4 h-4 text-slate-700" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">40.8%</div>
-          <p className="text-[11px] text-slate-500 font-medium">Top Topic: Efficacy & OS</p>
-        </div>
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Approvals</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Review agency taxonomy submissions and manage brand topic coverage.
+        </p>
       </div>
 
       {/* Tabs */}

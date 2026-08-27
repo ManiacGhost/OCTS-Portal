@@ -7,7 +7,6 @@ import {
   ChannelTaxonomy,
   CampaignTaxonomy,
   AnalyticsSummary,
-  ConnectorConfig,
   SystemAuditLog,
   AutoTagResult
 } from '../types';
@@ -22,8 +21,17 @@ export async function fetchPersonas(): Promise<{ personas: UserPersona[]; curren
   return res.json();
 }
 
-export async function switchPersona(personaId: string): Promise<{ success: boolean; currentPersona: UserPersona }> {
-  const res = await fetch('/api/personas/switch', {
+export async function loginRequest(email: string, password: string): Promise<{ success?: boolean; user?: UserPersona; error?: string }> {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  return res.json();
+}
+
+export async function pinSession(personaId: string): Promise<{ success?: boolean; user?: UserPersona; error?: string }> {
+  const res = await fetch('/api/auth/session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ personaId })
@@ -166,16 +174,6 @@ export async function resolveDiscrepancy(id: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id })
   });
-  return res.json();
-}
-
-export async function fetchConnectors(): Promise<{ connectors: ConnectorConfig[] }> {
-  const res = await fetch('/api/connectors');
-  return res.json();
-}
-
-export async function syncConnector(id: string) {
-  const res = await fetch(`/api/connectors/${id}/sync`, { method: 'POST' });
   return res.json();
 }
 
