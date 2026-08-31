@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -12,9 +11,9 @@ import {
   INITIAL_CAMPAIGNS,
   INITIAL_ANALYTICS,
   INITIAL_AUDIT_LOGS,
-} from './src/data/mockData.js';
-import { DUMMY_CREDENTIALS } from './src/data/credentials.js';
-import { CampaignTaxonomy, KeyMessageCategory, KeyMessageSubcategory, SystemAuditLog, AgencyPartner, UserPersona } from './src/types/index.js';
+} from './src/data/mockData';
+import { DUMMY_CREDENTIALS } from './src/data/credentials';
+import { CampaignTaxonomy, KeyMessageCategory, KeyMessageSubcategory, SystemAuditLog, AgencyPartner, UserPersona } from './src/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -574,9 +573,14 @@ app.get('/api/export/csv', (req: Request, res: Response) => {
   }
 });
 
-// ---------------------- FRONTEND VITE INTEGRATION ----------------------
+// The configured Express app — imported by api/index.ts for Vercel serverless.
+export default app;
+
+// ---------------------- LOCAL DEV: FRONTEND VITE INTEGRATION ----------------------
+// On Vercel the frontend is served as static assets and this block never runs
+// (VERCEL is always set in that environment); locally `npm run dev` runs it.
 async function startServer() {
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
   const HOST = process.env.HOST || '127.0.0.1';
 
   if (process.env.NODE_ENV === 'production') {
@@ -585,6 +589,8 @@ async function startServer() {
       res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
     });
   } else {
+    // Lazy import so the Vercel function bundle never pulls in Vite.
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -600,4 +606,6 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
