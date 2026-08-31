@@ -21,6 +21,18 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
+// On Vercel, the catch-all function at api/[...path].ts may receive the request
+// path with the leading `/api` already stripped. Re-add it so the routes below
+// (all declared as `/api/...`) match in every environment.
+if (process.env.VERCEL) {
+  app.use((req, _res, next) => {
+    if (req.url !== '/api' && !req.url.startsWith('/api/')) {
+      req.url = '/api' + (req.url.startsWith('/') ? req.url : `/${req.url}`);
+    }
+    next();
+  });
+}
+
 // In-memory Database State initialized with mockData
 let personas: UserPersona[] = [...INITIAL_PERSONAS];
 let agencies: AgencyPartner[] = [...INITIAL_AGENCIES];

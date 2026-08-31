@@ -21,13 +21,28 @@ export async function fetchPersonas(): Promise<{ personas: UserPersona[]; curren
   return res.json();
 }
 
+/** Parse a JSON response; if the body isn't JSON (e.g. an HTML error page from a
+ *  misconfigured host), return a readable error instead of throwing. */
+async function readJson(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      error: res.ok
+        ? 'The server returned an unexpected (non-JSON) response.'
+        : `Auth service error ${res.status} ${res.statusText}. The API may not be deployed.`,
+    };
+  }
+}
+
 export async function loginRequest(email: string, password: string): Promise<{ success?: boolean; user?: UserPersona; error?: string }> {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   });
-  return res.json();
+  return readJson(res);
 }
 
 export async function pinSession(personaId: string): Promise<{ success?: boolean; user?: UserPersona; error?: string }> {
@@ -36,7 +51,7 @@ export async function pinSession(personaId: string): Promise<{ success?: boolean
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ personaId })
   });
-  return res.json();
+  return readJson(res);
 }
 
 export async function createUserPersona(data: Partial<UserPersona>): Promise<{ success: boolean; persona: UserPersona; personas: UserPersona[] }> {
