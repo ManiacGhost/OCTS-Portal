@@ -4,6 +4,107 @@ import { LogIn, Lock, Mail, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { DUMMY_CREDENTIALS, UserCredentials } from '../data/credentials';
 
+/**
+ * Original line-art of digital promotional channels (email, push, paid search,
+ * social, display/video, broadcast, alerts, analytics) wired into one network.
+ * Hand-drawn here — not derived from any third-party asset — and rendered greyed
+ * out behind the brand panel.
+ */
+const ChannelsBackdrop: React.FC = () => (
+  <div className="absolute inset-0" aria-hidden="true">
+    <svg
+      viewBox="0 0 480 760"
+      preserveAspectRatio="xMidYMid slice"
+      className="h-full w-full text-slate-300 opacity-[0.12]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <defs>
+        {/* each icon drawn in a 0 0 100 100 box */}
+        <g id="ch-email">
+          <rect x="12" y="24" width="76" height="52" rx="6" />
+          <path d="M14 30l36 26 36-26" />
+        </g>
+        <g id="ch-phone">
+          <rect x="30" y="10" width="40" height="80" rx="8" />
+          <line x1="44" y1="80" x2="56" y2="80" />
+          <circle cx="66" cy="22" r="5" fill="currentColor" stroke="none" />
+        </g>
+        <g id="ch-cursor">
+          <path d="M34 26l8 46 10-18 18-5z" />
+          <path d="M20 20l7 7M18 36h9M36 18v9" />
+        </g>
+        <g id="ch-chat">
+          <path d="M16 22h68a6 6 0 0 1 6 6v30a6 6 0 0 1-6 6H44L26 82V64h-10a6 6 0 0 1-6-6V28a6 6 0 0 1 6-6z" />
+          <circle cx="36" cy="44" r="4" fill="currentColor" stroke="none" />
+          <circle cx="50" cy="44" r="4" fill="currentColor" stroke="none" />
+          <circle cx="64" cy="44" r="4" fill="currentColor" stroke="none" />
+        </g>
+        <g id="ch-display">
+          <rect x="12" y="18" width="76" height="50" rx="6" />
+          <path d="M42 32l20 11-20 11z" fill="currentColor" stroke="none" />
+          <line x1="34" y1="82" x2="66" y2="82" />
+          <line x1="50" y1="68" x2="50" y2="82" />
+        </g>
+        <g id="ch-megaphone">
+          <path d="M18 44v14l12 3 6 20h9l-5-18 28 10V26z" />
+          <path d="M80 34c9 4 9 24 0 28" />
+        </g>
+        <g id="ch-bell">
+          <path d="M50 14a20 20 0 0 1 20 20v16l8 12H22l8-12V34a20 20 0 0 1 20-20z" />
+          <path d="M42 74a8 8 0 0 0 16 0" />
+        </g>
+        <g id="ch-search">
+          <circle cx="44" cy="44" r="22" />
+          <line x1="60" y1="60" x2="84" y2="84" />
+        </g>
+        <g id="ch-bars">
+          <line x1="16" y1="84" x2="88" y2="84" />
+          <line x1="26" y1="84" x2="26" y2="56" />
+          <line x1="44" y1="84" x2="44" y2="40" />
+          <line x1="62" y1="84" x2="62" y2="50" />
+          <line x1="80" y1="84" x2="80" y2="28" />
+        </g>
+        <g id="ch-at">
+          <circle cx="50" cy="50" r="15" />
+          <path d="M65 50c0 11 13 11 13 -1a28 28 0 1 0-11 22" />
+        </g>
+      </defs>
+
+      {/* connective network */}
+      <g opacity="0.55">
+        <path d="M88 96 L272 74 M272 74 L392 150 M120 232 L272 74 M120 232 L252 366 M252 366 L338 300 M252 366 L392 400 M120 470 L252 366 M320 512 L252 366 M88 604 L120 470 M272 632 L320 512 M392 660 L272 632 M180 700 L120 470 M60 342 L120 232" />
+        {[
+          [88, 96], [272, 74], [392, 150], [120, 232], [252, 366], [338, 300],
+          [392, 400], [60, 342], [120, 470], [320, 512], [88, 604], [272, 632],
+          [392, 660], [180, 700],
+        ].map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r="3.5" fill="currentColor" stroke="none" />
+        ))}
+      </g>
+
+      {/* channel glyphs */}
+      <use href="#ch-email" transform="translate(40 46) scale(0.9)" />
+      <use href="#ch-search" transform="translate(228 30) scale(0.85)" />
+      <use href="#ch-display" transform="translate(346 104) scale(0.9)" />
+      <use href="#ch-chat" transform="translate(72 184) scale(0.95)" />
+      <use href="#ch-at" transform="translate(20 296) scale(0.85)" />
+      <use href="#ch-megaphone" transform="translate(196 318) scale(0.95)" />
+      <use href="#ch-bars" transform="translate(292 250) scale(0.9)" />
+      <use href="#ch-phone" transform="translate(300 340) scale(0.85)" />
+      <use href="#ch-bell" transform="translate(76 420) scale(0.85)" />
+      <use href="#ch-cursor" transform="translate(276 460) scale(0.95)" />
+      <use href="#ch-email" transform="translate(36 556) scale(0.8)" />
+      <use href="#ch-phone" transform="translate(232 584) scale(0.8)" />
+      <use href="#ch-chat" transform="translate(346 612) scale(0.8)" />
+      <use href="#ch-search" transform="translate(140 656) scale(0.8)" />
+    </svg>
+  </div>
+);
+
 export const LoginPage: React.FC = () => {
   const { user, isHydrating, isAuthenticating, login } = useAuth();
   const navigate = useNavigate();
@@ -51,8 +152,12 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50">
       {/* Brand panel */}
-      <div className="hidden lg:flex flex-col justify-between bg-slate-900 text-white p-12">
-        <div className="flex items-center gap-3">
+      <div className="relative hidden lg:flex flex-col justify-between bg-slate-800 text-white p-12 overflow-hidden">
+        {/* Greyed-out decorative backdrop — original line art of digital promotional channels */}
+        <ChannelsBackdrop />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-900/60 to-slate-900/90" />
+
+        <div className="relative z-10 flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-rose-600 flex items-center justify-center font-extrabold text-xl shadow-md">
             O
           </div>
@@ -64,7 +169,7 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-4 max-w-md">
+        <div className="relative z-10 space-y-4 max-w-md">
           <h1 className="text-3xl font-extrabold leading-tight">
             One source of truth for omnichannel content taxonomy &amp; metadata.
           </h1>
@@ -74,7 +179,7 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="text-[11px] text-slate-500 font-mono">v2.4 • Global Commercial Operations</div>
+        <div className="relative z-10 text-[11px] text-slate-500 font-mono">v2.4 • Global Commercial Operations</div>
       </div>
 
       {/* Login panel */}
