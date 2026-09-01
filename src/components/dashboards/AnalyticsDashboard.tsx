@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
-import { CampaignTacticFloatingWindow } from '../common/CampaignTacticFloatingWindow';
 import {
   BarChart3,
   AlertTriangle,
@@ -320,9 +319,6 @@ export const AnalyticsDashboard: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Floating Campaign & Tactics Lookup Window */}
-      <CampaignTacticFloatingWindow viewMode="analytics" defaultOpen={true} />
 
     </div>
   );

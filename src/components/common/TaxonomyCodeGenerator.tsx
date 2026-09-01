@@ -16,14 +16,14 @@ export const TaxonomyCodeGenerator: React.FC = () => {
   const { therapeuticAreas, brands, keyMessages, channels, showToast } = usePersona();
 
   const [region, setRegion] = useState('US Commercial');
-  const [taId, setTaId] = useState('ta-onc');
-  const [brandId, setBrandId] = useState('brand-trodelvy');
+  const [taId, setTaId] = useState('ta-cart');
+  const [brandId, setBrandId] = useState('brand-yescarta');
   const [kmCatId, setKmCatId] = useState('km-cat-eff');
   const [kmSubId, setKmSubId] = useState('km-sub-eff-01');
-  const [chanId, setChanId] = useState('chan-veeva-email');
+  const [chanId, setChanId] = useState('chan-social');
   const [quarter, setQuarter] = useState('2026-Q3');
   const [audience, setAudience] = useState('HCPs');
-  const [campaignSlug, setCampaignSlug] = useState('mtnbc_survival_launch');
+  const [campaignSlug, setCampaignSlug] = useState('lbcl_orr_launch');
 
   const [copiedTaxonomy, setCopiedTaxonomy] = useState(false);
   const [copiedUtm, setCopiedUtm] = useState(false);
@@ -35,21 +35,21 @@ export const TaxonomyCodeGenerator: React.FC = () => {
   const selectedChan = channels.find(c => c.id === chanId);
 
   const regCode = (region || '').includes('US') ? 'US' : 'EU';
-  const taCode = selectedTa?.code || 'ONC';
-  const brandCode = selectedBrand?.code || 'TRD';
+  const taCode = selectedTa?.code || 'CART';
+  const brandCode = selectedBrand?.code || 'YES';
   const qtrCode = (quarter || 'Q1-2025').replace('-', '');
   const audCode = (audience || '').toLowerCase().includes('patient') ? 'PAT' : 'HCP';
-  const chanCode = selectedChan?.code ? selectedChan.code.replace('-', '_') : 'VEE_EML';
+  const chanCode = selectedChan?.code ? selectedChan.code.replace('-', '_') : 'SOC';
   const subCode = selectedSub?.code ? selectedSub.code.replace('KM-', '').replace('-', '') : 'EFF01';
 
   const taxonomyString = `COMM_${regCode}_${taCode}_${brandCode}_${qtrCode}_${audCode}_${chanCode}_${subCode}_101`;
 
-  const utmSource = selectedChan?.downstreamPlatform ? selectedChan.downstreamPlatform.toLowerCase().replace(/ /g, '_') : 'veeva_crm';
-  const utmMedium = (selectedChan?.formats && selectedChan.formats[0]) ? selectedChan.formats[0].toLowerCase().replace(/ /g, '_') : 'email';
-  const utmCampaign = `${selectedBrand?.name ? selectedBrand.name.toLowerCase().split(' ')[0] : 'trodelvy'}_${qtrCode.toLowerCase()}_${campaignSlug}`;
+  const utmSource = selectedChan?.downstreamPlatform ? selectedChan.downstreamPlatform.toLowerCase().replace(/ /g, '_') : 'paid_social';
+  const utmMedium = (selectedChan?.formats && selectedChan.formats[0]) ? selectedChan.formats[0].toLowerCase().replace(/ /g, '_') : 'social';
+  const utmCampaign = `${selectedBrand?.name ? selectedBrand.name.toLowerCase().split(' ')[0] : 'yescarta'}_${qtrCode.toLowerCase()}_${campaignSlug}`;
   const utmContent = `${subCode.toLowerCase()}_${audCode.toLowerCase()}`;
 
-  const fullTrackingUrl = `https://hcp.biopharma-enterprise.com/oncology/${brandCode.toLowerCase()}?utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}&utm_content=${utmContent}&tax_code=${taxonomyString}`;
+  const fullTrackingUrl = `https://hcp.kitepharma.com/${brandCode.toLowerCase()}?utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}&utm_content=${utmContent}&tax_code=${taxonomyString}`;
 
   const handleCopyTaxonomy = () => {
     navigator.clipboard.writeText(taxonomyString);

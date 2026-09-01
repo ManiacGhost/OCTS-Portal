@@ -1,11 +1,34 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
 import { TaxonomyCodeGenerator } from '../common/TaxonomyCodeGenerator';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
-import { CampaignTacticFloatingWindow } from '../common/CampaignTacticFloatingWindow';
 import { TaxonomyTooltip, TAXONOMY_TOOLTIPS } from '../common/TaxonomyTooltip';
+import {
+  CHANNEL_TYPES,
+  CAMPAIGN_FORMULA,
+  SUB_CHANNELS,
+  SUB_CHANNEL_FIELDS,
+  MEDIUMS,
+  COUNTRIES,
+  MESSAGING_TYPES,
+  TARGETS,
+  INDICATIONS,
+  buildCampaignTaxonomy,
+  formulaTemplate,
+  generateCode,
+  MediaChannelType,
+} from '../../data/taxonomyFormulas';
+
+const CHANNEL_ID: Record<MediaChannelType, string> = {
+  Digital: 'chan-digital',
+  Social: 'chan-social',
+  Search: 'chan-search',
+  SFMC: 'chan-sfmc',
+};
+
+const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
 import {
   FilePlus,
   CheckCircle2,
@@ -28,7 +51,6 @@ import {
 export const AgencyDashboard: React.FC = () => {
   const {
     brands,
-    channels,
     campaigns,
     programs,
     addCampaign,
@@ -43,20 +65,60 @@ export const AgencyDashboard: React.FC = () => {
   const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Campaign Form State
-  const [campaignName, setCampaignName] = useState('Trodelvy Q3 2026 mTNBC OS Superiority Launch');
-  const [selectedTaId, setSelectedTaId] = useState('ta-onc');
-  const [selectedBrandId, setSelectedBrandId] = useState('brand-trodelvy');
+  const [campaignName, setCampaignName] = useState('Yescarta 2L LBCL — ORR HCP Meta');
+  const [selectedTaId, setSelectedTaId] = useState('ta-cart');
+  const [selectedBrandId, setSelectedBrandId] = useState('brand-yescarta');
   const [selectedCatId, setSelectedCatId] = useState('km-cat-eff');
   const [selectedSubId, setSelectedSubId] = useState('km-sub-eff-01');
-  const [selectedChanId, setSelectedChanId] = useState('chan-veeva-email');
-  const [format, setFormat] = useState('Rep Triggered Email');
-  const [targetAudience, setTargetAudience] = useState('Oncologists');
-  const [region, setRegion] = useState('US Commercial');
   const [quarter, setQuarter] = useState('2026-Q3');
-  const [notes, setNotes] = useState('Agency campaign taxonomy setup for Q3 commercial HCP detailing.');
+  const [region, setRegion] = useState('US Commercial');
+  const [notes, setNotes] = useState('Built from the approved Social Campaign Name formula.');
+
+  // Approved-formula channel state
+  const [channelType, setChannelType] = useState<MediaChannelType>('Social');
+  const [subChannel, setSubChannel] = useState<string>(SUB_CHANNELS.Social[0]);
+  const [country, setCountry] = useState('US');
+  const [messagingType, setMessagingType] = useState(MESSAGING_TYPES[0]);
+  const [target, setTarget] = useState('HCP');
+  const [indication, setIndication] = useState(INDICATIONS[0]);
+  const [subChannelMeta, setSubChannelMeta] = useState<Record<string, string>>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
+
+  // Stable machine `Code (m)` token for this builder session.
+  const machineCode = useMemo(() => generateCode(), []);
+
+  const selectedBrand = brands.find(b => b.id === selectedBrandId);
+  const yearToken = (quarter.split('-')[0] || '2026');
+
+  const chooseChannel = (ch: MediaChannelType) => {
+    setChannelType(ch);
+    setSubChannel(SUB_CHANNELS[ch][0]);
+    setSubChannelMeta({});
+  };
+  const chooseSubChannel = (sc: string) => {
+    setSubChannel(sc);
+    setSubChannelMeta({});
+  };
+
+  // Resolve every formula token to a value.
+  const formulaInputs: Record<string, string> = {
+    country,
+    medium: MEDIUMS[channelType],
+    product: selectedBrand?.code || 'YES',
+    messagingType,
+    ta: selectedTaId === 'ta-cart' ? 'CART' : (selectedTaId === 'ta-hem' ? 'HEM' : 'ONC'),
+    target,
+    indication,
+    platform: subChannel,
+    year: yearToken,
+    code: machineCode,
+    ...subChannelMeta,
+  };
+
+  const built = buildCampaignTaxonomy(channelType, formulaInputs);
+  const extraFields = SUB_CHANNEL_FIELDS[channelType][subChannel] || [];
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,12 +135,17 @@ export const AgencyDashboard: React.FC = () => {
         brandId: selectedBrandId,
         keyMessageCategoryId: selectedCatId,
         keyMessageSubcategoryId: selectedSubId,
-        channelId: selectedChanId,
-        format,
-        targetAudience,
+        channelId: CHANNEL_ID[channelType],
+        channelType,
+        subChannel,
+        format: subChannel,
+        formulaInputs,
+        campaignCode: built.string,
+        taxonomyString: built.string,
+        targetAudience: target,
         region: selectedMarket || region,
         quarter,
-        agencyOwner: user?.organization || 'Havas Health',
+        agencyOwner: user?.organization || 'Klick Health',
         status: 'submitted',
         notes
       });
@@ -224,7 +291,7 @@ export const AgencyDashboard: React.FC = () => {
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
-                3. Tactic & Channel
+                3. Channel & Formula
               </button>
 
               <button
@@ -264,7 +331,7 @@ export const AgencyDashboard: React.FC = () => {
                     type="text"
                     value={campaignName}
                     onChange={(e) => setCampaignName(e.target.value)}
-                    placeholder="e.g. Trodelvy Q3 2026 mTNBC OS Superiority Launch"
+                    placeholder="e.g. Yescarta 2L LBCL — ORR HCP Meta"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
                   />
                 </div>
@@ -356,86 +423,194 @@ export const AgencyDashboard: React.FC = () => {
                   onClick={() => setBuilderStep(3)}
                   className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
-                  <span>Next: Tactic & Channel Setup</span>
+                  <span>Next: Channel & Formula</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Tactic, Channel & Target Audience */}
+          {/* STEP 3: Channel & Approved Taxonomy Formula */}
           {builderStep === 3 && (
             <div className="space-y-5 animate-fade-in">
               <div className="bg-rose-50/60 p-4 rounded-2xl border border-rose-100 flex items-start gap-3 text-xs text-rose-900">
                 <Info className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-rose-950">Step 3: Tactic, Channel & Target Audience</h4>
+                  <h4 className="font-bold text-rose-950">Step 3: Channel &amp; Approved Taxonomy Formula</h4>
                   <p className="mt-0.5 text-rose-800">
-                    Specify the deployment channel platform and target specialty to generate channel-specific UTM parameters.
+                    Pick the promotional channel and sub-channel. The approved Kite Campaign Name
+                    formula for that channel is applied below &mdash; you fill the highlighted fields,
+                    everything else is filled automatically.
                   </p>
                 </div>
               </div>
 
+              {/* Channel */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">Promotional channel</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {CHANNEL_TYPES.map(ch => (
+                    <button
+                      key={ch}
+                      type="button"
+                      onClick={() => chooseChannel(ch)}
+                      className={`p-3 rounded-xl border text-sm font-bold transition ${
+                        channelType === ch
+                          ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {ch}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sub-channel */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  Sub-channel
+                  <span className="text-slate-400 font-normal"> — sets the <span className="font-mono">platform</span> token &amp; its own fields</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {SUB_CHANNELS[channelType].map(sc => (
+                    <button
+                      key={sc}
+                      type="button"
+                      onClick={() => chooseSubChannel(sc)}
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+                        subChannel === sc
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {sc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Core formula fields the planner fills */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
-                    <span>Channel Platform</span>
-                    <TaxonomyTooltip {...TAXONOMY_TOOLTIPS.channel} />
-                  </label>
-                  <select
-                    value={selectedChanId}
-                    onChange={(e) => setSelectedChanId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
-                  >
-                    {channels.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.code})
-                      </option>
+                {CAMPAIGN_FORMULA[channelType]
+                  .filter(t => t.source === 'input')
+                  .map(t => {
+                    const map: Record<string, { value: string; set: (v: string) => void; options: string[] }> = {
+                      country: { value: country, set: setCountry, options: COUNTRIES },
+                      messagingType: { value: messagingType, set: setMessagingType, options: MESSAGING_TYPES },
+                      target: { value: target, set: setTarget, options: TARGETS },
+                      indication: { value: indication, set: setIndication, options: INDICATIONS },
+                    };
+                    const ctl = map[t.key];
+                    if (!ctl) return null;
+                    return (
+                      <div key={t.key}>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          {t.label} <span className="text-rose-500">*</span>
+                          {t.key === 'indication' && <span className="text-slate-400 font-normal"> (Cancer — specific type)</span>}
+                        </label>
+                        <select
+                          value={ctl.value}
+                          onChange={e => ctl.set(e.target.value)}
+                          className="w-full bg-white border border-rose-200 ring-1 ring-rose-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
+                        >
+                          {ctl.options.map(o => (
+                            <option key={o} value={o}>{o}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Sub-channel-specific fields */}
+              {extraFields.length > 0 && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                  <div className="text-xs font-bold text-slate-700">
+                    {subChannel} — sub-channel details
+                    <span className="text-slate-400 font-normal"> (captured for the placement level)</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {extraFields.map(f => (
+                      <div key={f.key}>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">{f.label}</label>
+                        {f.options ? (
+                          <select
+                            value={subChannelMeta[f.key] || ''}
+                            onChange={e => setSubChannelMeta(m => ({ ...m, [f.key]: e.target.value }))}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
+                          >
+                            <option value="">— select —</option>
+                            {f.options.map(o => (
+                              <option key={o} value={o}>{o}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={subChannelMeta[f.key] || ''}
+                            onChange={e => setSubChannelMeta(m => ({ ...m, [f.key]: e.target.value }))}
+                            placeholder={f.placeholder}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
+                          />
+                        )}
+                      </div>
                     ))}
-                  </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Auto-filled tokens */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">Auto-filled from your earlier choices</label>
+                <div className="flex flex-wrap gap-2">
+                  {CAMPAIGN_FORMULA[channelType]
+                    .filter(t => t.source !== 'input')
+                    .map(t => (
+                      <span key={t.key} className="text-[11px] bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 text-slate-700">
+                        <span className="text-slate-400">{t.label}:</span>{' '}
+                        <span className="font-mono font-bold text-slate-900">{formulaInputs[t.key] || '—'}</span>
+                      </span>
+                    ))}
+                </div>
+              </div>
+
+              {/* Live formula breakdown */}
+              <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                  <Code className="w-4 h-4" />
+                  <span>Approved {channelType} Campaign Name formula</span>
+                </div>
+                <div className="font-mono text-[11px] text-slate-300 break-words">{formulaTemplate(channelType)}</div>
+                <div className="text-[10px] text-slate-500">
+                  (c) controlled &nbsp;·&nbsp; (v) variable &nbsp;·&nbsp; (m) machine &nbsp;·&nbsp; (f) free text
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
-                    <span>Target Audience Specialty</span>
-                    <TaxonomyTooltip {...TAXONOMY_TOOLTIPS.targetAudience} />
-                  </label>
-                  <select
-                    value={targetAudience}
-                    onChange={(e) => setTargetAudience(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
-                  >
-                    <option value="Oncologists">Oncologists</option>
-                    <option value="Infectious Disease Specialists">Infectious Disease Specialists</option>
-                    <option value="Hepatologists">Hepatologists</option>
-                    <option value="Patients">Patients & Caregivers</option>
-                  </select>
+                <div className="border-t border-slate-800 pt-3 space-y-1">
+                  {built.tokens.map((tok, i) => (
+                    <div key={tok.key} className="flex items-center gap-2 text-[11px]">
+                      <span className="text-slate-500 w-5 text-right">{i + 1}.</span>
+                      <span className="text-slate-400 w-40 shrink-0">{tok.label} <span className="text-slate-600">({KIND_LABEL[tok.kind]})</span></span>
+                      <span className="font-mono font-bold text-emerald-300 truncate">{tok.value}</span>
+                    </div>
+                  ))}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
-                    <span>Asset Format / Tactic Name</span>
-                    <TaxonomyTooltip {...TAXONOMY_TOOLTIPS.tactic} />
-                  </label>
-                  <input
-                    type="text"
-                    value={format}
-                    onChange={(e) => setFormat(e.target.value)}
-                    placeholder="e.g. Rep Triggered Email, Interactive Banner"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
-                  />
+                <div className="bg-slate-950 rounded-xl border border-slate-800 p-3 space-y-1">
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Campaign Name taxonomy string</span>
+                  <div className="font-mono text-xs text-rose-300 font-bold break-all">{built.string}</div>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Agency Notes / Comments</label>
-                  <input
-                    type="text"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="e.g. Q3 detailing content push"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Agency notes / comments</label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. 2L LBCL awareness push"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                />
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
@@ -483,27 +658,27 @@ export const AgencyDashboard: React.FC = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">Brand / TA:</span>
                     <span className="font-bold text-rose-300 block">
-                      {brands.find(b => b.id === selectedBrandId)?.name || 'Trodelvy'}
+                      {selectedBrand?.name || 'Yescarta®'}
                     </span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Channel / Sub-channel:</span>
+                    <span className="font-bold text-slate-200 block">{channelType} · {subChannel}</span>
                   </div>
 
                   <div>
                     <span className="text-slate-400 block text-[10px]">Topic / Subtopic:</span>
                     <span className="font-mono text-rose-400 font-bold block">{selectedSubId}</span>
                   </div>
-
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Market:</span>
-                    <span className="font-bold text-slate-200 block">{selectedMarket || region}</span>
-                  </div>
                 </div>
 
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                    Full Standardized Campaign Taxonomy String:
+                    Campaign Name taxonomy string (approved {channelType} formula):
                   </span>
                   <div className="font-mono text-xs text-rose-300 font-bold break-all">
-                    COMM-US-ONC-TRD-2026Q3-EFF-01-VEEVA-REP
+                    {built.string}
                   </div>
                 </div>
               </div>
@@ -515,7 +690,7 @@ export const AgencyDashboard: React.FC = () => {
                   className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Back to Tactic</span>
+                  <span>Back to Channel</span>
                 </button>
 
                 <button
@@ -662,7 +837,7 @@ export const AgencyDashboard: React.FC = () => {
                         <div className="font-mono text-[10px] text-rose-700 font-bold">{cmp.campaignCode}</div>
                       </td>
                       <td className="p-3">
-                        <div className="font-bold text-slate-800">{brand?.name || 'Trodelvy'}</div>
+                        <div className="font-bold text-slate-800">{brand?.name || 'Yescarta®'}</div>
                         <div className="text-[10px] text-slate-500 font-medium">{cmp.region} • {cmp.quarter}</div>
                       </td>
                       <td className="p-3">
@@ -707,9 +882,6 @@ export const AgencyDashboard: React.FC = () => {
 
       {/* Tab 5: Gilead Taxonomy Master */}
       {activeTab === 'dictionary' && <TaxonomyDictionaryView />}
-
-      {/* Floating Campaign & Tactics Lookup Window */}
-      <CampaignTacticFloatingWindow viewMode="agency" defaultOpen={true} />
 
     </div>
   );

@@ -150,13 +150,13 @@ app.post('/api/personas', (req: Request, res: Response) => {
     role,
     roleTitle: roleTitle || `${role.toUpperCase()} Governance Lead`,
     department: department || (role === 'marketer' ? 'Commercial Strategy' : role === 'analytics' ? 'Global Commercial Analytics' : 'Agency Operations'),
-    organization: organization || (role === 'agency' ? 'Partner Agency' : 'Global Commercial Operations'),
+    organization: organization || (role === 'agency' ? 'Partner Agency' : 'Kite Pharma, a Gilead Company'),
     avatarBg: style.bg,
     badgeColor: style.badge,
-    description: description || `Configured ${role} persona for enterprise commercial operations.`,
+    description: description || `Configured ${role} persona for the Kite cell-therapy commercial operation.`,
     status: 'active',
-    assignedBrands: assignedBrands || ['Trodelvy®'],
-    assignedTherapeuticAreas: assignedTherapeuticAreas || ['Oncology'],
+    assignedBrands: assignedBrands || ['Yescarta®'],
+    assignedTherapeuticAreas: assignedTherapeuticAreas || ['Cell Therapy / CAR-T'],
     createdAt: new Date().toISOString(),
     primaryTasks: primaryTasks && primaryTasks.length > 0 ? primaryTasks : [
       `Perform ${role} tasks`,
@@ -253,8 +253,8 @@ app.post('/api/agencies', (req: Request, res: Response) => {
     code: code.toUpperCase(),
     contactEmail: contactEmail || `contact@${name.toLowerCase().replace(/ /g, '')}.com`,
     primaryContact: primaryContact || 'Agency Lead',
-    assignedBrands: assignedBrands || ['Biktarvy®'],
-    assignedTherapeuticAreas: assignedTherapeuticAreas || ['Virology / HIV'],
+    assignedBrands: assignedBrands || ['Yescarta®'],
+    assignedTherapeuticAreas: assignedTherapeuticAreas || ['Cell Therapy / CAR-T'],
     status: 'active',
     regionScope: regionScope || 'US Commercial',
     activeUsersCount: 1,
@@ -400,33 +400,39 @@ app.post('/api/campaigns', (req: Request, res: Response) => {
   const kmCode = kmSub?.code.replace('KM-', '').replace('-', '') || 'KM01';
   const randNum = Math.floor(100 + Math.random() * 900);
 
-  const generatedTaxonomyString = `COMM_${regionCode}_${taCode}_${brandCode}_${qtr}_${audCode}_${chanCode}_${kmCode}_${randNum}`;
+  const fallbackTaxonomyString = `COMM_${regionCode}_${taCode}_${brandCode}_${qtr}_${audCode}_${chanCode}_${kmCode}_${randNum}`;
+  // The Campaign Builder assembles the string from the approved channel formula
+  // client-side and sends it; only fall back to the old generator if it didn't.
+  const taxonomyString = body.taxonomyString || fallbackTaxonomyString;
 
   const newCampaign: CampaignTaxonomy = {
     id: `cmp-${Date.now()}`,
     campaignName: body.campaignName || 'Untitled Commercial Campaign',
-    campaignCode: body.campaignCode || generatedTaxonomyString,
+    campaignCode: body.campaignCode || taxonomyString,
     therapeuticAreaId: body.therapeuticAreaId,
     brandId: body.brandId,
     keyMessageCategoryId: body.keyMessageCategoryId,
     keyMessageSubcategoryId: body.keyMessageSubcategoryId,
     channelId: body.channelId,
-    format: body.format || 'Digital Asset',
-    targetAudience: body.targetAudience || 'HCPs',
+    channelType: body.channelType,
+    subChannel: body.subChannel,
+    formulaInputs: body.formulaInputs,
+    format: body.format || body.subChannel || 'Digital Asset',
+    targetAudience: body.targetAudience || 'HCP',
     region: body.region || 'US Commercial',
     quarter: body.quarter || '2026-Q3',
-    agencyOwner: curPersona?.role === 'agency' ? curPersona.organization : (body.agencyOwner || 'Publicis Media'),
+    agencyOwner: curPersona?.role === 'agency' ? curPersona.organization : (body.agencyOwner || 'Klick Health'),
     marketerOwner: body.marketerOwner || 'Dr. Marcus Vance',
     status: body.status || 'submitted',
     complianceScore: Math.floor(95 + Math.random() * 5),
-    taxonomyString: generatedTaxonomyString,
-    utmSource: chan?.downstreamPlatform.toLowerCase().replace(/ /g, '_') || 'veeva_crm',
-    utmMedium: body.format ? body.format.toLowerCase().replace(/ /g, '_') : 'approved_email',
+    taxonomyString,
+    utmSource: (body.subChannel || chan?.name || 'programmatic').toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+    utmMedium: (chan?.name || body.format || 'display').toLowerCase().replace(/[^a-z0-9]+/g, '_'),
     utmCampaign: `${brand?.name.toLowerCase().split(' ')[0] || 'brand'}_${body.quarter || '2026q3'}`,
     utmContent: `${kmSub?.code.toLowerCase() || 'km'}_${audCode.toLowerCase()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    notes: body.notes || 'Created via Agency Taxonomy Builder'
+    notes: body.notes || 'Created via the Campaign Builder'
   };
 
   campaigns.unshift(newCampaign);
@@ -469,59 +475,59 @@ app.post('/api/autotag', (req: Request, res: Response) => {
   // Keyword matching engine against Master Key Messages
   const predictions = [];
 
-  if (text.includes('survival') || text.includes('os') || text.includes('pfs') || text.includes('efficacy') || text.includes('viral') || text.includes('cure') || text.includes('trial')) {
+  if (text.includes('response') || text.includes('orr') || text.includes('remission') || text.includes('survival') || text.includes('durable') || text.includes('efficacy') || text.includes('zuma') || text.includes('real-world')) {
     predictions.push({
-      category: 'Efficacy & Clinical Outcomes',
-      subcategory: 'Overall Survival (OS) Superiority (KM-EFF-01)',
+      category: 'Efficacy & Durable Response',
+      subcategory: 'Overall Response Rate (ORR) (KM-EFF-01)',
       keyMessageCode: 'KM-EFF-01',
       confidence: 0.96,
-      matchedKeywords: ['survival', 'clinical trial', 'statistically significant', 'efficacy'],
-      suggestedTags: ['OS_Gain', 'TNBC_Efficacy', 'Phase3_Data'],
-      reasoning: 'Creative copy contains explicit clinical endpoint terms (OS, trial endpoints, efficacy gains).'
+      matchedKeywords: ['overall response rate', 'complete response', 'durable', 'ZUMA trial'],
+      suggestedTags: ['ORR', 'Durable_CR', 'CAR_T_Efficacy'],
+      reasoning: 'Creative copy contains CAR-T efficacy endpoint terms (ORR, complete response, durability).'
     });
   }
 
-  if (text.includes('copay') || text.includes('$0') || text.includes('assistance') || text.includes('coverage') || text.includes('access') || text.includes('insurance') || text.includes('savings')) {
+  if (text.includes('atc') || text.includes('authorized treatment center') || text.includes('referral') || text.includes('reimbursement') || text.includes('coverage') || text.includes('access') || text.includes('travel') || text.includes('lodging')) {
     predictions.push({
-      category: 'Access, Co-Pay & Coverage',
-      subcategory: '$0 Co-Pay Savings Card Program (KM-ACC-01)',
+      category: 'Access & Authorized Treatment Centers',
+      subcategory: 'ATC Network & Referral Pathways (KM-ACC-01)',
       keyMessageCode: 'KM-ACC-01',
       confidence: 0.94,
-      matchedKeywords: ['$0 copay', 'savings card', 'advancing access', 'commercial insurance'],
-      suggestedTags: ['Copay_Card', 'Patient_Assistance', 'Zero_Cost'],
-      reasoning: 'Copy emphasizes financial reimbursement, patient co-pay cards, and access support.'
+      matchedKeywords: ['authorized treatment center', 'referral pathway', 'site of care', 'travel support'],
+      suggestedTags: ['ATC_Network', 'Referral', 'Travel_Support'],
+      reasoning: 'Copy emphasizes the treatment-center network, referral pathways, and access support.'
     });
   }
 
-  if (text.includes('daily') || text.includes('pill') || text.includes('injection') || text.includes('dose') || text.includes('subcutaneous') || text.includes('6-month') || text.includes('infusion')) {
+  if (text.includes('apheresis') || text.includes('infusion') || text.includes('manufacturing') || text.includes('bridging') || text.includes('lymphodepletion') || text.includes('conditioning') || text.includes('vein-to-vein')) {
     predictions.push({
-      category: 'Dosing, Administration & Adherence',
-      subcategory: 'Once-Daily Single-Tablet Regimen / Long Acting (KM-DOS-01)',
-      keyMessageCode: 'KM-DOS-01',
+      category: 'Treatment Journey & Logistics',
+      subcategory: 'Apheresis-to-Infusion Timeline (KM-PROC-01)',
+      keyMessageCode: 'KM-PROC-01',
       confidence: 0.91,
-      matchedKeywords: ['once daily', 'subcutaneous', '6-month dosing', 'pill size'],
-      suggestedTags: ['Once_Daily_STR', 'Long_Acting', 'SubQ_Infusion'],
-      reasoning: 'Copy contains regimen frequency and administration methodology details.'
+      matchedKeywords: ['apheresis', 'vein-to-vein', 'bridging therapy', 'lymphodepletion'],
+      suggestedTags: ['Apheresis', 'Turnaround', 'Bridging_Therapy'],
+      reasoning: 'Copy contains CAR-T treatment-journey and manufacturing-logistics details.'
     });
   }
 
-  if (text.includes('safety') || text.includes('tolerability') || text.includes('side effect') || text.includes('renal') || text.includes('bone') || text.includes('neutropenia')) {
+  if (text.includes('crs') || text.includes('cytokine') || text.includes('icans') || text.includes('neurotoxicity') || text.includes('tocilizumab') || text.includes('rems') || text.includes('safety')) {
     predictions.push({
-      category: 'Safety, Tolerability & Black Box',
-      subcategory: 'Renal & Bone Safety Profile (KM-SAF-01)',
+      category: 'Safety: CRS & ICANS Management',
+      subcategory: 'CRS Grading & Tocilizumab Protocol (KM-SAF-01)',
       keyMessageCode: 'KM-SAF-01',
       confidence: 0.89,
-      matchedKeywords: ['egfr stability', 'tolerability profile', 'lab monitoring'],
-      suggestedTags: ['Safety_Profile', 'eGFR_Stable', 'Low_Toxicity'],
-      reasoning: 'Matches safety monitoring, adverse event management, and laboratory endpoints.'
+      matchedKeywords: ['cytokine release syndrome', 'ICANS', 'tocilizumab', 'REMS'],
+      suggestedTags: ['CRS_Management', 'ICANS', 'REMS'],
+      reasoning: 'Matches CAR-T safety monitoring, CRS/ICANS grading, and REMS requirements.'
     });
   }
 
   // Fallback if no keywords matched
   if (predictions.length === 0) {
     predictions.push({
-      category: 'Efficacy & Clinical Outcomes',
-      subcategory: 'Rapid & Durable Viral Suppression (KM-EFF-02)',
+      category: 'Efficacy & Durable Response',
+      subcategory: 'Complete Response Durability (KM-EFF-02)',
       keyMessageCode: 'KM-EFF-02',
       confidence: 0.78,
       matchedKeywords: ['general brand positioning'],

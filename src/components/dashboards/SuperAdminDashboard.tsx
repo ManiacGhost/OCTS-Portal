@@ -57,9 +57,9 @@ export const SuperAdminDashboard: React.FC = () => {
 
   // Form State for Adding New Subtopic
   const [selectedCatId, setSelectedCatId] = useState('km-cat-eff');
-  const [subcategoryName, setSubcategoryName] = useState('Rapid Onset of Sustained Response');
-  const [subcategoryCode, setSubcategoryCode] = useState('TOP-EFF-05');
-  const [description, setDescription] = useState('Demonstrated rapid viral clearance within 14 days of therapy initiation.');
+  const [subcategoryName, setSubcategoryName] = useState('Rapid Onset of Response');
+  const [subcategoryCode, setSubcategoryCode] = useState('KM-EFF-05');
+  const [description, setDescription] = useState('Early responses observed by the first disease assessment after CAR-T infusion.');
   const [targetAudience, setTargetAudience] = useState('HCPs');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -85,7 +85,7 @@ export const SuperAdminDashboard: React.FC = () => {
     email: '',
     roleTitle: '',
     department: '',
-    organization: 'Gilead Sciences Inc.',
+    organization: 'Kite Pharma, a Gilead Company',
     assignedBrands: [] as string[],
     assignedTherapeuticAreas: [] as string[]
   });
@@ -113,7 +113,7 @@ export const SuperAdminDashboard: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Subtopic ${subcategoryCode} added to Gilead Master Taxonomy!`, 'success');
+        showToast(`Subtopic ${subcategoryCode} added to the Master Taxonomy!`, 'success');
         await refreshTaxonomy();
         setSubcategoryName('');
         setSubcategoryCode('');
@@ -146,7 +146,7 @@ export const SuperAdminDashboard: React.FC = () => {
         contactEmail: '',
         primaryContact: '',
         regionScope: 'US Commercial',
-        assignedBrands: ['Trodelvy®'],
+        assignedBrands: ['Yescarta®'],
         assignedTherapeuticAreas: ['Oncology']
       });
     }
@@ -179,7 +179,7 @@ export const SuperAdminDashboard: React.FC = () => {
         email: userToEdit.email || '',
         roleTitle: userToEdit.roleTitle,
         department: userToEdit.department,
-        organization: userToEdit.organization || (role === 'agency' ? 'Partner Agency' : 'Gilead Sciences Inc.'),
+        organization: userToEdit.organization || (role === 'agency' ? 'Partner Agency' : 'Kite Pharma, a Gilead Company'),
         assignedBrands: userToEdit.assignedBrands || [],
         assignedTherapeuticAreas: userToEdit.assignedTherapeuticAreas || []
       });
@@ -190,8 +190,8 @@ export const SuperAdminDashboard: React.FC = () => {
         email: '',
         roleTitle: role === 'marketer' ? 'Brand Marketing Director' : role === 'analytics' ? 'Omnichannel Analytics Lead' : 'Agency Campaign Manager',
         department: role === 'marketer' ? 'Commercial Strategy' : role === 'analytics' ? 'Global Commercial Analytics' : 'Agency Operations',
-        organization: role === 'agency' ? 'Partner Agency' : 'Gilead Sciences Inc.',
-        assignedBrands: ['Trodelvy®'],
+        organization: role === 'agency' ? 'Partner Agency' : 'Kite Pharma, a Gilead Company',
+        assignedBrands: ['Yescarta®'],
         assignedTherapeuticAreas: ['Oncology']
       });
     }
@@ -356,7 +356,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-rose-600" />
-                  Gilead Onboarded Partner Agencies
+                  Onboarded Partner Agencies
                 </h3>
                 <p className="text-xs text-slate-500">
                   Onboard new agency partners, assign brand portfolios, and manage active campaign tagging credentials.
@@ -477,7 +477,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <UserPlus className="w-5 h-5 text-blue-600" />
-                  Gilead Brand Marketers Directory
+                  Brand Marketers Directory
                 </h3>
                 <p className="text-xs text-slate-500">
                   Create and manage commercial marketers responsible for approving agency submissions and mapping brand key messages.
@@ -523,7 +523,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
                       <td className="p-3">
                         <div className="flex flex-wrap gap-1 max-w-xs">
-                          {(m.assignedBrands || ['Trodelvy®', 'Yescarta®']).map((brand, i) => (
+                          {(m.assignedBrands || ['Yescarta®', 'Tecartus®']).map((brand, i) => (
                             <span key={i} className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-medium">
                               {brand}
                             </span>
@@ -576,7 +576,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-purple-600" />
-                  Gilead Analytics & Data Compliance Team
+                  Analytics & Data Compliance Team
                 </h3>
                 <p className="text-xs text-slate-500">
                   Manage commercial analytics leads auditing metadata drift across Veeva CRM, SFMC, Adobe, and generating master taxonomy reports.
@@ -676,10 +676,10 @@ export const SuperAdminDashboard: React.FC = () => {
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-rose-600" />
-                Add Gilead Subtopic
+                Add Subtopic
               </h3>
               <p className="text-xs text-slate-500">
-                Directly update Gilead Master Taxonomy definitions.
+                Directly update the Master Taxonomy definitions.
               </p>
             </div>
 
@@ -869,7 +869,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     required
                     value={agencyForm.name}
                     onChange={(e) => setAgencyForm({ ...agencyForm, name: e.target.value })}
-                    placeholder="e.g. Omnicom Health Group"
+                    placeholder="e.g. Klick Health"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
                   />
                 </div>

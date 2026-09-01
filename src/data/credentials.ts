@@ -19,10 +19,10 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     role: 'agency',
     name: 'Sarah Chen',
     roleTitle: 'Omnichannel Campaign & Tagging Lead',
-    organization: 'Havas Health & Publicis Media',
+    organization: 'Klick Health',
     badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
     avatarBg: 'bg-rose-600',
-    description: 'Builds campaign taxonomy strings, topic/subtopic mappings, and submits validated campaign tracking codes.'
+    description: 'Builds Yescarta & Tecartus taxonomy strings from the approved Kite formulas and submits validated campaigns.'
   },
   {
     email: 'marcus.vance@biopharma-enterprise.com',
@@ -30,11 +30,11 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     personaId: 'persona-marketer',
     role: 'marketer',
     name: 'Dr. Marcus Vance',
-    roleTitle: 'Senior Brand Director, Oncology',
-    organization: 'Global Commercial Operations',
+    roleTitle: 'Senior Brand Director, Cell Therapy',
+    organization: 'Kite Pharma, a Gilead Company',
     badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
     avatarBg: 'bg-blue-600',
-    description: 'Governs brand message alignment, reviews and approves agency taxonomy submissions, and monitors topic share.'
+    description: 'Manages agencies and their taxonomy, and reviews/approves every agency campaign submission for Yescarta & Tecartus.'
   },
   {
     email: 'elena.rostova@biopharma-enterprise.com',
@@ -43,10 +43,10 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     role: 'analytics',
     name: 'Elena Rostova',
     roleTitle: 'Omnichannel Data & Compliance Lead',
-    organization: 'Global Commercial Operations',
+    organization: 'Kite Pharma, a Gilead Company',
     badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
     avatarBg: 'bg-purple-600',
-    description: 'Monitors global taxonomy compliance, audits metadata drift across Veeva CRM, SFMC, and Adobe.'
+    description: 'Monitors taxonomy compliance and audits metadata drift across Digital, Social, Search and SFMC.'
   },
   {
     email: 'alexis.thorne@biopharma-enterprise.com',
@@ -55,9 +55,9 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     role: 'superadmin',
     name: 'Alexis Thorne',
     roleTitle: 'Master Taxonomy Governance Director',
-    organization: 'Global Commercial Operations',
+    organization: 'Kite Pharma, a Gilead Company',
     badgeColor: 'bg-slate-200 text-slate-900 border-slate-300',
     avatarBg: 'bg-slate-800',
-    description: 'Unrestricted master authority to edit taxonomy master dictionary and inspect system audit trails.'
+    description: 'Unrestricted master authority to edit the taxonomy master dictionary and inspect system audit trails.'
   }
 ];

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { LogIn, Lock, Mail, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+import { homePathFor } from '../auth/home';
 import { DUMMY_CREDENTIALS, UserCredentials } from '../data/credentials';
 
 /**
@@ -108,13 +109,10 @@ const ChannelsBackdrop: React.FC = () => (
 export const LoginPage: React.FC = () => {
   const { user, isHydrating, isAuthenticating, login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-
-  const redirectTo = (location.state as { from?: string } | null)?.from || '/overview';
 
   if (isHydrating) {
     return (
@@ -124,15 +122,17 @@ export const LoginPage: React.FC = () => {
     );
   }
 
+  // Every sign-in lands on the role's home (launcher for agency/marketer/analytics,
+  // /overview for superadmin) — never a deep-linked page.
   if (user) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={homePathFor(user.role)} replace />;
   }
 
   const submit = async (mail: string, pass: string) => {
     setErrorMsg('');
     const res = await login(mail, pass);
-    if (res.ok) {
-      navigate(redirectTo, { replace: true });
+    if (res.ok && res.user) {
+      navigate(homePathFor(res.user.role), { replace: true });
     } else {
       setErrorMsg(res.error || 'Login failed.');
     }

@@ -1,6 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { homePathFor } from '../../auth/home';
 import { navItemsForRole } from './nav';
 
 interface SidebarProps {
@@ -39,15 +40,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ variant = 'desktop', onNavigat
   return (
     <aside className="hidden md:flex md:flex-col md:w-60 shrink-0 border-r border-slate-200 bg-white">
       <div className="px-5 py-5 border-b border-slate-100">
-        <div className="flex items-center gap-2.5">
+        <Link to={homePathFor(user.role)} className="flex items-center gap-2.5 group" title="Home">
           <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-extrabold text-sm shadow-sm">
             O
           </div>
           <div className="leading-tight">
-            <div className="font-extrabold text-slate-900 tracking-tight">Omnia</div>
+            <div className="font-extrabold text-slate-900 tracking-tight group-hover:text-rose-700 transition">Omnia</div>
             <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">DCTM</div>
           </div>
-        </div>
+        </Link>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

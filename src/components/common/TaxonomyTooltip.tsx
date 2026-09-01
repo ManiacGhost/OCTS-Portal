@@ -103,14 +103,14 @@ export const TAXONOMY_TOOLTIPS: Record<string, { fieldName: string; taxonomyCode
   therapeuticArea: {
     fieldName: 'Therapeutic Area',
     taxonomyCode: 'TA',
-    description: 'The top-level medical domain classification (e.g. Oncology, Virology/HIV, Liver Diseases).',
-    purpose: 'Categorizes medical budgets, clinical trial data, and brand portfolios across Gilead global units.'
+    description: 'The top-level medical domain classification (e.g. Cell Therapy / CAR-T, Hematologic Malignancies, Oncology).',
+    purpose: 'Categorizes budgets, clinical trial data, and brand portfolios across the Kite cell-therapy operation.'
   },
   brand: {
     fieldName: 'Brand Code',
     taxonomyCode: 'BRD',
-    description: '3-letter unique product code (e.g. TRD for Trodelvy®, BIK for Biktarvy®, DES for Descovy®).',
-    purpose: 'Forms the primary anchor for all campaign taxonomy strings and Veeva PromoMats asset tagging.'
+    description: '3-letter unique product code (e.g. YES for Yescarta®, TEC for Tecartus®).',
+    purpose: 'Forms the primary anchor for all campaign taxonomy strings and asset tagging.'
   },
   topic: {
     fieldName: 'Topic (Key Message Category)',
@@ -181,7 +181,7 @@ export const TAXONOMY_TOOLTIPS: Record<string, { fieldName: string; taxonomyCode
   agencyOwner: {
     fieldName: 'Agency Owner',
     taxonomyCode: 'AGY',
-    description: 'External creative/media agency responsible for campaign submission (e.g. Omnicom, Publicis, IPG).',
+    description: 'External creative/media agency responsible for campaign submission (e.g. Klick Health, Real Chemistry, CMI Media Group).',
     purpose: 'Tracks agency taxonomy accuracy and enforces approval workflows before marketing sign-off.'
   },
   tactic: {

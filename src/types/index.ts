@@ -86,12 +86,15 @@ export interface AutoTagResult {
 export type KeyMessageCategory = Topic;
 export type KeyMessageSubcategory = Subtopic;
 
+export type MediaChannelType = 'Digital' | 'Social' | 'Search' | 'SFMC';
+
 export interface ChannelTaxonomy {
   id: string;
   code: string;
   name: string;
+  /** Sub-channels available under this channel (e.g. Meta, TikTok for Social). */
   formats: string[];
-  downstreamPlatform: 'Veeva CRM' | 'SFMC' | 'Adobe Experience Manager' | 'Google/Doximity' | 'EHR Network';
+  downstreamPlatform: string;
 }
 
 export interface ProgramOverview {
@@ -119,6 +122,11 @@ export interface CampaignTaxonomy {
   keyMessageSubcategoryId: string; // Subtopic ID
   channelId: string;
   format: string;
+  /** Approved-formula channel + sub-channel used by the Campaign Builder. */
+  channelType?: MediaChannelType;
+  subChannel?: string;
+  /** Raw field values captured while building the taxonomy string. */
+  formulaInputs?: Record<string, string>;
   targetAudience: string;
   region: string;
   quarter: string;

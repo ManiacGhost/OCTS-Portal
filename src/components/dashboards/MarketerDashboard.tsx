@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
-import { CampaignTacticFloatingWindow } from '../common/CampaignTacticFloatingWindow';
 import { TaxonomyTooltip, TAXONOMY_TOOLTIPS } from '../common/TaxonomyTooltip';
 import {
   CheckCircle2,
@@ -169,7 +168,7 @@ export const MarketerDashboard: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px] uppercase tracking-wider font-bold">Brand / Indication:</span>
-                        <span className="font-bold text-slate-800">{brand?.name || 'Trodelvy'}</span>
+                        <span className="font-bold text-slate-800">{brand?.name || 'Yescarta®'}</span>
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px] uppercase tracking-wider font-bold">Region & Quarter:</span>
@@ -193,7 +192,7 @@ export const MarketerDashboard: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs text-slate-900 font-bold">
-                        {kmSub?.name || 'Overall Survival (OS) Superiority'}
+                        {kmSub?.name || 'Overall Response Rate (ORR)'}
                       </p>
                       <p className="text-[11px] text-slate-600">
                         {kmSub?.description}
@@ -282,9 +281,6 @@ export const MarketerDashboard: React.FC = () => {
 
       {/* Tab 3: Dictionary Browse */}
       {activeTab === 'dictionary' && <TaxonomyDictionaryView />}
-
-      {/* Floating Campaign & Approved Taxonomy Submissions Window */}
-      <CampaignTacticFloatingWindow viewMode="marketer" defaultOpen={true} />
 
     </div>
   );

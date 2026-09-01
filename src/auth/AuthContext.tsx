@@ -14,7 +14,7 @@ interface AuthContextType {
   isHydrating: boolean;
   /** True while a login request is in flight. */
   isAuthenticating: boolean;
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string; user?: UserPersona }>;
   logout: () => void;
 }
 
@@ -63,14 +63,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .finally(() => setIsHydrating(false));
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ ok: boolean; error?: string }> => {
+  const login = async (
+    email: string,
+    password: string,
+  ): Promise<{ ok: boolean; error?: string; user?: UserPersona }> => {
     setIsAuthenticating(true);
     try {
       const res = await loginRequest(email, password);
       if (res.success && res.user) {
         setUser(res.user);
         writeSession({ personaId: res.user.id });
-        return { ok: true };
+        return { ok: true, user: res.user };
       }
       return { ok: false, error: res.error || 'Login failed. Please try again.' };
     } catch {
