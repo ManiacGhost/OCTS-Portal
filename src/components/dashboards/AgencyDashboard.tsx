@@ -3,6 +3,7 @@ import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
+import { TaxonomyCodeGenerator } from '../common/TaxonomyCodeGenerator';
 import { TaxonomyTooltip, TAXONOMY_TOOLTIPS } from '../common/TaxonomyTooltip';
 import {
   CHANNEL_TYPES,
@@ -59,7 +60,7 @@ export const AgencyDashboard: React.FC = () => {
   } = usePersona();
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'registry' | 'dictionary'>('builder');
+  const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'registry' | 'generator' | 'dictionary'>('builder');
 
   // Multi-step Builder Flow State
   const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4>(1);
@@ -211,13 +212,23 @@ export const AgencyDashboard: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('generator')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'generator' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <Code className="w-4 h-4" />
+          <span>4. Code &amp; UTM Generator</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('dictionary')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'dictionary' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>4. Master Taxonomy Dictionary</span>
+          <span>5. Master Taxonomy Dictionary</span>
         </button>
       </div>
 
@@ -869,6 +880,8 @@ export const AgencyDashboard: React.FC = () => {
 
 
       {/* Tab 5: Gilead Taxonomy Master */}
+      {activeTab === 'generator' && <TaxonomyCodeGenerator />}
+
       {activeTab === 'dictionary' && <TaxonomyDictionaryView />}
 
     </div>

@@ -13,7 +13,7 @@ interface Tile {
 }
 
 const TILES: Tile[] = [
-  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, desc: 'Pick a brand and channel — the model reads the journey and auto-fills the campaign fields and UTM tags.' },
+  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, desc: 'Brand → channel → sub-channel: every dimension that can be tagged for that combination.' },
   { to: '/overview', label: 'Campaigns', icon: Layers, desc: 'See every campaign taxonomy, grouped by promotional channel.' },
   { to: '/dictionary', label: 'Content Metadata', icon: BookOpen, desc: 'Browse the master taxonomy — topics, brands, therapeutic areas, channels.' },
   { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, desc: 'See how the AI model tags every campaign across channels, and give it feedback.' },
