@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Layers, BookOpen, Sparkles, LifeBuoy, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
+import { Layers, BookOpen, Sparkles, Route, LifeBuoy, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 
@@ -13,9 +13,10 @@ interface Tile {
 }
 
 const TILES: Tile[] = [
+  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, desc: 'Pick a brand and channel — the model reads the journey and auto-fills the campaign fields and UTM tags.' },
   { to: '/overview', label: 'Campaigns', icon: Layers, desc: 'See every campaign taxonomy, grouped by promotional channel.' },
   { to: '/dictionary', label: 'Content Metadata', icon: BookOpen, desc: 'Browse the master taxonomy — topics, brands, therapeutic areas, channels.' },
-  { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, desc: 'ML-assisted taxonomy tagging — review and approve AI category assignments.', soon: true },
+  { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, desc: 'See how the AI model tags every campaign across channels, and give it feedback.' },
   { to: '/help', label: 'Help', icon: LifeBuoy, desc: 'FAQs and support for taxonomy, formulas, and submissions.', soon: true },
 ];
 
@@ -28,7 +29,7 @@ const TILES: Tile[] = [
 const PharmaBackdrop: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
     {/* warm glow */}
-    <div className="absolute -top-40 -right-24 w-[640px] h-[640px] rounded-full bg-rose-600/20 blur-3xl" />
+    <div className="absolute -top-40 -right-24 w-[640px] h-[640px] rounded-full bg-navy-600/20 blur-3xl" />
     <div className="absolute -bottom-48 -left-32 w-[520px] h-[520px] rounded-full bg-indigo-500/10 blur-3xl" />
 
     <svg
@@ -120,17 +121,17 @@ export const LauncherPage: React.FC = () => {
     <div className="min-h-screen bg-slate-100 flex flex-col">
       {/* Hero */}
       <div className="relative bg-slate-950 text-white overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-1 bg-rose-600 z-10" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-navy-600 z-10" />
         <PharmaBackdrop />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pt-14 pb-40">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center font-extrabold text-lg">O</div>
+                <div className="w-10 h-10 rounded-xl bg-navy-600 flex items-center justify-center font-extrabold text-lg">O</div>
                 <div>
                   <div className="text-lg font-extrabold tracking-tight">Omnia</div>
-                  <div className="text-[10px] text-rose-300 font-bold uppercase tracking-widest">
+                  <div className="text-[10px] text-navy-300 font-bold uppercase tracking-widest">
                     Digital Content Taxonomy &amp; Metadata
                   </div>
                 </div>
@@ -161,7 +162,7 @@ export const LauncherPage: React.FC = () => {
 
       {/* Tiles — pulled up to overlap the hero */}
       <div className="max-w-6xl mx-auto w-full px-6 sm:px-10 -mt-28 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {TILES.map(({ to, label, desc, icon: Icon, soon }, i) => (
             <Link
               key={to}
@@ -170,11 +171,11 @@ export const LauncherPage: React.FC = () => {
               style={{ animationDelay: `${i * 90}ms` }}
             >
               <div
-                className="tile-float h-full bg-white border border-slate-200 rounded-2xl p-5 shadow-lg transition duration-200 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:border-rose-300"
+                className="tile-float h-full bg-white border border-slate-200 rounded-2xl p-4 shadow-lg transition duration-200 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:border-navy-300"
                 style={{ animationDelay: `${i * 1.3}s` }}
               >
                 <div className="flex items-center justify-between">
-                  <div className="p-2.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-100">
+                  <div className="p-2.5 rounded-xl bg-navy-50 text-navy-700 border border-navy-100">
                     <Icon className="w-5 h-5" />
                   </div>
                   {soon && (
@@ -185,7 +186,7 @@ export const LauncherPage: React.FC = () => {
                 </div>
                 <h2 className="text-base font-extrabold text-slate-900 mt-4">{label}</h2>
                 <p className="text-xs text-slate-500 leading-relaxed mt-1">{desc}</p>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 mt-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-navy-600 mt-4">
                   Open
                   <ArrowRight className="w-4 h-4 transition group-hover:translate-x-0.5" />
                 </div>

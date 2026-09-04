@@ -69,7 +69,7 @@ export const MarketerDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('approvals')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'approvals' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'approvals' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -79,7 +79,7 @@ export const MarketerDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('matrix')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'matrix' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'matrix' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <BarChart2 className="w-4 h-4" />
@@ -89,7 +89,7 @@ export const MarketerDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('dictionary')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'dictionary' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'dictionary' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -103,7 +103,7 @@ export const MarketerDashboard: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-rose-600" />
+                <ShieldCheck className="w-5 h-5 text-navy-600" />
                 Marketer Campaign Taxonomy Approval Queue
               </h3>
               <p className="text-xs text-slate-500">
@@ -114,7 +114,7 @@ export const MarketerDashboard: React.FC = () => {
 
           {pendingCampaigns.length === 0 ? (
             <div className="p-8 text-center text-slate-600 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <CheckCircle2 className="w-8 h-8 text-rose-600 mx-auto" />
+              <CheckCircle2 className="w-8 h-8 text-navy-600 mx-auto" />
               <div className="text-sm font-bold text-slate-900">All Agency Submissions Reviewed!</div>
               <p className="text-xs text-slate-500">There are currently no pending campaign taxonomy approvals in your queue.</p>
             </div>
@@ -144,7 +144,7 @@ export const MarketerDashboard: React.FC = () => {
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           onClick={() => handleReject(cmp.id)}
-                          className="bg-white hover:bg-rose-50 text-rose-700 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-rose-200 transition flex items-center gap-1.5 shadow-sm"
+                          className="bg-white hover:bg-navy-50 text-navy-700 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-navy-200 transition flex items-center gap-1.5 shadow-sm"
                         >
                           <X className="w-4 h-4" />
                           <span>Reject & Return</span>
@@ -152,7 +152,7 @@ export const MarketerDashboard: React.FC = () => {
 
                         <button
                           onClick={() => handleApprove(cmp.id)}
-                          className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm"
+                          className="bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm"
                         >
                           <Check className="w-4 h-4" />
                           <span>Approve Taxonomy</span>
@@ -176,18 +176,18 @@ export const MarketerDashboard: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px] uppercase tracking-wider font-bold">Compliance Score:</span>
-                        <span className="font-mono text-rose-700 font-extrabold">{cmp.complianceScore}%</span>
+                        <span className="font-mono text-navy-700 font-extrabold">{cmp.complianceScore}%</span>
                       </div>
                     </div>
 
                     {/* Topic & Subtopic Mapping */}
-                    <div className="bg-rose-50/70 p-3.5 rounded-xl border border-rose-200 space-y-1.5">
+                    <div className="bg-navy-50/70 p-3.5 rounded-xl border border-navy-200 space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-rose-900 font-bold flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-rose-700" />
+                        <span className="text-navy-900 font-bold flex items-center gap-1.5">
+                          <Tag className="w-3.5 h-3.5 text-navy-700" />
                           Topic & Subtopic Alignment:
                         </span>
-                        <span className="font-mono text-rose-800 font-bold bg-white px-2 py-0.5 rounded border border-rose-200">
+                        <span className="font-mono text-navy-800 font-bold bg-white px-2 py-0.5 rounded border border-navy-200">
                           {kmCat?.code} / {kmSub?.code}
                         </span>
                       </div>
@@ -216,7 +216,7 @@ export const MarketerDashboard: React.FC = () => {
                         placeholder="Add reviewer notes for agency..."
                         value={reviewNotes[cmp.id] || ''}
                         onChange={(e) => setReviewNotes({ ...reviewNotes, [cmp.id]: e.target.value })}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-rose-500 font-medium"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-navy-500 font-medium"
                       />
                     </div>
                   </div>
@@ -233,7 +233,7 @@ export const MarketerDashboard: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-rose-600" />
+                <BarChart2 className="w-5 h-5 text-navy-600" />
                 Brand Topic Coverage Matrix
               </h3>
               <p className="text-xs text-slate-500">
@@ -246,7 +246,7 @@ export const MarketerDashboard: React.FC = () => {
             {keyMessages.map((km) => (
               <div key={km.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-rose-800 bg-rose-100 px-2 py-0.5 rounded border border-rose-200">
+                  <span className="text-xs font-mono font-bold text-navy-800 bg-navy-100 px-2 py-0.5 rounded border border-navy-200">
                     {km.code}
                   </span>
                   <span className="text-xs text-slate-500 font-medium">{km.subcategories.length} Subtopics</span>
@@ -260,7 +260,7 @@ export const MarketerDashboard: React.FC = () => {
                     <span className="font-bold text-slate-900">35% of total campaigns</span>
                   </div>
                   <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                    <div className="bg-rose-600 h-full rounded-full" style={{ width: '35%' }}></div>
+                    <div className="bg-navy-600 h-full rounded-full" style={{ width: '35%' }}></div>
                   </div>
                 </div>
 
@@ -269,7 +269,7 @@ export const MarketerDashboard: React.FC = () => {
                   {km.subcategories.map((sub, i) => (
                     <div key={i} className="flex items-center justify-between text-slate-600">
                       <span>• {sub.name}</span>
-                      <span className="font-mono text-rose-700 font-bold">{sub.code}</span>
+                      <span className="font-mono text-navy-700 font-bold">{sub.code}</span>
                     </div>
                   ))}
                 </div>

@@ -62,7 +62,7 @@ export const AnalyticsDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('compliance')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'compliance' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'compliance' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
@@ -72,7 +72,7 @@ export const AnalyticsDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('discrepancies')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'discrepancies' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'discrepancies' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <AlertTriangle className="w-4 h-4" />
@@ -82,7 +82,7 @@ export const AnalyticsDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('exports')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'exports' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'exports' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Download className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-rose-600" />
+                    <CheckCircle2 className="w-4 h-4 text-navy-600" />
                     Compliance Rate by Downstream Engine
                   </h3>
                   <p className="text-xs text-slate-500">Veeva CRM, SFMC, Adobe, and Paid Search integrity.</p>
@@ -112,12 +112,12 @@ export const AnalyticsDashboard: React.FC = () => {
                   <div key={i} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-slate-900">{plat.platform}</span>
-                      <span className="font-mono text-rose-700 font-extrabold">{plat.compliancePct}% Compliance</span>
+                      <span className="font-mono text-navy-700 font-extrabold">{plat.compliancePct}% Compliance</span>
                     </div>
 
                     <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                       <div
-                        className="bg-rose-600 h-full rounded-full"
+                        className="bg-navy-600 h-full rounded-full"
                         style={{ width: `${plat.compliancePct}%` }}
                       ></div>
                     </div>
@@ -136,7 +136,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <PieChart className="w-4 h-4 text-rose-600" />
+                    <PieChart className="w-4 h-4 text-navy-600" />
                     Topic Share Coverage
                   </h3>
                   <p className="text-xs text-slate-500">Share of total omnichannel campaign volume by Topic Strategy.</p>
@@ -148,12 +148,12 @@ export const AnalyticsDashboard: React.FC = () => {
                   <div key={i} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-slate-900">{km.categoryName}</span>
-                      <span className="font-mono text-rose-800 font-bold">{km.sharePct}% ({km.campaignCount} campaigns)</span>
+                      <span className="font-mono text-navy-800 font-bold">{km.sharePct}% ({km.campaignCount} campaigns)</span>
                     </div>
 
                     <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                       <div
-                        className="bg-rose-600 h-full rounded-full"
+                        className="bg-navy-600 h-full rounded-full"
                         style={{ width: `${km.sharePct}%` }}
                       ></div>
                     </div>
@@ -189,10 +189,10 @@ export const AnalyticsDashboard: React.FC = () => {
                     <tr key={idx} className="hover:bg-slate-50 transition">
                       <td className="p-3 font-bold text-slate-900">{ag.agencyName}</td>
                       <td className="p-3 font-mono font-medium">{ag.campaignsSubmitted}</td>
-                      <td className="p-3 font-mono text-rose-700 font-extrabold">{ag.complianceScore}%</td>
+                      <td className="p-3 font-mono text-navy-700 font-extrabold">{ag.complianceScore}%</td>
                       <td className="p-3 font-mono text-amber-700 font-bold">{ag.flaggedErrors}</td>
                       <td className="p-3">
-                        <span className="text-[10px] bg-rose-50 text-rose-700 font-bold px-2 py-0.5 rounded border border-rose-200 uppercase tracking-wider">
+                        <span className="text-[10px] bg-navy-50 text-navy-700 font-bold px-2 py-0.5 rounded border border-navy-200 uppercase tracking-wider">
                           PASSED AUDIT
                         </span>
                       </td>
@@ -277,7 +277,7 @@ export const AnalyticsDashboard: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Download className="w-5 h-5 text-rose-600" />
+                <Download className="w-5 h-5 text-navy-600" />
                 Master Taxonomy Data Export Center
               </h3>
               <p className="text-xs text-slate-500">
@@ -295,7 +295,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <a
                 href="/api/export/csv?type=campaigns"
                 download
-                className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm"
+                className="inline-flex items-center gap-2 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Campaign Taxonomy CSV</span>
@@ -310,7 +310,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <a
                 href="/api/export/csv?type=keymessages"
                 download
-                className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm"
+                className="inline-flex items-center gap-2 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Topic & Subtopic Dictionary CSV</span>

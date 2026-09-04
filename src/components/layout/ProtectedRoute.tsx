@@ -16,7 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles 
   if (isHydrating) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-slate-50 text-slate-600">
-        <RefreshCw className="w-7 h-7 animate-spin text-rose-600" />
+        <RefreshCw className="w-7 h-7 animate-spin text-navy-600" />
         <p className="text-xs font-semibold text-slate-500">Restoring your session…</p>
       </div>
     );

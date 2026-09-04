@@ -10,6 +10,7 @@ import { LauncherPage } from './pages/LauncherPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { DictionaryPage } from './pages/DictionaryPage';
 import { AutoTaggingPage } from './pages/AutoTaggingPage';
+import { TagStrategyPage } from './pages/TagStrategyPage';
 import { HelpPage } from './pages/HelpPage';
 import { AgencyDashboard } from './components/dashboards/AgencyDashboard';
 import { MarketerDashboard } from './components/dashboards/MarketerDashboard';
@@ -50,6 +51,10 @@ export default function App() {
           <Route
             path="/autotag"
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><AutoTaggingPage /></RoleRoute>}
+          />
+          <Route
+            path="/tagging-strategy"
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><TagStrategyPage /></RoleRoute>}
           />
           <Route
             path="/help"

@@ -6,6 +6,7 @@ import {
   BookOpen,
   ShieldAlert,
   Sparkles,
+  Route,
   LifeBuoy,
   LucideIcon,
 } from 'lucide-react';
@@ -26,6 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/approvals', label: 'Approvals', icon: CheckSquare, roles: ['marketer'] },
   { to: '/compliance', label: 'Compliance', icon: BarChart3, roles: ['analytics'] },
   { to: '/admin', label: 'Administration', icon: ShieldAlert, roles: ['superadmin'] },
+  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, roles: LAUNCHER_ROLES },
   { to: '/dictionary', label: 'Content Metadata', icon: BookOpen, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
   { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, roles: LAUNCHER_ROLES },
   { to: '/help', label: 'Help', icon: LifeBuoy, roles: LAUNCHER_ROLES },

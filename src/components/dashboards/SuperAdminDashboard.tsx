@@ -287,7 +287,7 @@ export const SuperAdminDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('agencies')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'agencies' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'agencies' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -298,7 +298,7 @@ export const SuperAdminDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('marketers')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'marketers' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'marketers' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <UserPlus className="w-4 h-4" />
@@ -309,7 +309,7 @@ export const SuperAdminDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('analytics')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'analytics' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'analytics' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
@@ -320,7 +320,7 @@ export const SuperAdminDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('editor')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'editor' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'editor' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Plus className="w-4 h-4" />
@@ -330,7 +330,7 @@ export const SuperAdminDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('permissions')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'permissions' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'permissions' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Lock className="w-4 h-4" />
@@ -340,7 +340,7 @@ export const SuperAdminDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('audit')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'audit' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'audit' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Terminal className="w-4 h-4" />
@@ -355,7 +355,7 @@ export const SuperAdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-rose-600" />
+                  <Building2 className="w-5 h-5 text-navy-600" />
                   Onboarded Partner Agencies
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -365,7 +365,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
               <button
                 onClick={() => handleOpenAgencyModal()}
-                className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm self-start sm:self-auto"
+                className="bg-navy-600 hover:bg-navy-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm self-start sm:self-auto"
               >
                 <Plus className="w-4 h-4" />
                 <span>Onboard New Agency</span>
@@ -392,7 +392,7 @@ export const SuperAdminDashboard: React.FC = () => {
                       <td className="p-3">
                         <div className="font-bold text-slate-900 flex items-center gap-2">
                           <span>{agency.name}</span>
-                          <span className="bg-rose-100 text-rose-800 font-mono text-[10px] px-2 py-0.5 rounded-md font-bold">
+                          <span className="bg-navy-100 text-navy-800 font-mono text-[10px] px-2 py-0.5 rounded-md font-bold">
                             {agency.code}
                           </span>
                         </div>
@@ -442,7 +442,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleOpenAgencyModal(agency)}
-                            className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition"
+                            className="p-1.5 text-slate-600 hover:text-navy-600 hover:bg-slate-100 rounded-lg transition"
                             title="Edit Agency"
                           >
                             <Pencil className="w-4 h-4" />
@@ -453,7 +453,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 removeAgency(agency.id);
                               }
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-navy-600 hover:bg-navy-50 rounded-lg transition"
                             title="Remove Agency"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -552,7 +552,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 removeUser(m.id);
                               }
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-navy-600 hover:bg-navy-50 rounded-lg transition"
                             title="Delete Marketer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -651,7 +651,7 @@ export const SuperAdminDashboard: React.FC = () => {
                                 removeUser(a.id);
                               }
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-navy-600 hover:bg-navy-50 rounded-lg transition"
                             title="Delete User"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -675,7 +675,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <form onSubmit={handleAddSubcategory} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm text-slate-900">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-rose-600" />
+                <Plus className="w-5 h-5 text-navy-600" />
                 Add Subtopic
               </h3>
               <p className="text-xs text-slate-500">
@@ -688,7 +688,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <select
                 value={selectedCatId}
                 onChange={(e) => setSelectedCatId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
               >
                 {keyMessages.map((km) => (
                   <option key={km.id} value={km.id}>
@@ -706,7 +706,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 value={subcategoryCode}
                 onChange={(e) => setSubcategoryCode(e.target.value)}
                 placeholder="e.g. TOP-EFF-05"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-rose-500 font-bold"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-navy-500 font-bold"
               />
             </div>
 
@@ -718,7 +718,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 value={subcategoryName}
                 onChange={(e) => setSubcategoryName(e.target.value)}
                 placeholder="e.g. Rapid Onset of Sustained Response"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
               />
             </div>
 
@@ -728,7 +728,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
               />
             </div>
 
@@ -738,14 +738,14 @@ export const SuperAdminDashboard: React.FC = () => {
                 type="text"
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
+              className="w-full bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
             >
               <Save className="w-4 h-4" />
               <span>Save to Master Taxonomy Dictionary</span>
@@ -766,7 +766,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Lock className="w-5 h-5 text-rose-600" />
+                <Lock className="w-5 h-5 text-navy-600" />
                 GOTS Role & Permission Access Matrix
               </h3>
               <p className="text-xs text-slate-500">
@@ -790,14 +790,14 @@ export const SuperAdminDashboard: React.FC = () => {
                   <tr key={p.id} className="hover:bg-slate-50 transition">
                     <td className="p-3 font-bold text-slate-900">
                       <div>{p.name}</div>
-                      <div className="text-[10px] text-rose-700 font-bold">{p.roleTitle}</div>
+                      <div className="text-[10px] text-navy-700 font-bold">{p.roleTitle}</div>
                     </td>
                     <td className="p-3 font-medium text-slate-700">{p.organization}</td>
                     <td className="p-3 text-slate-600 max-w-xs">{p.description}</td>
                     <td className="p-3">
                       <div className="flex flex-wrap gap-1">
                         {p.permissions.slice(0, 3).map((perm, i) => (
-                          <span key={i} className="bg-slate-100 border border-slate-200 text-rose-800 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">
+                          <span key={i} className="bg-slate-100 border border-slate-200 text-navy-800 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">
                             {perm}
                           </span>
                         ))}
@@ -817,7 +817,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-rose-600" />
+                <Terminal className="w-5 h-5 text-navy-600" />
                 Global Master System Audit Trail
               </h3>
               <p className="text-xs text-slate-500">Recorded log of every user action, taxonomy change, and API call.</p>
@@ -829,10 +829,10 @@ export const SuperAdminDashboard: React.FC = () => {
               <div key={log.id} className="border-b border-slate-800 pb-2">
                 <div className="flex items-center justify-between text-slate-400 text-[11px]">
                   <span>[{log.timestamp}]</span>
-                  <span className="text-rose-400 font-bold">{log.action}</span>
+                  <span className="text-navy-400 font-bold">{log.action}</span>
                 </div>
                 <div className="text-white mt-0.5">
-                  User: <strong>{log.user}</strong> ({log.role}) &bull; Target: <span className="text-rose-300">{log.target}</span>
+                  User: <strong>{log.user}</strong> ({log.role}) &bull; Target: <span className="text-navy-300">{log.target}</span>
                 </div>
                 <div className="text-slate-400 text-[11px] mt-0.5">{log.details}</div>
               </div>
@@ -847,7 +847,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-rose-600" />
+                <Building2 className="w-5 h-5 text-navy-600" />
                 <h3 className="text-base font-bold text-slate-900">
                   {editingAgency ? 'Edit Agency Profile' : 'Onboard New Agency Partner'}
                 </h3>
@@ -870,7 +870,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={agencyForm.name}
                     onChange={(e) => setAgencyForm({ ...agencyForm, name: e.target.value })}
                     placeholder="e.g. Klick Health"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
 
@@ -882,7 +882,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={agencyForm.code}
                     onChange={(e) => setAgencyForm({ ...agencyForm, code: e.target.value.toUpperCase() })}
                     placeholder="e.g. OMC"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
               </div>
@@ -895,7 +895,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={agencyForm.primaryContact}
                     onChange={(e) => setAgencyForm({ ...agencyForm, primaryContact: e.target.value })}
                     placeholder="e.g. Sarah Chen"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
 
@@ -906,7 +906,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={agencyForm.contactEmail}
                     onChange={(e) => setAgencyForm({ ...agencyForm, contactEmail: e.target.value })}
                     placeholder="e.g. gilead@agency.com"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
               </div>
@@ -916,7 +916,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 <select
                   value={agencyForm.regionScope}
                   onChange={(e) => setAgencyForm({ ...agencyForm, regionScope: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                 >
                   <option value="US Commercial">US Commercial</option>
                   <option value="Global Commercial">Global Commercial</option>
@@ -937,7 +937,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         onClick={() => toggleBrandSelection(b.name, true)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                           selected
-                            ? 'bg-rose-600 text-white font-bold'
+                            ? 'bg-navy-600 text-white font-bold'
                             : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
                         }`}
                       >
@@ -958,7 +958,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-navy-600 hover:bg-navy-700 text-white shadow-sm transition"
                 >
                   {editingAgency ? 'Save Changes' : 'Onboard Agency'}
                 </button>
@@ -974,7 +974,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-rose-600" />
+                <UserPlus className="w-5 h-5 text-navy-600" />
                 <h3 className="text-base font-bold text-slate-900">
                   {editingUser ? `Edit ${userModalRole.toUpperCase()} User` : `Create New ${userModalRole.toUpperCase()} User`}
                 </h3>
@@ -997,7 +997,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={userForm.name}
                     onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
                     placeholder="e.g. Dr. Marcus Vance"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
 
@@ -1008,7 +1008,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={userForm.email}
                     onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                     placeholder="e.g. m.vance@gilead.com"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
               </div>
@@ -1021,7 +1021,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={userForm.roleTitle}
                     onChange={(e) => setUserForm({ ...userForm, roleTitle: e.target.value })}
                     placeholder="e.g. Senior Brand Director"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
 
@@ -1032,7 +1032,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     value={userForm.department}
                     onChange={(e) => setUserForm({ ...userForm, department: e.target.value })}
                     placeholder="e.g. Commercial Strategy"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>
               </div>
@@ -1043,7 +1043,7 @@ export const SuperAdminDashboard: React.FC = () => {
                   type="text"
                   value={userForm.organization}
                   onChange={(e) => setUserForm({ ...userForm, organization: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                 />
               </div>
 
@@ -1059,7 +1059,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         onClick={() => toggleBrandSelection(b.name, false)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                           selected
-                            ? 'bg-rose-600 text-white font-bold'
+                            ? 'bg-navy-600 text-white font-bold'
                             : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
                         }`}
                       >
@@ -1080,7 +1080,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-navy-600 hover:bg-navy-700 text-white shadow-sm transition"
                 >
                   {editingUser ? 'Save User Changes' : 'Create User'}
                 </button>

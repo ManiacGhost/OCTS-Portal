@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
-import { TaxonomyCodeGenerator } from '../common/TaxonomyCodeGenerator';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
 import { TaxonomyTooltip, TAXONOMY_TOOLTIPS } from '../common/TaxonomyTooltip';
 import {
@@ -26,6 +25,7 @@ const CHANNEL_ID: Record<MediaChannelType, string> = {
   Social: 'chan-social',
   Search: 'chan-search',
   SFMC: 'chan-sfmc',
+  IVA: 'chan-iva',
 };
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
@@ -59,7 +59,7 @@ export const AgencyDashboard: React.FC = () => {
   } = usePersona();
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'registry' | 'generator' | 'dictionary'>('builder');
+  const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'registry' | 'dictionary'>('builder');
 
   // Multi-step Builder Flow State
   const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4>(1);
@@ -183,7 +183,7 @@ export const AgencyDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('builder')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'builder' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'builder' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <FilePlus className="w-4 h-4" />
@@ -193,7 +193,7 @@ export const AgencyDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'overview' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'overview' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
@@ -203,7 +203,7 @@ export const AgencyDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('registry')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'registry' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'registry' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -211,23 +211,13 @@ export const AgencyDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveTab('generator')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'generator' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <Code className="w-4 h-4" />
-          <span>4. Code & UTM Generator</span>
-        </button>
-
-        <button
           onClick={() => setActiveTab('dictionary')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'dictionary' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            activeTab === 'dictionary' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>5. Master Taxonomy Dictionary</span>
+          <span>4. Master Taxonomy Dictionary</span>
         </button>
       </div>
 
@@ -240,7 +230,7 @@ export const AgencyDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                  <FilePlus className="w-5 h-5 text-rose-600" />
+                  <FilePlus className="w-5 h-5 text-navy-600" />
                   Campaign Taxonomy Flow
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -249,7 +239,7 @@ export const AgencyDashboard: React.FC = () => {
               </div>
 
               <div className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-                Step <span className="text-rose-600 font-mono text-sm">{builderStep}</span> of <span className="font-mono text-sm">4</span>
+                Step <span className="text-navy-600 font-mono text-sm">{builderStep}</span> of <span className="font-mono text-sm">4</span>
               </div>
             </div>
 
@@ -259,9 +249,9 @@ export const AgencyDashboard: React.FC = () => {
                 onClick={() => setBuilderStep(1)}
                 className={`p-2.5 rounded-xl border text-left transition font-bold ${
                   builderStep === 1
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                    ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
                     : builderStep > 1
-                    ? 'bg-rose-50 text-rose-800 border-rose-200'
+                    ? 'bg-navy-50 text-navy-800 border-navy-200'
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
@@ -272,9 +262,9 @@ export const AgencyDashboard: React.FC = () => {
                 onClick={() => setBuilderStep(2)}
                 className={`p-2.5 rounded-xl border text-left transition font-bold ${
                   builderStep === 2
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                    ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
                     : builderStep > 2
-                    ? 'bg-rose-50 text-rose-800 border-rose-200'
+                    ? 'bg-navy-50 text-navy-800 border-navy-200'
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
@@ -285,9 +275,9 @@ export const AgencyDashboard: React.FC = () => {
                 onClick={() => setBuilderStep(3)}
                 className={`p-2.5 rounded-xl border text-left transition font-bold ${
                   builderStep === 3
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                    ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
                     : builderStep > 3
-                    ? 'bg-rose-50 text-rose-800 border-rose-200'
+                    ? 'bg-navy-50 text-navy-800 border-navy-200'
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
@@ -298,7 +288,7 @@ export const AgencyDashboard: React.FC = () => {
                 onClick={() => setBuilderStep(4)}
                 className={`p-2.5 rounded-xl border text-left transition font-bold ${
                   builderStep === 4
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                    ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
@@ -310,11 +300,11 @@ export const AgencyDashboard: React.FC = () => {
           {/* STEP 1: Campaign Context */}
           {builderStep === 1 && (
             <div className="space-y-5 animate-fade-in">
-              <div className="bg-rose-50/60 p-4 rounded-2xl border border-rose-100 flex items-start gap-3 text-xs text-rose-900">
-                <Info className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
+                <Info className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-rose-950">Step 1: Campaign Context & Scope</h4>
-                  <p className="mt-0.5 text-rose-800">
+                  <h4 className="font-bold text-navy-950">Step 1: Campaign Context & Scope</h4>
+                  <p className="mt-0.5 text-navy-800">
                     Define the campaign title, market scope, and execution quarter. This establishes the base taxonomy string prefix.
                   </p>
                 </div>
@@ -324,7 +314,7 @@ export const AgencyDashboard: React.FC = () => {
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
                     <span>Campaign Name / Initiative Title</span>
-                    <span className="text-rose-600 mr-1">*</span>
+                    <span className="text-navy-600 mr-1">*</span>
                     <TaxonomyTooltip {...TAXONOMY_TOOLTIPS.utmCampaign} />
                   </label>
                   <input
@@ -332,7 +322,7 @@ export const AgencyDashboard: React.FC = () => {
                     value={campaignName}
                     onChange={(e) => setCampaignName(e.target.value)}
                     placeholder="e.g. Yescarta 2L LBCL — ORR HCP Meta"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
                   />
                 </div>
 
@@ -344,7 +334,7 @@ export const AgencyDashboard: React.FC = () => {
                   <select
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
                   >
                     <option value="US Commercial">US Commercial</option>
                     <option value="EU Commercial">EU Commercial</option>
@@ -362,7 +352,7 @@ export const AgencyDashboard: React.FC = () => {
                   <select
                     value={quarter}
                     onChange={(e) => setQuarter(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
                   >
                     <option value="2026-Q3">2026-Q3</option>
                     <option value="2026-Q4">2026-Q4</option>
@@ -375,7 +365,7 @@ export const AgencyDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setBuilderStep(2)}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
+                  className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
                   <span>Next: Topic & Subtopic Selection</span>
                   <ArrowRight className="w-4 h-4" />
@@ -388,8 +378,8 @@ export const AgencyDashboard: React.FC = () => {
           {builderStep === 2 && (
             <div className="space-y-5 animate-fade-in">
               <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 space-y-2">
-                <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
-                  <Layers className="w-4 h-4 text-rose-500" />
+                <div className="flex items-center gap-2 text-navy-400 font-bold text-xs">
+                  <Layers className="w-4 h-4 text-navy-500" />
                   <span>Topic & Subtopic Classification Rules</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
@@ -421,7 +411,7 @@ export const AgencyDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setBuilderStep(3)}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
+                  className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
                   <span>Next: Channel & Formula</span>
                   <ArrowRight className="w-4 h-4" />
@@ -433,11 +423,11 @@ export const AgencyDashboard: React.FC = () => {
           {/* STEP 3: Channel & Approved Taxonomy Formula */}
           {builderStep === 3 && (
             <div className="space-y-5 animate-fade-in">
-              <div className="bg-rose-50/60 p-4 rounded-2xl border border-rose-100 flex items-start gap-3 text-xs text-rose-900">
-                <Info className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
+                <Info className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-rose-950">Step 3: Channel &amp; Approved Taxonomy Formula</h4>
-                  <p className="mt-0.5 text-rose-800">
+                  <h4 className="font-bold text-navy-950">Step 3: Channel &amp; Approved Taxonomy Formula</h4>
+                  <p className="mt-0.5 text-navy-800">
                     Pick the promotional channel and sub-channel. The approved Kite Campaign Name
                     formula for that channel is applied below &mdash; you fill the highlighted fields,
                     everything else is filled automatically.
@@ -456,7 +446,7 @@ export const AgencyDashboard: React.FC = () => {
                       onClick={() => chooseChannel(ch)}
                       className={`p-3 rounded-xl border text-sm font-bold transition ${
                         channelType === ch
-                          ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                          ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -506,13 +496,13 @@ export const AgencyDashboard: React.FC = () => {
                     return (
                       <div key={t.key}>
                         <label className="block text-xs font-bold text-slate-700 mb-1">
-                          {t.label} <span className="text-rose-500">*</span>
+                          {t.label} <span className="text-navy-500">*</span>
                           {t.key === 'indication' && <span className="text-slate-400 font-normal"> (Cancer — specific type)</span>}
                         </label>
                         <select
                           value={ctl.value}
                           onChange={e => ctl.set(e.target.value)}
-                          className="w-full bg-white border border-rose-200 ring-1 ring-rose-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
+                          className="w-full bg-white border border-navy-200 ring-1 ring-navy-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium"
                         >
                           {ctl.options.map(o => (
                             <option key={o} value={o}>{o}</option>
@@ -538,7 +528,7 @@ export const AgencyDashboard: React.FC = () => {
                           <select
                             value={subChannelMeta[f.key] || ''}
                             onChange={e => setSubChannelMeta(m => ({ ...m, [f.key]: e.target.value }))}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium"
                           >
                             <option value="">— select —</option>
                             {f.options.map(o => (
@@ -551,7 +541,7 @@ export const AgencyDashboard: React.FC = () => {
                             value={subChannelMeta[f.key] || ''}
                             onChange={e => setSubChannelMeta(m => ({ ...m, [f.key]: e.target.value }))}
                             placeholder={f.placeholder}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium"
                           />
                         )}
                       </div>
@@ -577,7 +567,7 @@ export const AgencyDashboard: React.FC = () => {
 
               {/* Live formula breakdown */}
               <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                <div className="flex items-center gap-2 text-navy-400 font-bold text-xs">
                   <Code className="w-4 h-4" />
                   <span>Approved {channelType} Campaign Name formula</span>
                 </div>
@@ -598,7 +588,7 @@ export const AgencyDashboard: React.FC = () => {
 
                 <div className="bg-slate-950 rounded-xl border border-slate-800 p-3 space-y-1">
                   <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Campaign Name taxonomy string</span>
-                  <div className="font-mono text-xs text-rose-300 font-bold break-all">{built.string}</div>
+                  <div className="font-mono text-xs text-navy-300 font-bold break-all">{built.string}</div>
                 </div>
               </div>
 
@@ -609,7 +599,7 @@ export const AgencyDashboard: React.FC = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. 2L LBCL awareness push"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
                 />
               </div>
 
@@ -626,7 +616,7 @@ export const AgencyDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setBuilderStep(4)}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
+                  className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
                   <span>Next: Review & Submit</span>
                   <ArrowRight className="w-4 h-4" />
@@ -641,10 +631,10 @@ export const AgencyDashboard: React.FC = () => {
               <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-rose-400" />
+                    <CheckCircle2 className="w-4 h-4 text-navy-400" />
                     Generated Campaign Taxonomy Summary
                   </h4>
-                  <span className="text-[10px] bg-rose-600 text-white font-bold px-2 py-0.5 rounded uppercase">
+                  <span className="text-[10px] bg-navy-600 text-white font-bold px-2 py-0.5 rounded uppercase">
                     Validation Passed
                   </span>
                 </div>
@@ -657,7 +647,7 @@ export const AgencyDashboard: React.FC = () => {
 
                   <div>
                     <span className="text-slate-400 block text-[10px]">Brand / TA:</span>
-                    <span className="font-bold text-rose-300 block">
+                    <span className="font-bold text-navy-300 block">
                       {selectedBrand?.name || 'Yescarta®'}
                     </span>
                   </div>
@@ -669,7 +659,7 @@ export const AgencyDashboard: React.FC = () => {
 
                   <div>
                     <span className="text-slate-400 block text-[10px]">Topic / Subtopic:</span>
-                    <span className="font-mono text-rose-400 font-bold block">{selectedSubId}</span>
+                    <span className="font-mono text-navy-400 font-bold block">{selectedSubId}</span>
                   </div>
                 </div>
 
@@ -677,7 +667,7 @@ export const AgencyDashboard: React.FC = () => {
                   <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                     Campaign Name taxonomy string (approved {channelType} formula):
                   </span>
-                  <div className="font-mono text-xs text-rose-300 font-bold break-all">
+                  <div className="font-mono text-xs text-navy-300 font-bold break-all">
                     {built.string}
                   </div>
                 </div>
@@ -697,7 +687,7 @@ export const AgencyDashboard: React.FC = () => {
                   type="button"
                   onClick={handleCreateCampaign}
                   disabled={isSubmitting}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-8 py-3 rounded-xl transition flex items-center gap-2 shadow-md"
+                  className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-8 py-3 rounded-xl transition flex items-center gap-2 shadow-md"
                 >
                   <Send className="w-4 h-4" />
                   <span>Submit Campaign Taxonomy to Marketer</span>
@@ -715,7 +705,7 @@ export const AgencyDashboard: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-rose-600" />
+                <BarChart3 className="w-5 h-5 text-navy-600" />
                 Master Program, Campaign & Tactic Portfolio Overview
               </h3>
               <p className="text-xs text-slate-500">
@@ -726,7 +716,7 @@ export const AgencyDashboard: React.FC = () => {
             <a
               href="/api/export/csv?type=campaigns"
               download
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-sm shrink-0"
+              className="bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-sm shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export Portfolio Overview CSV</span>
@@ -743,17 +733,17 @@ export const AgencyDashboard: React.FC = () => {
               return (
                 <div
                   key={program.id}
-                  className="p-4 rounded-2xl border border-slate-200 hover:border-rose-300 bg-slate-50/50 transition space-y-3"
+                  className="p-4 rounded-2xl border border-slate-200 hover:border-navy-300 bg-slate-50/50 transition space-y-3"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-rose-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-sm uppercase">
+                      <div className="w-8 h-8 rounded-xl bg-navy-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-sm uppercase">
                         {pShort}
                       </div>
                       <div>
                         <h4 className="font-bold text-sm text-slate-900">{program.programName}</h4>
                         <p className="text-[11px] text-slate-500 font-mono">
-                          Code: <span className="text-rose-700 font-bold">{pCode}</span> &bull; Market: {pMarket}
+                          Code: <span className="text-navy-700 font-bold">{pCode}</span> &bull; Market: {pMarket}
                         </p>
                       </div>
                     </div>
@@ -762,7 +752,7 @@ export const AgencyDashboard: React.FC = () => {
                       <span className="text-xs font-bold bg-white text-slate-800 px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
                         {program.campaignCount} Campaigns
                       </span>
-                      <span className="text-xs font-bold bg-rose-50 text-rose-800 px-3 py-1 rounded-xl border border-rose-200 shadow-2xs">
+                      <span className="text-xs font-bold bg-navy-50 text-navy-800 px-3 py-1 rounded-xl border border-navy-200 shadow-2xs">
                         {program.tacticCount} Tactics
                       </span>
                     </div>
@@ -781,7 +771,7 @@ export const AgencyDashboard: React.FC = () => {
 
                     <div>
                       <span className="text-slate-400 text-[10px] block uppercase font-bold">Taxonomy Alignment</span>
-                      <span className="font-mono text-rose-700 font-extrabold">100% Compliant</span>
+                      <span className="font-mono text-navy-700 font-extrabold">100% Compliant</span>
                     </div>
                   </div>
                 </div>
@@ -807,7 +797,7 @@ export const AgencyDashboard: React.FC = () => {
             <a
               href="/api/export/csv?type=campaigns"
               download
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm border border-rose-500/30 flex items-center gap-1.5 shrink-0"
+              className="bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm border border-navy-500/30 flex items-center gap-1.5 shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
@@ -834,14 +824,14 @@ export const AgencyDashboard: React.FC = () => {
                     <tr key={cmp.id} className="hover:bg-slate-50 transition">
                       <td className="p-3">
                         <div className="font-bold text-slate-900 text-xs">{cmp.campaignName}</div>
-                        <div className="font-mono text-[10px] text-rose-700 font-bold">{cmp.campaignCode}</div>
+                        <div className="font-mono text-[10px] text-navy-700 font-bold">{cmp.campaignCode}</div>
                       </td>
                       <td className="p-3">
                         <div className="font-bold text-slate-800">{brand?.name || 'Yescarta®'}</div>
                         <div className="text-[10px] text-slate-500 font-medium">{cmp.region} • {cmp.quarter}</div>
                       </td>
                       <td className="p-3">
-                        <span className="font-mono text-[10px] font-bold bg-rose-50 text-rose-800 px-2 py-0.5 rounded border border-rose-200">
+                        <span className="font-mono text-[10px] font-bold bg-navy-50 text-navy-800 px-2 py-0.5 rounded border border-navy-200">
                           {cmp.keyMessageSubcategoryId}
                         </span>
                       </td>
@@ -877,8 +867,6 @@ export const AgencyDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 4: Code & UTM Generator */}
-      {activeTab === 'generator' && <TaxonomyCodeGenerator />}
 
       {/* Tab 5: Gilead Taxonomy Master */}
       {activeTab === 'dictionary' && <TaxonomyDictionaryView />}

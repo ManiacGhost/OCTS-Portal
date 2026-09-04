@@ -25,7 +25,7 @@ export const HelpPage: React.FC = () => (
 
     <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-2xl">
       <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-        <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
+        <div className="w-11 h-11 rounded-xl bg-navy-50 text-navy-600 border border-navy-100 flex items-center justify-center">
           <LifeBuoy className="w-6 h-6" />
         </div>
         <div>

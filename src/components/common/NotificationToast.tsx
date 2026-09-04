@@ -16,12 +16,12 @@ export const NotificationToastContainer: React.FC = () => {
             toast.type === 'success'
               ? 'bg-emerald-950/90 text-emerald-100 border-emerald-800'
               : toast.type === 'error'
-              ? 'bg-rose-950/90 text-rose-100 border-rose-800'
+              ? 'bg-amber-950/90 text-amber-100 border-amber-800'
               : 'bg-slate-900/90 text-slate-100 border-slate-700'
           }`}
         >
           {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />}
-          {toast.type === 'error' && <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />}
+          {toast.type === 'error' && <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />}
           {toast.type === 'info' && <Info className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />}
           
           <div className="flex-1 pr-2 leading-relaxed">{toast.message}</div>

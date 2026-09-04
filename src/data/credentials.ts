@@ -20,8 +20,8 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     name: 'Sarah Chen',
     roleTitle: 'Omnichannel Campaign & Tagging Lead',
     organization: 'Klick Health',
-    badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
-    avatarBg: 'bg-rose-600',
+    badgeColor: 'bg-navy-100 text-navy-800 border-navy-200',
+    avatarBg: 'bg-navy-600',
     description: 'Builds Yescarta & Tecartus taxonomy strings from the approved Kite formulas and submits validated campaigns.'
   },
   {

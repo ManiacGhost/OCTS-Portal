@@ -117,7 +117,7 @@ export const LoginPage: React.FC = () => {
   if (isHydrating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="w-7 h-7 animate-spin text-rose-600" />
+        <RefreshCw className="w-7 h-7 animate-spin text-navy-600" />
       </div>
     );
   }
@@ -158,12 +158,12 @@ export const LoginPage: React.FC = () => {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-900/60 to-slate-900/90" />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-rose-600 flex items-center justify-center font-extrabold text-xl shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-navy-600 flex items-center justify-center font-extrabold text-xl shadow-md">
             O
           </div>
           <div>
             <div className="text-xl font-extrabold tracking-tight">Omnia</div>
-            <div className="text-[11px] text-rose-300 font-bold uppercase tracking-widest">
+            <div className="text-[11px] text-navy-300 font-bold uppercase tracking-widest">
               Digital Content Taxonomy &amp; Metadata
             </div>
           </div>
@@ -186,12 +186,12 @@ export const LoginPage: React.FC = () => {
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md space-y-6">
           <div className="lg:hidden flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-extrabold text-lg">
+            <div className="w-10 h-10 rounded-2xl bg-navy-600 text-white flex items-center justify-center font-extrabold text-lg">
               O
             </div>
             <div>
               <div className="text-lg font-extrabold tracking-tight text-slate-900">Omnia</div>
-              <div className="text-[10px] text-rose-600 font-bold uppercase tracking-widest">DCTM</div>
+              <div className="text-[10px] text-navy-600 font-bold uppercase tracking-widest">DCTM</div>
             </div>
           </div>
 
@@ -205,7 +205,7 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleManualLogin} className="space-y-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+              <div className="p-3 rounded-xl bg-navy-50 border border-navy-200 text-navy-700 text-xs font-semibold">
                 {errorMsg}
               </div>
             )}
@@ -220,7 +220,7 @@ export const LoginPage: React.FC = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="e.g. sarah.chen@havas.com"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
               />
             </div>
 
@@ -234,14 +234,14 @@ export const LoginPage: React.FC = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="e.g. agency123"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
               />
             </div>
 
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
+              className="w-full bg-navy-600 hover:bg-navy-700 disabled:opacity-60 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
             >
               {isAuthenticating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
               <span>Sign in</span>
@@ -250,7 +250,7 @@ export const LoginPage: React.FC = () => {
 
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-              <Key className="w-3.5 h-3.5 text-rose-600" />
+              <Key className="w-3.5 h-3.5 text-navy-600" />
               <span>Demo roles — one-click sign in</span>
             </div>
             <div className="grid gap-2">
@@ -259,7 +259,7 @@ export const LoginPage: React.FC = () => {
                   key={cred.personaId}
                   onClick={() => handleQuickLogin(cred)}
                   disabled={isAuthenticating}
-                  className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-rose-400 hover:bg-rose-50/40 transition text-left disabled:opacity-60"
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-navy-400 hover:bg-navy-50/40 transition text-left disabled:opacity-60"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`w-8 h-8 rounded-lg ${cred.avatarBg} text-white font-bold flex items-center justify-center text-xs shrink-0`}>
@@ -270,7 +270,7 @@ export const LoginPage: React.FC = () => {
                       <div className="text-[11px] text-slate-500 truncate">{cred.roleTitle}</div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-navy-700 bg-navy-50 border border-navy-200 px-2 py-1 rounded-lg shrink-0">
                     {cred.role}
                   </span>
                 </button>

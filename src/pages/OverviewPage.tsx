@@ -34,7 +34,7 @@ export const OverviewPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3 text-slate-500">
-        <RefreshCw className="w-7 h-7 animate-spin text-rose-600" />
+        <RefreshCw className="w-7 h-7 animate-spin text-navy-600" />
         <p className="text-xs font-semibold">Loading your overview…</p>
       </div>
     );
@@ -106,9 +106,9 @@ export const OverviewPage: React.FC = () => {
               onClick={() => s.filter && setStatusFilter(s.filter)}
               className={`text-left bg-white border rounded-2xl p-5 shadow-sm transition ${
                 active
-                  ? 'border-rose-500 ring-2 ring-rose-500/30'
+                  ? 'border-navy-500 ring-2 ring-navy-500/30'
                   : clickable
-                  ? 'border-slate-200 hover:border-rose-300 cursor-pointer'
+                  ? 'border-slate-200 hover:border-navy-300 cursor-pointer'
                   : 'border-slate-200 cursor-default'
               }`}
             >
@@ -116,7 +116,7 @@ export const OverviewPage: React.FC = () => {
               <div className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">{s.value}</div>
               {s.hint && <div className="text-[11px] text-slate-400 font-medium mt-1">{s.hint}</div>}
               {clickable && (
-                <div className={`text-[10px] font-bold mt-2 ${active ? 'text-rose-600' : 'text-slate-300'}`}>
+                <div className={`text-[10px] font-bold mt-2 ${active ? 'text-navy-600' : 'text-slate-300'}`}>
                   {active ? 'Showing below' : 'Click to view'}
                 </div>
               )}
@@ -146,7 +146,7 @@ export const OverviewPage: React.FC = () => {
             {activity.length === 0 && <div className="p-4 text-xs text-slate-400">No recent activity.</div>}
             {activity.map(log => (
               <div key={log.id} className="p-3.5 space-y-0.5">
-                <div className="text-[11px] font-mono font-bold text-rose-700">{log.action}</div>
+                <div className="text-[11px] font-mono font-bold text-navy-700">{log.action}</div>
                 <div className="text-xs text-slate-700">{log.details}</div>
                 <div className="text-[10px] text-slate-400 font-mono">{log.user} · {log.timestamp}</div>
               </div>

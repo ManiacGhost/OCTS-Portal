@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/*
+ * Portal accent — navy blue. Replaces the previous bright-red accent.
+ * Every `navy-*` utility (bg/text/border/ring/from/divide/fill/stroke…) is
+ * generated from these tokens by Tailwind v4.
+ */
+@theme {
+  --color-navy-50: #eef2fa;
+  --color-navy-100: #dae3f4;
+  --color-navy-200: #b7c8e6;
+  --color-navy-300: #8ba7d3;
+  --color-navy-400: #5a7cb4;
+  --color-navy-500: #3a5a91;
+  --color-navy-600: #24406e;
+  --color-navy-700: #1d3358;
+  --color-navy-800: #1a2c49;
+  --color-navy-900: #16243a;
+  --color-navy-950: #0d1626;
+}
+
 @keyframes omnia-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }

@@ -18,7 +18,7 @@ const STATUS_BADGE: Record<string, string> = {
   submitted: 'bg-amber-100 text-amber-800 border-amber-200',
   approved: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   active: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  rejected: 'bg-rose-100 text-rose-800 border-rose-200',
+  rejected: 'bg-slate-700 text-white border-slate-700',
 };
 
 export function matchesStatus(c: CampaignTaxonomy, f: CampaignStatusFilter): boolean {
@@ -105,7 +105,7 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
           <div className="bg-slate-900 rounded-xl p-3 space-y-1.5">
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Campaign Name taxonomy string</span>
             <div className="flex items-start justify-between gap-2">
-              <code className="text-xs font-mono font-bold text-rose-300 break-all">{c.taxonomyString}</code>
+              <code className="text-xs font-mono font-bold text-navy-300 break-all">{c.taxonomyString}</code>
               <button
                 onClick={copy}
                 className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-2 py-1"
@@ -221,7 +221,7 @@ export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, o
           <select
             value={activeChannel}
             onChange={e => setPickedChannel(e.target.value)}
-            className="bg-white border border-slate-300 text-slate-900 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500 shadow-sm"
+            className="bg-white border border-slate-300 text-slate-900 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-navy-500 shadow-sm"
           >
             <option value="all">All channels ({visible.length})</option>
             {channels.map(ch => {
@@ -245,12 +245,12 @@ export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, o
                 onClick={() => onStatusFilterChange(f.key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
                   active
-                    ? 'bg-rose-600 text-white border-rose-600'
+                    ? 'bg-navy-600 text-white border-navy-600'
                     : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                 }`}
               >
                 {f.label}
-                <span className={`ml-1.5 ${active ? 'text-rose-100' : 'text-slate-400'}`}>{count}</span>
+                <span className={`ml-1.5 ${active ? 'text-navy-100' : 'text-slate-400'}`}>{count}</span>
               </button>
             );
           })}
@@ -279,7 +279,7 @@ export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, o
                     ) : (
                       <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                     )}
-                    <Layers className="w-4 h-4 text-rose-600 shrink-0" />
+                    <Layers className="w-4 h-4 text-navy-600 shrink-0" />
                     <span className="font-bold text-slate-900 text-sm truncate">{group.name}</span>
                     <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
                       {group.code}
@@ -297,7 +297,7 @@ export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, o
                       return (
                         <div key={fmt} className="p-3 space-y-2">
                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 px-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-navy-400" />
                             {fmt}
                             <span className="text-slate-300">· {rows.length}</span>
                           </div>
@@ -307,7 +307,7 @@ export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, o
                               type="button"
                               onClick={() => setDetail(c)}
                               title="View full campaign details"
-                              className="w-full flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-left hover:border-rose-300 hover:bg-white transition"
+                              className="w-full flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-left hover:border-navy-300 hover:bg-white transition"
                             >
                               <div className="min-w-0">
                                 <div className="text-xs font-bold text-slate-900 truncate">

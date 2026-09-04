@@ -37,7 +37,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
     <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-6 shadow-sm text-slate-900">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-rose-600 text-white shadow-sm">
+          <div className="p-2.5 rounded-xl bg-navy-600 text-white shadow-sm">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
@@ -56,7 +56,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
             download
             className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-200 flex items-center gap-1.5 shadow-sm"
           >
-            <Download className="w-3.5 h-3.5 text-rose-600" />
+            <Download className="w-3.5 h-3.5 text-navy-600" />
             <span>Export Topic Dictionary (CSV)</span>
           </a>
         </div>
@@ -68,7 +68,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           <button
             onClick={() => setActiveTab('keymessages')}
             className={`px-3 py-1.5 rounded-lg transition font-bold whitespace-nowrap ${
-              activeTab === 'keymessages' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              activeTab === 'keymessages' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Topics & Subtopics ({keyMessages.length})
@@ -76,7 +76,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           <button
             onClick={() => setActiveTab('therapeutic')}
             className={`px-3 py-1.5 rounded-lg transition font-bold whitespace-nowrap ${
-              activeTab === 'therapeutic' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              activeTab === 'therapeutic' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Therapeutic Areas ({therapeuticAreas.length})
@@ -84,7 +84,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           <button
             onClick={() => setActiveTab('brands')}
             className={`px-3 py-1.5 rounded-lg transition font-bold whitespace-nowrap ${
-              activeTab === 'brands' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              activeTab === 'brands' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Brands ({brands.length})
@@ -92,7 +92,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           <button
             onClick={() => setActiveTab('channels')}
             className={`px-3 py-1.5 rounded-lg transition font-bold whitespace-nowrap ${
-              activeTab === 'channels' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              activeTab === 'channels' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Channels ({channels.length})
@@ -107,7 +107,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search taxonomy..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-rose-500 font-medium"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-navy-500 font-medium"
           />
         </div>
       </div>
@@ -119,7 +119,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
             <div key={cat.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                  <span className="text-xs font-mono font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded border border-navy-200">
                     {cat.code}
                   </span>
                   <h4 className="font-bold text-sm text-slate-900">{cat.name}</h4>
@@ -133,8 +133,8 @@ export const TaxonomyDictionaryView: React.FC = () => {
                 {cat.subcategories.map((sub) => (
                   <div key={sub.id} className="bg-white border border-slate-200 rounded-lg p-3 space-y-1 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-bold text-rose-800">{sub.code}</span>
-                      <span className="text-[10px] bg-rose-50 text-rose-700 px-2 py-0.5 rounded border border-rose-200 font-bold">
+                      <span className="text-xs font-mono font-bold text-navy-800">{sub.code}</span>
+                      <span className="text-[10px] bg-navy-50 text-navy-700 px-2 py-0.5 rounded border border-navy-200 font-bold">
                         {sub.status.toUpperCase()}
                       </span>
                     </div>
@@ -154,7 +154,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           {therapeuticAreas.map((ta) => (
             <div key={ta.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                <span className="text-xs font-mono font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded border border-navy-200">
                   {ta.code}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">{ta.brands.length} Brands</span>
@@ -174,7 +174,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
             return (
               <div key={b.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                  <span className="text-xs font-mono font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded border border-navy-200">
                     {b.code}
                   </span>
                   <span className="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold">
@@ -197,7 +197,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           {channels.map((c) => (
             <div key={c.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                <span className="text-xs font-mono font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded border border-navy-200">
                   {c.code}
                 </span>
                 <span className="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold">

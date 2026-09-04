@@ -8,9 +8,10 @@
  *   (m) machine-generated code   (f) free text
  */
 
-export type MediaChannelType = 'Digital' | 'Social' | 'Search' | 'SFMC';
+import { MediaChannelType } from '../types';
+export type { MediaChannelType };
 
-export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Search', 'SFMC'];
+export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Search', 'SFMC', 'IVA'];
 
 export type TokenKind = 'c' | 'v' | 'm' | 'f';
 
@@ -46,6 +47,7 @@ export const MEDIUMS: Record<MediaChannelType, string> = {
   Social: 'Social',
   Search: 'Search',
   SFMC: 'Email',
+  IVA: 'Field',
 };
 
 // ---- Campaign-level formula, per channel -----------------------------------
@@ -76,6 +78,8 @@ export const CAMPAIGN_FORMULA: Record<MediaChannelType, FormulaToken[]> = {
   Social: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Platform', kind: 'c', source: 'subChannel' }, YEAR, CODE],
   Search: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Platform', kind: 'c', source: 'subChannel' }, YEAR, CODE],
   SFMC: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Platform', kind: 'c', source: 'subChannel' }, YEAR, CODE],
+  // TODO: replace with the client's approved IVA Campaign Name formula — mirrors Social for now.
+  IVA: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Deck type', kind: 'c', source: 'subChannel' }, YEAR, CODE],
 };
 
 /** Human-readable formula template shown in the breakdown panel. */
@@ -86,10 +90,11 @@ export function formulaTemplate(channel: MediaChannelType): string {
 // ---- sub-channels & their extra fields -------------------------------------
 
 export const SUB_CHANNELS: Record<MediaChannelType, string[]> = {
-  Digital: ['Programmatic Display', 'Online Video (OLV)', 'Native', 'High-Impact'],
+  Digital: ['Programmatic Display', 'Online Video (OLV)', 'Native', 'High-Impact', 'Website Pages'],
   Social: ['Meta', 'TikTok', 'LinkedIn', 'Reddit'],
   Search: ['Google Ads', 'Microsoft Ads (Bing)'],
   SFMC: ['Triggered Send', 'Journey Builder', 'Batch / Blast'],
+  IVA: ['Core Visual Aid', 'Follow-Up Deck', 'Objection Handler', 'Disease State Deck'],
 };
 
 export interface ExtraField {
@@ -116,6 +121,10 @@ export const SUB_CHANNEL_FIELDS: Record<MediaChannelType, Record<string, ExtraFi
     'High-Impact': [
       { key: 'unitType', label: 'Unit type', options: ['Interscroller', 'Adhesion', 'Pushdown', 'Rich Media'] },
       { key: 'vendor', label: 'Vendor', placeholder: 'e.g. GumGum, Kargo' },
+    ],
+    'Website Pages': [
+      { key: 'pageTemplate', label: 'Page template', options: ['Landing', 'Article', 'ISI / PI', 'Resource hub'] },
+      { key: 'cms', label: 'CMS / platform', options: ['AEM', 'Sitecore', 'Contentful', 'WordPress VIP'] },
     ],
   },
   Social: {
@@ -158,6 +167,24 @@ export const SUB_CHANNEL_FIELDS: Record<MediaChannelType, Record<string, ExtraFi
     'Batch / Blast': [
       { key: 'sendClassification', label: 'Send classification', options: ['Commercial', 'Transactional'] },
       { key: 'suppressionList', label: 'Suppression list', placeholder: 'e.g. global unsub, HCP opt-out' },
+    ],
+  },
+  IVA: {
+    'Core Visual Aid': [
+      { key: 'slideCount', label: 'Slide count', placeholder: 'e.g. 12' },
+      { key: 'clmSystem', label: 'CLM system', options: ['Veeva CLM', 'IQVIA OCE', 'Custom'] },
+    ],
+    'Follow-Up Deck': [
+      { key: 'slideCount', label: 'Slide count', placeholder: 'e.g. 6' },
+      { key: 'triggerContext', label: 'Trigger context', options: ['Post-detail', 'Rep-requested', 'Congress follow-up'] },
+    ],
+    'Objection Handler': [
+      { key: 'objectionTheme', label: 'Objection theme', options: ['Safety', 'Access', 'Logistics', 'Efficacy vs SOC'] },
+      { key: 'mlrCode', label: 'MLR / approval code', placeholder: 'e.g. US-YES-2026-0042' },
+    ],
+    'Disease State Deck': [
+      { key: 'branded', label: 'Branded', options: ['Unbranded', 'Branded'] },
+      { key: 'detailPriority', label: 'Detail priority', options: ['Primary', 'Secondary', 'Reference only'] },
     ],
   },
 };

@@ -40,8 +40,8 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
     <div className={`bg-white border border-slate-200 rounded-2xl ${compact ? 'p-4' : 'p-5'} space-y-4 shadow-sm text-slate-900`}>
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200">
-            <Layers className="w-4 h-4 text-rose-600" />
+          <div className="p-1.5 rounded-xl bg-navy-50 text-navy-700 border border-navy-200">
+            <Layers className="w-4 h-4 text-navy-600" />
           </div>
           <div>
             <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -53,7 +53,7 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
             </p>
           </div>
         </div>
-        <span className="text-[10px] bg-rose-50 text-rose-700 border border-rose-200 font-mono font-bold px-2 py-0.5 rounded-md">
+        <span className="text-[10px] bg-navy-50 text-navy-700 border border-navy-200 font-mono font-bold px-2 py-0.5 rounded-md">
           Topic Engine
         </span>
       </div>
@@ -68,7 +68,7 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
             <select
               value={selectedTaId || ''}
               onChange={(e) => onTaChange(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-rose-500 focus:bg-white focus:ring-2 focus:ring-rose-500/20 font-medium"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-navy-500 focus:bg-white focus:ring-2 focus:ring-navy-500/20 font-medium"
             >
               <option value="">-- Select Therapeutic Area --</option>
               {therapeuticAreas.map((ta) => (
@@ -86,7 +86,7 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
             <select
               value={selectedBrandId || ''}
               onChange={(e) => onBrandChange(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-rose-500 focus:bg-white focus:ring-2 focus:ring-rose-500/20 font-medium"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-navy-500 focus:bg-white focus:ring-2 focus:ring-navy-500/20 font-medium"
             >
               <option value="">-- Select Brand --</option>
               {filteredBrands.map((b) => (
@@ -120,13 +120,13 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
                 }}
                 className={`p-2.5 rounded-xl border text-left transition-all ${
                   isSelected
-                    ? 'bg-rose-50 border-rose-500 text-rose-950 shadow-sm ring-1 ring-rose-500'
+                    ? 'bg-navy-50 border-navy-500 text-navy-950 shadow-sm ring-1 ring-navy-500'
                     : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold truncate">{cat.name}</span>
-                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${isSelected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${isSelected ? 'bg-navy-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
                     {cat.code}
                   </span>
                 </div>
@@ -143,7 +143,7 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
       <div>
         <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
           <span>2. Master Subtopic</span>
-          <span className="text-rose-700 font-mono text-[11px] font-bold">
+          <span className="text-navy-700 font-mono text-[11px] font-bold">
             {activeSubtopics.length} available under {activeTopic?.name}
           </span>
         </label>
@@ -157,13 +157,13 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
                 onClick={() => onSubcategoryChange(sub.id)}
                 className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start justify-between gap-3 ${
                   isSubSelected
-                    ? 'bg-rose-50/80 border-rose-500 text-slate-900 shadow-sm ring-1 ring-rose-500/40'
+                    ? 'bg-navy-50/80 border-navy-500 text-slate-900 shadow-sm ring-1 ring-navy-500/40'
                     : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-rose-700 font-mono bg-rose-100 px-2 py-0.5 rounded border border-rose-200">
+                    <span className="text-xs font-bold text-navy-700 font-mono bg-navy-100 px-2 py-0.5 rounded border border-navy-200">
                       {sub.code}
                     </span>
                     <span className="text-xs font-bold text-slate-900">{sub.name}</span>
@@ -183,7 +183,7 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
 
                 <div className="shrink-0 pt-0.5">
                   <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    isSubSelected ? 'border-rose-600 bg-rose-600 text-white' : 'border-slate-300 bg-white'
+                    isSubSelected ? 'border-navy-600 bg-navy-600 text-white' : 'border-slate-300 bg-white'
                   }`}>
                     {isSubSelected && <Check className="w-3 h-3 stroke-[3]" />}
                   </div>
@@ -198,13 +198,13 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
       {activeSubtopic && (
         <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs text-slate-200">
           <div className="flex items-center gap-2">
-            <Tag className="w-4 h-4 text-rose-400" />
+            <Tag className="w-4 h-4 text-navy-400" />
             <span className="font-semibold">Active Topic / Subtopic Mapping:</span>
-            <span className="font-mono text-rose-300 font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+            <span className="font-mono text-navy-300 font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
               {activeTopic?.code} / {activeSubtopic.code}
             </span>
           </div>
-          <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider">
+          <span className="text-[10px] text-navy-400 font-bold uppercase tracking-wider">
             Validated for Veeva
           </span>
         </div>

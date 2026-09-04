@@ -52,7 +52,7 @@ export const TaxonomyTooltip: React.FC<TaxonomyTooltipProps> = ({
         }}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className="text-slate-400 hover:text-rose-600 transition-colors focus:outline-none p-0.5 rounded-full hover:bg-rose-50"
+        className="text-slate-400 hover:text-navy-600 transition-colors focus:outline-none p-0.5 rounded-full hover:bg-navy-50"
         title={`Taxonomy info for ${fieldName}`}
         aria-label={`Taxonomy info for ${fieldName}`}
       >
@@ -67,12 +67,12 @@ export const TaxonomyTooltip: React.FC<TaxonomyTooltipProps> = ({
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-            <span className="font-bold text-rose-300 flex items-center gap-1.5 text-[11px]">
-              <Info className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <span className="font-bold text-navy-300 flex items-center gap-1.5 text-[11px]">
+              <Info className="w-3.5 h-3.5 text-navy-400 shrink-0" />
               {fieldName} Taxonomy
             </span>
             {taxonomyCode && (
-              <span className="font-mono text-[10px] bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800 font-bold">
+              <span className="font-mono text-[10px] bg-navy-950 text-navy-300 px-1.5 py-0.5 rounded border border-navy-800 font-bold">
                 {taxonomyCode}
               </span>
             )}
