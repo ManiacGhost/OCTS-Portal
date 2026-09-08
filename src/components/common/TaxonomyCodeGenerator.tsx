@@ -2,14 +2,25 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Code, Copy, Check, CheckCircle2, Sparkles, ArrowRight, Link2 } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
-import { CHANNEL_TYPES, MEDIUMS, INDICATIONS, TARGETS, COUNTRIES } from '../../data/taxonomyFormulas';
+import { INDICATIONS, TARGETS, COUNTRIES } from '../../data/taxonomyFormulas';
 import {
-  subChannelsWithDimensions,
-  dimensionByName,
-  dimensionOptions,
-} from '../../data/taggableDimensions';
+  KITE_CHANNELS,
+  KITE_MEDIUM,
+  KiteChannel,
+  kiteSubChannels,
+  kiteDimensionByCode,
+} from '../../data/kiteTaxonomy';
 import { useBrandStrategy } from '../../data/brandStrategyStore';
-import { CampaignTaxonomy, MediaChannelType } from '../../types';
+import { CampaignTaxonomy } from '../../types';
+
+/** Old campaign channelType → Kite channel. */
+const KITE_CHANNEL_OF: Record<string, KiteChannel> = {
+  Digital: 'Digital',
+  Social: 'Social',
+  Search: 'Digital',
+  SFMC: 'Email',
+  IVA: 'Digital',
+};
 
 const slug = (v: string | undefined | null): string =>
   String(v ?? '')
@@ -27,13 +38,13 @@ const quarterToDate = (quarter: string): string => {
 };
 
 export const TaxonomyCodeGenerator: React.FC = () => {
-  const { brands, channels, therapeuticAreas, campaigns, showToast } = usePersona();
+  const { brands, campaigns, keyMessages, showToast } = usePersona();
   const bs = useBrandStrategy();
 
   const [linkedId, setLinkedId] = useState('');
   const [brandId, setBrandId] = useState(brands[0]?.id || 'brand-yescarta');
-  const [channelType, setChannelType] = useState<MediaChannelType>('Digital');
-  const [subChannel, setSubChannel] = useState<string>(subChannelsWithDimensions('Digital')[0] || '');
+  const [channelType, setChannelType] = useState<string>('Digital');
+  const [subChannel, setSubChannel] = useState<string>(kiteSubChannels('Digital')[0] || '');
   const [indication, setIndication] = useState(INDICATIONS[0]);
   const [audience, setAudience] = useState(TARGETS[0]);
   const [market, setMarket] = useState(COUNTRIES[0]);
@@ -44,15 +55,14 @@ export const TaxonomyCodeGenerator: React.FC = () => {
 
   const brand = brands.find(b => b.id === brandId) || brands[0];
   const bId = brand?.id || brandId;
-  const channelRecord = channels.find(c => c.name === channelType);
-  const subChannelList = subChannelsWithDimensions(channelType);
+  const subChannelList = kiteSubChannels(channelType);
   const hasSubChannels = subChannelList.length > 0;
   const linked = campaigns.find(c => c.id === linkedId) || null;
   const year = (launchDate || '2026').slice(0, 4);
 
-  const chooseChannel = (ct: MediaChannelType) => {
+  const chooseChannel = (ct: string) => {
     setChannelType(ct);
-    setSubChannel(subChannelsWithDimensions(ct)[0] || '');
+    setSubChannel(kiteSubChannels(ct)[0] || '');
     setDimValues({});
   };
   const chooseSubChannel = (sc: string) => {
@@ -68,9 +78,13 @@ export const TaxonomyCodeGenerator: React.FC = () => {
     if (!c) return;
     if (c.brandId) setBrandId(c.brandId);
     if (c.channelType) {
-      setChannelType(c.channelType);
-      const subs = subChannelsWithDimensions(c.channelType);
-      setSubChannel(subs.includes(c.subChannel || '') ? c.subChannel! : subs[0] || '');
+      const kc = KITE_CHANNEL_OF[c.channelType] || 'Digital';
+      setChannelType(kc);
+      const subs = kiteSubChannels(kc);
+      const guess =
+        subs.find(s => (c.subChannel || '').toLowerCase().includes(s.toLowerCase().replace(/^3p /, ''))) ||
+        (kc === 'Digital' ? 'Display' : '');
+      setSubChannel(subs.includes(guess) ? guess : subs[0] || '');
     }
     const ind = c.formulaInputs?.indication;
     if (ind && (INDICATIONS as string[]).includes(ind)) setIndication(ind);
@@ -88,43 +102,44 @@ export const TaxonomyCodeGenerator: React.FC = () => {
       const val = v == null ? '' : String(v).trim();
       if (val) f[slug(k)] = val;
     };
-    const ta = therapeuticAreas.find(t => t.id === (linked?.therapeuticAreaId || brand?.therapeuticAreaId));
+    const km = keyMessages.find(k => k.id === linked?.keyMessageCategoryId);
+    const subs = (km?.subtopics || km?.subcategories || []) as { id: string; name: string }[];
+    const sub = subs.find(s => s.id === linked?.keyMessageSubcategoryId);
     // from the linked campaign record
     if (linked) {
-      put('campaign id', linked.id);
+      put('campaign', linked.campaignName);
       put('campaign name', linked.campaignName);
+      put('campaign id', linked.id);
       put('campaign code', linked.campaignCode);
+      put('cpgn', linked.campaignName);
+      put('cpgn id', linked.id);
       put('taxonomy string', linked.taxonomyString);
+      put('url', linked.contentAssetUrl);
       put('landing page url', linked.contentAssetUrl);
-      put('utm source', linked.utmSource);
-      put('utm medium', linked.utmMedium);
-      put('utm campaign', linked.utmCampaign);
-      put('utm content', linked.utmContent);
-      put('agency', linked.agencyOwner);
+      put('topic', km?.name);
+      put('sub topic', sub?.name);
       Object.entries(linked.formulaInputs || {}).forEach(([k, v]) => put(k, v));
     }
     // from the current form inputs
     put('brand', brand?.name?.split(/[ (]/)[0]);
+    put('brd', brand?.name?.split(/[ (]/)[0]);
     put('brand code', brand?.code);
-    put('product', brand?.code);
-    put('product code', brand?.code);
     put('indication', indication);
-    put('therapeutic area', ta?.code);
+    put('indc', indication);
     put('target', audience);
-    put('target audience', audience);
     put('audience', audience);
+    put('audience name', audience);
     put('market', market);
     put('country', market);
-    put('region', market);
     put('year', year);
-    put('campaign year', year);
     put('channel', channelType);
-    put('medium', MEDIUMS[channelType]);
+    put('chnl', channelType);
+    put('medium', KITE_MEDIUM[channelType as KiteChannel] || channelType.toLowerCase());
     put('sub channel', hasSubChannels ? subChannel : '');
-    put('platform', hasSubChannels ? subChannel : '');
+    put('sub chnl', hasSubChannels ? subChannel : '');
     return f;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linked, brand, indication, audience, market, channelType, subChannel, hasSubChannels, therapeuticAreas]);
+  }, [linked, brand, indication, audience, market, channelType, subChannel, hasSubChannels, keyMessages]);
 
   /** Best matching known value for a dimension name, or '' if none. */
   const matchFor = (name: string): string => {
@@ -143,14 +158,13 @@ export const TaxonomyCodeGenerator: React.FC = () => {
   const strategyDims = useMemo(() => {
     return bs
       .getSelected(bId, channelType, scopeSub)
-      .map(origName => {
-        const dim = dimensionByName(channelType, scopeSub, origName);
+      .map(code => {
+        const dim = kiteDimensionByCode(code);
         if (!dim) return null;
-        const ed = bs.getEdit(bId, channelType, scopeSub, origName);
+        const ed = bs.getEdit(bId, channelType, scopeSub, code);
         return {
-          dim,
-          origName,
-          label: ed.name || dim.name,
+          code,
+          label: ed.name || dim.label,
           captures: ed.captures || dim.captures,
           def: ed.defaultValue || '',
         };
@@ -159,22 +173,23 @@ export const TaxonomyCodeGenerator: React.FC = () => {
   }, [bs, bId, channelType, scopeSub]);
 
   /** displayed value: user edit → auto-match from campaign/form → strategy default → '' */
-  const dv = (origName: string) => {
-    const found = strategyDims.find(d => d.origName === origName);
-    if (dimValues[origName] !== undefined) return dimValues[origName];
-    return matchFor(found?.label || origName) || matchFor(origName) || found?.def || '';
+  const dv = (code: string) => {
+    const found = strategyDims.find(d => d.code === code);
+    if (dimValues[code] !== undefined) return dimValues[code];
+    return matchFor(code) || matchFor(found?.label || code) || found?.def || '';
   };
   /** true when the shown value came from an auto-match (not typed, not a plain default) */
-  const isAutoMatched = (origName: string) => {
-    if (dimValues[origName] !== undefined) return false;
-    const found = strategyDims.find(d => d.origName === origName);
-    return !!(matchFor(found?.label || origName) || matchFor(origName));
+  const isAutoMatched = (code: string) => {
+    if (dimValues[code] !== undefined) return false;
+    const found = strategyDims.find(d => d.code === code);
+    return !!(matchFor(code) || matchFor(found?.label || code));
   };
   const brandCode = brand?.code || 'YES';
   const brandWord = brand?.name.split(/[ (]/)[0] || 'Yescarta';
+  const kiteMedium = KITE_MEDIUM[channelType as KiteChannel] || channelType.toLowerCase();
 
-  const sourceSlug = slug(channelRecord?.downstreamPlatform || channelType);
-  const mediumSlug = slug(hasSubChannels && subChannel ? subChannel : MEDIUMS[channelType]);
+  const sourceSlug = slug(channelType);
+  const mediumSlug = slug(hasSubChannels && subChannel ? subChannel : kiteMedium);
   const campaignParam = linked?.utmCampaign
     ? slug(linked.utmCampaign)
     : [slug(brandWord), slug(indication), year, slug(campaignSlug)].filter(v => v && v !== 'na').join('_');
@@ -182,20 +197,20 @@ export const TaxonomyCodeGenerator: React.FC = () => {
 
   const taxonomyString = [
     slug(market),
-    slug(MEDIUMS[channelType]),
+    slug(kiteMedium),
     slug(brandCode),
     slug(indication),
     slug(audience),
     year,
     hasSubChannels ? slug(subChannel) : '',
-    ...strategyDims.map(d => slug(dv(d.origName))),
+    ...strategyDims.map(d => slug(dv(d.code))),
   ]
     .filter(v => v && v !== 'na')
     .join('_');
 
   const dimParams = strategyDims
-    .filter(d => dv(d.origName).trim())
-    .map(d => `${slug(d.label)}=${encodeURIComponent(slug(dv(d.origName)))}`)
+    .filter(d => dv(d.code).trim())
+    .map(d => `${d.code}=${encodeURIComponent(slug(dv(d.code)))}`)
     .join('&');
 
   const trackingUrl =
@@ -326,7 +341,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
       <div>
         <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Channel</div>
         <div className="flex flex-wrap items-center gap-2">
-          {CHANNEL_TYPES.map(ct => (
+          {KITE_CHANNELS.map(ct => (
             <button
               key={ct}
               type="button"
@@ -384,11 +399,11 @@ export const TaxonomyCodeGenerator: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {strategyDims.map(d => {
-              const opts = dimensionOptions(d.dim);
-              const auto = isAutoMatched(d.origName);
+              const auto = isAutoMatched(d.code);
               return (
-                <div key={d.origName}>
+                <div key={d.code}>
                   <label className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-slate-700 mb-1">
+                    <span className="font-mono text-slate-400">{d.code}</span>
                     {d.label} <span className="text-slate-400 font-medium">&middot; {d.captures}</span>
                     {auto && (
                       <span className="text-[9px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1 py-0.5">
@@ -396,27 +411,11 @@ export const TaxonomyCodeGenerator: React.FC = () => {
                       </span>
                     )}
                   </label>
-                  {opts ? (
-                    <select
-                      value={dv(d.origName)}
-                      onChange={e => setDimValues(v => ({ ...v, [d.origName]: e.target.value }))}
-                      className={field}
-                    >
-                      <option value="">— select —</option>
-                      {[...(opts.includes(dv(d.origName)) || !dv(d.origName) ? opts : [dv(d.origName), ...opts])].map(o => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      value={dv(d.origName)}
-                      onChange={e => setDimValues(v => ({ ...v, [d.origName]: e.target.value }))}
-                      placeholder={d.dim.example}
-                      className={field}
-                    />
-                  )}
+                  <input
+                    value={dv(d.code)}
+                    onChange={e => setDimValues(v => ({ ...v, [d.code]: e.target.value }))}
+                    className={field}
+                  />
                 </div>
               );
             })}
@@ -463,7 +462,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
             {trackingUrl}
           </div>
           <div className="text-[10px] text-slate-500 flex items-center justify-between font-medium">
-            <span>{strategyDims.filter(d => dv(d.origName).trim()).length} strategy dimensions in URL</span>
+            <span>{strategyDims.filter(d => dv(d.code).trim()).length} strategy dimensions in URL</span>
             <span className="text-navy-800 font-mono font-bold">UTM compliant</span>
           </div>
         </div>

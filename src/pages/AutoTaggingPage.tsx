@@ -9,22 +9,22 @@ interface Feedback {
   comment?: string;
 }
 
-/** Auto-tagging only runs on content assets: IVA slides and website pages. */
+/** Auto-tagging runs on Digital content assets (3P Email / 3P SMS / Display). */
 function isAutoTaggable(c: CampaignTaxonomy): boolean {
-  return c.channelType === 'IVA' || (c.channelType === 'Digital' && c.subChannel === 'Website Pages');
+  return c.channelType === 'Digital';
 }
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'iva', label: 'IVA' },
-  { key: 'website', label: 'Website Pages' },
+  { key: '3P Email', label: '3P Email' },
+  { key: '3P SMS', label: '3P SMS' },
+  { key: 'Display', label: 'Display' },
 ] as const;
 type FilterKey = (typeof FILTERS)[number]['key'];
 
 function inFilter(c: CampaignTaxonomy, f: FilterKey): boolean {
   if (f === 'all') return true;
-  if (f === 'iva') return c.channelType === 'IVA';
-  return c.channelType === 'Digital'; // website
+  return (c.subChannel || c.format) === f;
 }
 
 /** Slides shown per page inside an asset card. */
@@ -119,9 +119,10 @@ export const AutoTaggingPage: React.FC = () => {
           Auto Tagging
         </h1>
         <p className="text-sm text-slate-500 mt-0.5 max-w-3xl">
-          The AI model tags <b>every slide of an IVA deck</b> and <b>every website page</b> &mdash; inferring the
-          brand, indication, Topic and Subtopic for each slide from its content and the surrounding channel journey.
-          Other channels are tagged manually in the Campaign Builder. Leave feedback per slide to help improve the model.
+          The AI model tags <b>every content item in a Digital asset</b> (3P Email, 3P SMS, Display) &mdash;
+          inferring the brand, indication, Topic and Subtopic for each from its content and the surrounding
+          channel journey. Social and Email are tagged manually in the Campaign Builder. Leave feedback per
+          item to help improve the model.
         </p>
       </div>
 

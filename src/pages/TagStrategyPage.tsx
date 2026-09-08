@@ -1,77 +1,64 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route, Tag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePersona } from '../context/PersonaContext';
-import { channelsForBrand } from '../data/utmStrategyModel';
-import { dimensionGroupsFor, subChannelsWithDimensions } from '../data/taggableDimensions';
 import { useBrandStrategy } from '../data/brandStrategyStore';
-import { MediaChannelType } from '../types';
-
-const SCOPE_STYLE: Record<string, string> = {
-  Core: 'bg-slate-100 text-slate-600 border-slate-200',
-  Channel: 'bg-navy-100 text-navy-800 border-navy-200',
-  'Sub-channel': 'bg-navy-600 text-white border-navy-600',
-};
+import {
+  KITE_CHANNELS,
+  kiteSubChannels,
+  kiteDimensionsFor,
+  kiteSourcesFor,
+} from '../data/kiteTaxonomy';
 
 const CELL_INPUT =
   'w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-navy-500 focus:bg-white rounded px-2 py-1 text-xs text-slate-900 focus:outline-none transition';
 
 export const TagStrategyPage: React.FC = () => {
-  const { campaigns, channels, brands } = usePersona();
+  const { brands } = usePersona();
+  const bs = useBrandStrategy();
 
   const [brandId, setBrandId] = useState<string>(brands[0]?.id || '');
-  const [channelId, setChannelId] = useState<string>('');
-  const [subChannel, setSubChannel] = useState<string>('');
+  const [channel, setChannel] = useState<string>('Digital');
+  const [subChannel, setSubChannel] = useState<string>(kiteSubChannels('Digital')[0] || '');
 
   const brand = brands.find(b => b.id === brandId) || brands[0];
-
-  const brandChannels = useMemo(
-    () => channelsForBrand(brand?.id || '', campaigns, channels),
-    [brand, campaigns, channels],
-  );
-  const activeChannel = brandChannels.find(bc => bc.channel.id === channelId)?.channel || null;
-  const channelType = (activeChannel?.name as MediaChannelType) || null;
-  const subChannelList = channelType ? subChannelsWithDimensions(channelType) : [];
-
-  const pickChannel = (id: string) => {
-    setChannelId(id);
-    const ct = brandChannels.find(bc => bc.channel.id === id)?.channel?.name as MediaChannelType;
-    setSubChannel(ct ? subChannelsWithDimensions(ct)[0] || '' : '');
-  };
-
-  const pickBrand = (id: string) => {
-    setBrandId(id);
-    setChannelId('');
-    setSubChannel('');
-  };
-
-  // Default to the Digital channel (fall back to the brand's first channel).
-  useEffect(() => {
-    if (channelId || brandChannels.length === 0) return;
-    const target = brandChannels.find(bc => bc.channel.name === 'Digital') || brandChannels[0];
-    pickChannel(target.channel.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [brandChannels, channelId]);
-
-  const bs = useBrandStrategy();
-  const hasSubChannels = subChannelList.length > 0;
-  const ready = !!channelType && (!hasSubChannels || !!subChannel);
-  const groups = ready && channelType ? dimensionGroupsFor(channelType, subChannel) : [];
-  const totalDimensions = groups.reduce((n, g) => n + g.dimensions.length, 0);
-  const scopeLabel = hasSubChannels && subChannel ? `${activeChannel?.name} → ${subChannel}` : activeChannel?.name;
-
   const bId = brand?.id || brandId;
-  const selected = channelType ? bs.getSelected(bId, channelType, subChannel) : [];
-  const selectedCount = selected.length;
-  const toggle = (name: string) => channelType && bs.toggle(bId, channelType, subChannel, name);
-  const setGroup = (names: string[], on: boolean) => {
-    if (!channelType) return;
-    const set = new Set(selected);
-    names.forEach(n => (on ? set.add(n) : set.delete(n)));
-    bs.setSelected(bId, channelType, subChannel, Array.from(set));
+
+  const subChannelList = kiteSubChannels(channel);
+  const hasSubChannels = subChannelList.length > 0;
+  const scopeSub = hasSubChannels ? subChannel : '';
+
+  const pickBrand = (id: string) => setBrandId(id);
+  const pickChannel = (c: string) => {
+    setChannel(c);
+    setSubChannel(kiteSubChannels(c)[0] || '');
   };
-  const editDim = (name: string, patch: { name?: string; captures?: string; defaultValue?: string }) =>
-    channelType && bs.setEdit(bId, channelType, subChannel, name, patch);
+
+  // Ensure a valid sub-channel whenever the channel changes.
+  useEffect(() => {
+    const subs = kiteSubChannels(channel);
+    if (subs.length && !subs.includes(subChannel)) setSubChannel(subs[0]);
+    if (!subs.length && subChannel) setSubChannel('');
+  }, [channel, subChannel]);
+
+  const dims = kiteDimensionsFor(channel, scopeSub);
+  const sources = kiteSourcesFor(channel, scopeSub);
+  const scopeLabel = hasSubChannels && subChannel ? `${channel} → ${subChannel}` : channel;
+
+  const selected = bs.getSelected(bId, channel, scopeSub);
+  const selectedCount = selected.length;
+  const codes = dims.map(d => d.code);
+  const chosen = codes.filter(c => selected.includes(c)).length;
+  const allOn = chosen === codes.length && codes.length > 0;
+
+  const toggle = (code: string) => bs.toggle(bId, channel, scopeSub, code);
+  const setAll = (on: boolean) => {
+    const set = new Set(selected);
+    codes.forEach(c => (on ? set.add(c) : set.delete(c)));
+    bs.setSelected(bId, channel, scopeSub, Array.from(set));
+  };
+  const editDim = (code: string, patch: { name?: string; captures?: string; defaultValue?: string }) =>
+    bs.setEdit(bId, channel, scopeSub, code, patch);
 
   return (
     <div className="space-y-5">
@@ -81,9 +68,10 @@ export const TagStrategyPage: React.FC = () => {
           Tagging Strategy
         </h1>
         <p className="text-sm text-slate-500 mt-0.5 max-w-3xl">
-          Define the brand&rsquo;s strategy per channel and sub-channel: tick the dimensions this brand
-          uses, and edit each one&rsquo;s name, what it captures, and a default value. The ticked rows
-          become the editable UTM fields in the Campaign Builder&rsquo;s Code &amp; UTM Generator.
+          Kite C360 taxonomy. Pick a brand, a channel and (for Digital) a sub-channel. The dimensions
+          shown are the fields the C360 sources for that sub-channel actually carry. Tick the ones this
+          brand tags, and edit each one&rsquo;s name, what it captures, and a default value &mdash; the
+          ticked rows become the editable UTM fields in the Code &amp; UTM Generator.
         </p>
       </div>
 
@@ -122,40 +110,32 @@ export const TagStrategyPage: React.FC = () => {
 
       {/* Step 2 — Channel */}
       <div>
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-          2 · Channel {brand ? `for ${brand.name.split(/[ (]/)[0]}` : ''}
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">2 · Channel</div>
+        <div className="flex flex-wrap items-center gap-2">
+          {KITE_CHANNELS.map(c => {
+            const on = c === channel;
+            return (
+              <button
+                key={c}
+                onClick={() => pickChannel(c)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                  on
+                    ? 'bg-navy-600 text-white border-navy-600'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {c}
+              </button>
+            );
+          })}
         </div>
-        {brandChannels.length === 0 ? (
-          <div className="text-xs text-slate-400 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
-            No campaigns recorded for this brand yet.
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            {brandChannels.map(bc => {
-              const on = bc.channel.id === channelId;
-              return (
-                <button
-                  key={bc.channel.id}
-                  onClick={() => pickChannel(bc.channel.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                    on
-                      ? 'bg-navy-600 text-white border-navy-600'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  {bc.channel.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
-      {/* Step 3 — Sub-channel (only for channels that have them) */}
-      {activeChannel && subChannelList.length > 0 && (
+      {/* Step 3 — Sub-channel */}
+      {hasSubChannels && (
         <div>
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            3 · Sub-channel in {activeChannel.name}
+            3 · Sub-channel in {channel}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {subChannelList.map(sc => {
@@ -178,118 +158,111 @@ export const TagStrategyPage: React.FC = () => {
         </div>
       )}
 
-      {/* Taggable-dimension catalogue + selection */}
-      {ready && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Tag className="w-4 h-4 text-navy-600" />
-              <span>
-                <b className="text-slate-800">{selectedCount}</b> of {totalDimensions} dimensions in the
-                strategy for <b className="text-slate-800">{scopeLabel}</b> &mdash; tick the fields this brand
-                tags on this {hasSubChannels ? 'sub-channel' : 'channel'}.
-              </span>
-            </div>
-            <Link
-              to="/campaigns"
-              className="flex items-center gap-1 text-[11px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded-lg px-2.5 py-1.5 hover:bg-navy-100 transition"
-            >
-              Use in Code &amp; UTM Generator
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+      {/* Dimensions for the scope */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Tag className="w-4 h-4 text-navy-600" />
+            <span>
+              <b className="text-slate-800">{selectedCount}</b> of {dims.length} dimensions in the strategy for{' '}
+              <b className="text-slate-800">{scopeLabel}</b>
+              {sources.length > 0 && (
+                <span className="text-slate-400">
+                  {' '}&nbsp;·&nbsp; sources:{' '}
+                  {sources.map((s, i) => (
+                    <React.Fragment key={s}>
+                      {i > 0 && ', '}
+                      <b className="text-slate-700">{s}</b>
+                    </React.Fragment>
+                  ))}
+                </span>
+              )}
+            </span>
           </div>
+          <Link
+            to="/campaigns"
+            className="flex items-center gap-1 text-[11px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded-lg px-2.5 py-1.5 hover:bg-navy-100 transition"
+          >
+            Use in Code &amp; UTM Generator
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
 
-          {groups.map(group => {
-            const names = group.dimensions.map(d => d.name);
-            const chosen = names.filter(n => selected.includes(n)).length;
-            const allOn = chosen === names.length && names.length > 0;
-            return (
-              <div key={group.title} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50/60">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-extrabold text-slate-900">{group.title}</h3>
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wide border rounded-full px-2 py-0.5 ${
-                        SCOPE_STYLE[group.scope]
-                      }`}
-                    >
-                      {group.scope}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-400">
-                    {chosen}/{names.length} selected
-                  </span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-white text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
-                      <tr>
-                        <th className="p-3 w-10">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          {dims.length === 0 ? (
+            <div className="px-4 py-8 text-center text-xs text-slate-400">
+              No dimensions defined for this scope.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/60 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
+                  <tr>
+                    <th className="p-3 w-10">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all"
+                        title={allOn ? 'Clear all' : 'Select all'}
+                        ref={el => {
+                          if (el) el.indeterminate = chosen > 0 && !allOn;
+                        }}
+                        checked={allOn}
+                        onChange={() => setAll(!allOn)}
+                        className="w-3.5 h-3.5 accent-navy-600 cursor-pointer"
+                      />
+                    </th>
+                    <th className="p-3 w-28">Code</th>
+                    <th className="p-3 w-56">Dimension</th>
+                    <th className="p-3">Captures</th>
+                    <th className="p-3">Default value</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {dims.map(d => {
+                    const on = selected.includes(d.code);
+                    const ed = bs.getEdit(bId, channel, scopeSub, d.code);
+                    return (
+                      <tr key={d.code} className={`align-top ${on ? 'bg-navy-50/50' : ''}`}>
+                        <td className="p-3">
                           <input
                             type="checkbox"
-                            aria-label="Select all in this group"
-                            title={allOn ? 'Clear all' : 'Select all'}
-                            ref={el => {
-                              if (el) el.indeterminate = chosen > 0 && !allOn;
-                            }}
-                            checked={allOn}
-                            onChange={() => setGroup(names, !allOn)}
-                            className="w-3.5 h-3.5 accent-navy-600 cursor-pointer"
+                            checked={on}
+                            onChange={() => toggle(d.code)}
+                            className="w-3.5 h-3.5 accent-navy-600 cursor-pointer mt-1"
                           />
-                        </th>
-                        <th className="p-3 w-56">Dimension</th>
-                        <th className="p-3">Captures</th>
-                        <th className="p-3">Default value</th>
+                        </td>
+                        <td className="p-3 font-mono text-[11px] text-slate-400">{d.code}</td>
+                        <td className="p-2">
+                          <input
+                            value={ed.name ?? d.label}
+                            onChange={e => editDim(d.code, { name: e.target.value })}
+                            className={`${CELL_INPUT} font-bold`}
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            value={ed.captures ?? d.captures}
+                            onChange={e => editDim(d.code, { captures: e.target.value })}
+                            className={CELL_INPUT}
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            value={ed.defaultValue ?? ''}
+                            placeholder="—"
+                            onChange={e => editDim(d.code, { defaultValue: e.target.value })}
+                            className={`${CELL_INPUT} font-mono text-[11px] text-slate-600`}
+                          />
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {group.dimensions.map(d => {
-                        const on = selected.includes(d.name);
-                        const ed = channelType ? bs.getEdit(bId, channelType, subChannel, d.name) : {};
-                        return (
-                          <tr key={d.name} className={`align-top ${on ? 'bg-navy-50/50' : ''}`}>
-                            <td className="p-3">
-                              <input
-                                type="checkbox"
-                                checked={on}
-                                onChange={() => toggle(d.name)}
-                                className="w-3.5 h-3.5 accent-navy-600 cursor-pointer mt-1"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={ed.name ?? d.name}
-                                onChange={e => editDim(d.name, { name: e.target.value })}
-                                className={`${CELL_INPUT} font-bold`}
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={ed.captures ?? d.captures}
-                                onChange={e => editDim(d.name, { captures: e.target.value })}
-                                className={CELL_INPUT}
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={ed.defaultValue ?? ''}
-                                placeholder={d.example}
-                                onChange={e => editDim(d.name, { defaultValue: e.target.value })}
-                                className={`${CELL_INPUT} font-mono text-[11px] text-slate-600`}
-                              />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })}
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

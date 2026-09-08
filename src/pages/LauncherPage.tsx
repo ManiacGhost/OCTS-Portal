@@ -28,14 +28,14 @@ const TILES: Tile[] = [
  */
 const PharmaBackdrop: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-    {/* warm glow */}
-    <div className="absolute -top-40 -right-24 w-[640px] h-[640px] rounded-full bg-navy-600/20 blur-3xl" />
-    <div className="absolute -bottom-48 -left-32 w-[520px] h-[520px] rounded-full bg-indigo-500/10 blur-3xl" />
+    {/* soft highlights */}
+    <div className="absolute -top-40 -right-24 w-[640px] h-[640px] rounded-full bg-navy-300/25 blur-3xl" />
+    <div className="absolute -bottom-48 -left-32 w-[520px] h-[520px] rounded-full bg-navy-500/25 blur-3xl" />
 
     <svg
       viewBox="0 0 1200 460"
       preserveAspectRatio="xMidYMid slice"
-      className="absolute inset-0 h-full w-full text-slate-300 opacity-[0.13]"
+      className="absolute inset-0 h-full w-full text-white opacity-[0.09]"
       fill="none"
       stroke="currentColor"
       strokeWidth={2.5}
@@ -120,18 +120,18 @@ export const LauncherPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
       {/* Hero */}
-      <div className="relative bg-slate-950 text-white overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-1 bg-navy-600 z-10" />
+      <div className="relative bg-gradient-to-br from-navy-700 via-navy-600 to-navy-500 text-white overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-1 bg-white/25 z-10" />
         <PharmaBackdrop />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pt-14 pb-40">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-navy-600 flex items-center justify-center font-extrabold text-lg">O</div>
+                <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center font-extrabold text-lg">O</div>
                 <div>
                   <div className="text-lg font-extrabold tracking-tight">Omnia</div>
-                  <div className="text-[10px] text-navy-300 font-bold uppercase tracking-widest">
+                  <div className="text-[10px] text-navy-100 font-bold uppercase tracking-widest">
                     Digital Content Taxonomy &amp; Metadata
                   </div>
                 </div>
@@ -139,19 +139,19 @@ export const LauncherPage: React.FC = () => {
               <h1 className="text-3xl sm:text-4xl font-extrabold mt-8 leading-tight">
                 Welcome {user.name.split(' ')[0]}
               </h1>
-              <p className="text-sm text-slate-300 mt-3 leading-relaxed">
+              <p className="text-sm text-navy-50 mt-3 leading-relaxed">
                 Your role-based workspace for building and governing omnichannel content taxonomy
                 across the Kite cell-therapy portfolio.
               </p>
-              <p className="text-xs text-slate-500 mt-2">
-                Signed in for <span className="text-slate-300 font-semibold">{selectedMarket}</span>
-                <span className="text-slate-600"> · {user.roleTitle}</span>
+              <p className="text-xs text-navy-200 mt-2">
+                Signed in for <span className="text-white font-semibold">{selectedMarket}</span>
+                <span className="text-navy-300"> · {user.roleTitle}</span>
               </p>
             </div>
 
             <button
               onClick={signOut}
-              className="flex items-center gap-2 text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 transition shrink-0"
+              className="flex items-center gap-2 text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-3.5 py-2 transition shrink-0"
             >
               <LogOut className="w-4 h-4" />
               Sign out
@@ -196,7 +196,7 @@ export const LauncherPage: React.FC = () => {
         </div>
       </div>
 
-      <footer className="mt-auto bg-slate-950 text-slate-500 text-xs py-4 px-6 text-center">
+      <footer className="mt-auto bg-navy-700 text-navy-200 text-xs py-4 px-6 text-center">
         Omnia — Digital Content Taxonomy &amp; Metadata (DCTM) · v2.4
       </footer>
     </div>

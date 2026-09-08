@@ -24,9 +24,7 @@ import {
 const CHANNEL_ID: Record<MediaChannelType, string> = {
   Digital: 'chan-digital',
   Social: 'chan-social',
-  Search: 'chan-search',
-  SFMC: 'chan-sfmc',
-  IVA: 'chan-iva',
+  Email: 'chan-email',
 };
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
@@ -76,8 +74,8 @@ export const AgencyDashboard: React.FC = () => {
   const [notes, setNotes] = useState('Built from the approved Social Campaign Name formula.');
 
   // Approved-formula channel state
-  const [channelType, setChannelType] = useState<MediaChannelType>('Social');
-  const [subChannel, setSubChannel] = useState<string>(SUB_CHANNELS.Social[0]);
+  const [channelType, setChannelType] = useState<MediaChannelType>('Digital');
+  const [subChannel, setSubChannel] = useState<string>(SUB_CHANNELS.Digital[0] || '');
   const [country, setCountry] = useState('US');
   const [messagingType, setMessagingType] = useState(MESSAGING_TYPES[0]);
   const [target, setTarget] = useState('HCP');
@@ -95,7 +93,7 @@ export const AgencyDashboard: React.FC = () => {
 
   const chooseChannel = (ch: MediaChannelType) => {
     setChannelType(ch);
-    setSubChannel(SUB_CHANNELS[ch][0]);
+    setSubChannel(SUB_CHANNELS[ch][0] || '');
     setSubChannelMeta({});
   };
   const chooseSubChannel = (sc: string) => {
@@ -467,29 +465,31 @@ export const AgencyDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sub-channel */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2">
-                  Sub-channel
-                  <span className="text-slate-400 font-normal"> — sets the <span className="font-mono">platform</span> token &amp; its own fields</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {SUB_CHANNELS[channelType].map(sc => (
-                    <button
-                      key={sc}
-                      type="button"
-                      onClick={() => chooseSubChannel(sc)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
-                        subChannel === sc
-                          ? 'bg-slate-900 text-white border-slate-900'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      {sc}
-                    </button>
-                  ))}
+              {/* Sub-channel (Digital only) */}
+              {SUB_CHANNELS[channelType].length > 0 && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                    Sub-channel
+                    <span className="text-slate-400 font-normal"> — sets the <span className="font-mono">platform</span> token &amp; its own fields</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {SUB_CHANNELS[channelType].map(sc => (
+                      <button
+                        key={sc}
+                        type="button"
+                        onClick={() => chooseSubChannel(sc)}
+                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+                          subChannel === sc
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {sc}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Core formula fields the planner fills */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

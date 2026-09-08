@@ -11,7 +11,7 @@
 import { MediaChannelType } from '../types';
 export type { MediaChannelType };
 
-export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Search', 'SFMC', 'IVA'];
+export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Email'];
 
 export type TokenKind = 'c' | 'v' | 'm' | 'f';
 
@@ -45,9 +45,7 @@ export const INDICATIONS = ['LBCL', 'FL', 'MCL', 'B-ALL'];
 export const MEDIUMS: Record<MediaChannelType, string> = {
   Digital: 'Display',
   Social: 'Social',
-  Search: 'Search',
-  SFMC: 'Email',
-  IVA: 'Field',
+  Email: 'Email',
 };
 
 // ---- Campaign-level formula, per channel -----------------------------------
@@ -62,7 +60,7 @@ const YEAR: FormulaToken = { key: 'year', label: 'Year', kind: 'c', source: 'yea
 const CODE: FormulaToken = { key: 'code', label: 'Code', kind: 'm', source: 'code' };
 
 export const CAMPAIGN_FORMULA: Record<MediaChannelType, FormulaToken[]> = {
-  // country _ medium _ product code _ messaging type _ therapeutic area _ target _ indication _ year _ Code
+  // country _ medium _ product code _ messaging type _ therapeutic area _ target _ indication _ sub-channel _ year _ Code
   Digital: [
     COUNTRY,
     MEDIUM,
@@ -71,15 +69,13 @@ export const CAMPAIGN_FORMULA: Record<MediaChannelType, FormulaToken[]> = {
     TA,
     TARGET,
     INDICATION,
+    { key: 'platform', label: 'Sub-channel', kind: 'c', source: 'subChannel' },
     YEAR,
     CODE,
   ],
-  // country _ medium _ product code _ therapeutic area _ target _ indication _ platform _ year _ Code
-  Social: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Platform', kind: 'c', source: 'subChannel' }, YEAR, CODE],
-  Search: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Platform', kind: 'c', source: 'subChannel' }, YEAR, CODE],
-  SFMC: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Platform', kind: 'c', source: 'subChannel' }, YEAR, CODE],
-  // TODO: replace with the client's approved IVA Campaign Name formula — mirrors Social for now.
-  IVA: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, { key: 'platform', label: 'Deck type', kind: 'c', source: 'subChannel' }, YEAR, CODE],
+  // country _ medium _ product code _ therapeutic area _ target _ indication _ year _ Code
+  Social: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE],
+  Email: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE],
 };
 
 /** Human-readable formula template shown in the breakdown panel. */
@@ -90,11 +86,9 @@ export function formulaTemplate(channel: MediaChannelType): string {
 // ---- sub-channels & their extra fields -------------------------------------
 
 export const SUB_CHANNELS: Record<MediaChannelType, string[]> = {
-  Digital: ['Programmatic Display', 'Online Video (OLV)', 'Native', 'High-Impact', 'Website Pages'],
-  Social: ['Meta', 'TikTok', 'LinkedIn', 'Reddit'],
-  Search: ['Google Ads', 'Microsoft Ads (Bing)'],
-  SFMC: ['Triggered Send', 'Journey Builder', 'Batch / Blast'],
-  IVA: ['Core Visual Aid', 'Follow-Up Deck', 'Objection Handler', 'Disease State Deck'],
+  Digital: ['3P Email', '3P SMS', 'Display'],
+  Social: [],
+  Email: [],
 };
 
 export interface ExtraField {
@@ -106,87 +100,21 @@ export interface ExtraField {
 
 export const SUB_CHANNEL_FIELDS: Record<MediaChannelType, Record<string, ExtraField[]>> = {
   Digital: {
-    'Programmatic Display': [
-      { key: 'dsp', label: 'DSP', options: ['DV360', 'The Trade Desk', 'Amazon DSP', 'Yahoo DSP'] },
-      { key: 'adEnvironment', label: 'Ad environment', options: ['Web', 'In-App', 'CTV'] },
+    '3P Email': [
+      { key: 'vendor', label: 'Vendor', options: ['Medscape', 'ReachMD'] },
+      { key: 'subjLine', label: 'Subject line', placeholder: 'e.g. See the 2-year data' },
     ],
-    'Online Video (OLV)': [
-      { key: 'videoLength', label: 'Video length', options: [':06', ':15', ':30', ':60'] },
-      { key: 'skippable', label: 'Skippable', options: ['Yes', 'No'] },
+    '3P SMS': [
+      { key: 'vendor', label: 'Vendor', options: ['Impiricus'] },
+      { key: 'shortCode', label: 'Short code', placeholder: 'e.g. 55512' },
     ],
-    Native: [
-      { key: 'contentProvider', label: 'Content provider', options: ['Outbrain', 'Taboola', 'Nativo'] },
-      { key: 'headlineVariant', label: 'Headline variant', placeholder: 'e.g. A / B / C' },
-    ],
-    'High-Impact': [
-      { key: 'unitType', label: 'Unit type', options: ['Interscroller', 'Adhesion', 'Pushdown', 'Rich Media'] },
-      { key: 'vendor', label: 'Vendor', placeholder: 'e.g. GumGum, Kargo' },
-    ],
-    'Website Pages': [
-      { key: 'pageTemplate', label: 'Page template', options: ['Landing', 'Article', 'ISI / PI', 'Resource hub'] },
-      { key: 'cms', label: 'CMS / platform', options: ['AEM', 'Sitecore', 'Contentful', 'WordPress VIP'] },
+    Display: [
+      { key: 'vendor', label: 'Vendor', options: ['DeepIntent', 'Medscape', 'Open Evidence', 'ReachMD', 'Relevate Health'] },
+      { key: 'adSize', label: 'Ad size', options: ['300x250', '728x90', '160x600', '970x250', '1x1'] },
     ],
   },
-  Social: {
-    Meta: [
-      { key: 'placementSurface', label: 'Placement surface', options: ['Feed', 'Reels', 'Stories', 'Marketplace'] },
-      { key: 'optimizationGoal', label: 'Optimization goal', options: ['Reach', 'Link Clicks', 'Landing Page Views', 'Conversions'] },
-    ],
-    TikTok: [
-      { key: 'adObjective', label: 'Ad objective', options: ['In-Feed', 'TopView', 'Spark Ads', 'Branded Effect'] },
-      { key: 'soundOn', label: 'Sound-on required', options: ['Yes', 'No'] },
-    ],
-    LinkedIn: [
-      { key: 'adFormat', label: 'Ad format', options: ['Single Image', 'Carousel', 'Document', 'Conversation', 'Thought Leader'] },
-      { key: 'audienceType', label: 'Audience type', options: ['Job Title', 'Skills', 'Company List', 'Member Groups'] },
-    ],
-    Reddit: [
-      { key: 'subredditTargeting', label: 'Subreddit targeting', placeholder: 'e.g. r/leukemia, r/lymphoma' },
-      { key: 'commentModeration', label: 'Comment moderation', options: ['On', 'Off'] },
-    ],
-  },
-  Search: {
-    'Google Ads': [
-      { key: 'matchType', label: 'Match type', options: ['Exact', 'Phrase', 'Broad'] },
-      { key: 'network', label: 'Network', options: ['Search', 'Search Partners', 'Display'] },
-    ],
-    'Microsoft Ads (Bing)': [
-      { key: 'matchType', label: 'Match type', options: ['Exact', 'Phrase', 'Broad'] },
-      { key: 'importSource', label: 'Import source', options: ['Google Import', 'Native'] },
-    ],
-  },
-  SFMC: {
-    'Triggered Send': [
-      { key: 'triggerEvent', label: 'Trigger event', options: ['Form Fill', 'Rep Request', 'Milestone', 'Re-engagement'] },
-      { key: 'sendClassification', label: 'Send classification', options: ['Commercial', 'Transactional'] },
-    ],
-    'Journey Builder': [
-      { key: 'entrySource', label: 'Journey entry source', options: ['Data Extension', 'API Event', 'CloudPage', 'Salesforce Object'] },
-      { key: 'waitLogic', label: 'Wait-step logic', placeholder: 'e.g. 3 days, then branch on open' },
-    ],
-    'Batch / Blast': [
-      { key: 'sendClassification', label: 'Send classification', options: ['Commercial', 'Transactional'] },
-      { key: 'suppressionList', label: 'Suppression list', placeholder: 'e.g. global unsub, HCP opt-out' },
-    ],
-  },
-  IVA: {
-    'Core Visual Aid': [
-      { key: 'slideCount', label: 'Slide count', placeholder: 'e.g. 12' },
-      { key: 'clmSystem', label: 'CLM system', options: ['Veeva CLM', 'IQVIA OCE', 'Custom'] },
-    ],
-    'Follow-Up Deck': [
-      { key: 'slideCount', label: 'Slide count', placeholder: 'e.g. 6' },
-      { key: 'triggerContext', label: 'Trigger context', options: ['Post-detail', 'Rep-requested', 'Congress follow-up'] },
-    ],
-    'Objection Handler': [
-      { key: 'objectionTheme', label: 'Objection theme', options: ['Safety', 'Access', 'Logistics', 'Efficacy vs SOC'] },
-      { key: 'mlrCode', label: 'MLR / approval code', placeholder: 'e.g. US-YES-2026-0042' },
-    ],
-    'Disease State Deck': [
-      { key: 'branded', label: 'Branded', options: ['Unbranded', 'Branded'] },
-      { key: 'detailPriority', label: 'Detail priority', options: ['Primary', 'Secondary', 'Reference only'] },
-    ],
-  },
+  Social: {},
+  Email: {},
 };
 
 // ---- assembler ------------------------------------------------------------
