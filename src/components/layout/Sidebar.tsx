@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ variant = 'desktop', onNavigat
             O
           </div>
           <div className="leading-tight">
-            <div className="font-extrabold text-slate-900 tracking-tight group-hover:text-navy-700 transition">Omnia</div>
+            <div className="font-wordmark text-lg font-bold text-slate-900 group-hover:text-navy-700 transition">Omnia</div>
             <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">DCTM</div>
           </div>
         </Link>

@@ -11,6 +11,7 @@ import { OverviewPage } from './pages/OverviewPage';
 import { DictionaryPage } from './pages/DictionaryPage';
 import { AutoTaggingPage } from './pages/AutoTaggingPage';
 import { TagStrategyPage } from './pages/TagStrategyPage';
+import { UtmGeneratorPage } from './pages/UtmGeneratorPage';
 import { HelpPage } from './pages/HelpPage';
 import { AgencyDashboard } from './components/dashboards/AgencyDashboard';
 import { MarketerDashboard } from './components/dashboards/MarketerDashboard';
@@ -57,10 +58,15 @@ export default function App() {
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><TagStrategyPage /></RoleRoute>}
           />
           <Route
+            path="/utm"
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><UtmGeneratorPage /></RoleRoute>}
+          />
+          <Route
             path="/help"
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><HelpPage /></RoleRoute>}
           />
-          <Route path="/campaigns" element={<RoleRoute roles={['agency']}><AgencyDashboard /></RoleRoute>} />
+          <Route path="/campaigns/new" element={<RoleRoute roles={['agency']}><AgencyDashboard /></RoleRoute>} />
+          <Route path="/campaigns" element={<Navigate to="/overview" replace />} />
           <Route path="/approvals" element={<RoleRoute roles={['marketer']}><MarketerDashboard /></RoleRoute>} />
           <Route path="/compliance" element={<RoleRoute roles={['analytics']}><AnalyticsDashboard /></RoleRoute>} />
           <Route path="/admin" element={<RoleRoute roles={['superadmin']}><SuperAdminDashboard /></RoleRoute>} />

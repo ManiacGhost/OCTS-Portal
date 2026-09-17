@@ -86,7 +86,7 @@ export interface AutoTagResult {
 export type KeyMessageCategory = Topic;
 export type KeyMessageSubcategory = Subtopic;
 
-export type MediaChannelType = 'Digital' | 'Social' | 'Email';
+export type MediaChannelType = 'Digital' | 'Social' | 'Search' | 'Email' | 'IVA';
 
 export interface ChannelTaxonomy {
   id: string;

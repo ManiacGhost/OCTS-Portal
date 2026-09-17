@@ -10,8 +10,8 @@ import {
   kiteSourcesFor,
 } from '../data/kiteTaxonomy';
 
-const CELL_INPUT =
-  'w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-navy-500 focus:bg-white rounded px-2 py-1 text-xs text-slate-900 focus:outline-none transition';
+const VALUE_INPUT =
+  'w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-navy-500 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none transition';
 
 export const TagStrategyPage: React.FC = () => {
   const { brands } = usePersona();
@@ -69,9 +69,9 @@ export const TagStrategyPage: React.FC = () => {
         </h1>
         <p className="text-sm text-slate-500 mt-0.5 max-w-3xl">
           Kite C360 taxonomy. Pick a brand, a channel and (for Digital) a sub-channel. The dimensions
-          shown are the fields the C360 sources for that sub-channel actually carry. Tick the ones this
-          brand tags, and edit each one&rsquo;s name, what it captures, and a default value &mdash; the
-          ticked rows become the editable UTM fields in the Code &amp; UTM Generator.
+          shown are the fields the C360 sources for that sub-channel actually carry &mdash; their names
+          and what they capture are fixed. Tick the ones this brand tags and give each a default value;
+          the ticked rows become the editable UTM fields in the Code &amp; UTM Generator.
         </p>
       </div>
 
@@ -232,26 +232,14 @@ export const TagStrategyPage: React.FC = () => {
                           />
                         </td>
                         <td className="p-3 font-mono text-[11px] text-slate-400">{d.code}</td>
-                        <td className="p-2">
-                          <input
-                            value={ed.name ?? d.label}
-                            onChange={e => editDim(d.code, { name: e.target.value })}
-                            className={`${CELL_INPUT} font-bold`}
-                          />
-                        </td>
-                        <td className="p-2">
-                          <input
-                            value={ed.captures ?? d.captures}
-                            onChange={e => editDim(d.code, { captures: e.target.value })}
-                            className={CELL_INPUT}
-                          />
-                        </td>
+                        <td className="p-3 font-bold text-slate-900">{ed.name ?? d.label}</td>
+                        <td className="p-3 text-slate-600">{ed.captures ?? d.captures}</td>
                         <td className="p-2">
                           <input
                             value={ed.defaultValue ?? ''}
                             placeholder="—"
                             onChange={e => editDim(d.code, { defaultValue: e.target.value })}
-                            className={`${CELL_INPUT} font-mono text-[11px] text-slate-600`}
+                            className={VALUE_INPUT}
                           />
                         </td>
                       </tr>

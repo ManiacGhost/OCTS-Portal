@@ -17,9 +17,9 @@ import { CampaignTaxonomy } from '../../types';
 const KITE_CHANNEL_OF: Record<string, KiteChannel> = {
   Digital: 'Digital',
   Social: 'Social',
-  Search: 'Digital',
+  Search: 'Search',
   SFMC: 'Email',
-  IVA: 'Digital',
+  IVA: 'IVA',
 };
 
 const slug = (v: string | undefined | null): string =>
@@ -229,8 +229,12 @@ export const TaxonomyCodeGenerator: React.FC = () => {
 
   const scopeLabel = hasSubChannels && subChannel ? `${channelType} → ${subChannel}` : channelType;
 
+  // Once a campaign is linked, its details are authoritative here — lock the fields.
+  const locked = !!linked;
+
   const field =
     'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-medium';
+  const lockedField = 'w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 font-medium cursor-not-allowed';
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-5 shadow-sm text-slate-900">
@@ -271,19 +275,32 @@ export const TaxonomyCodeGenerator: React.FC = () => {
         </div>
         {linked && (
           <p className="text-[10px] text-slate-500 mt-1.5">
-            Pulled brand, indication, audience, market, date and channel from this campaign. Matching
-            strategy dimensions below are auto-filled and tagged <b>from campaign</b>.
+            Pulled brand, indication, audience, market, date, slug and channel from this campaign &mdash;
+            those fields are locked while a campaign is linked. Matching strategy dimensions below are
+            auto-filled and tagged <b>from campaign</b>.
           </p>
         )}
       </div>
 
       {/* Campaign details */}
       <div>
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Campaign details</div>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Campaign details</div>
+          {locked && (
+            <span className="text-[9px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1.5 py-0.5">
+              Locked from linked campaign
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Brand</label>
-            <select value={brandId} onChange={e => setBrandId(e.target.value)} className={field}>
+            <select
+              value={brandId}
+              onChange={e => setBrandId(e.target.value)}
+              disabled={locked}
+              className={locked ? lockedField : field}
+            >
               {brands.map(b => (
                 <option key={b.id} value={b.id}>
                   {b.name.split(/[ (]/)[0]} ({b.code})
@@ -293,7 +310,12 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Indication</label>
-            <select value={indication} onChange={e => setIndication(e.target.value)} className={field}>
+            <select
+              value={indication}
+              onChange={e => setIndication(e.target.value)}
+              disabled={locked}
+              className={locked ? lockedField : field}
+            >
               {INDICATIONS.map(i => (
                 <option key={i} value={i}>
                   {i}
@@ -303,7 +325,12 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Target audience</label>
-            <select value={audience} onChange={e => setAudience(e.target.value)} className={field}>
+            <select
+              value={audience}
+              onChange={e => setAudience(e.target.value)}
+              disabled={locked}
+              className={locked ? lockedField : field}
+            >
               {TARGETS.map(t => (
                 <option key={t} value={t}>
                   {t}
@@ -313,7 +340,12 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Market</label>
-            <select value={market} onChange={e => setMarket(e.target.value)} className={field}>
+            <select
+              value={market}
+              onChange={e => setMarket(e.target.value)}
+              disabled={locked}
+              className={locked ? lockedField : field}
+            >
               {COUNTRIES.map(c => (
                 <option key={c} value={c}>
                   {c}
@@ -323,7 +355,13 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Launch date</label>
-            <input type="date" value={launchDate} onChange={e => setLaunchDate(e.target.value)} className={field} />
+            <input
+              type="date"
+              value={launchDate}
+              onChange={e => setLaunchDate(e.target.value)}
+              disabled={locked}
+              className={locked ? lockedField : field}
+            />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Campaign slug</label>
@@ -331,7 +369,8 @@ export const TaxonomyCodeGenerator: React.FC = () => {
               value={campaignSlug}
               onChange={e => setCampaignSlug(e.target.value)}
               placeholder="e.g. orr_launch"
-              className={field}
+              disabled={locked}
+              className={locked ? lockedField : field}
             />
           </div>
         </div>

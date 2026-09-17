@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { TaxonomyTooltip, TAXONOMY_TOOLTIPS } from './TaxonomyTooltip';
-import { Layers, Tag, Info, Check, Sparkles } from 'lucide-react';
+import { Layers, Tag } from 'lucide-react';
 
 interface KeyMessageSelectorProps {
   selectedCategoryId: string;
@@ -99,100 +99,77 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
         </div>
       )}
 
-      {/* Topic Selection */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
-          <span>1. Master Topic</span>
-          <span className="text-slate-400 font-normal text-[11px]">(Required Pillar)</span>
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {keyMessages.map((cat) => {
-            const isSelected = cat.id === (selectedCategoryId || activeTopic?.id);
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  onCategoryChange(cat.id);
-                  if (cat.subcategories.length > 0) {
-                    onSubcategoryChange(cat.subcategories[0].id);
-                  }
-                }}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
-                  isSelected
-                    ? 'bg-navy-50 border-navy-500 text-navy-950 shadow-sm ring-1 ring-navy-500'
-                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold truncate">{cat.name}</span>
-                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${isSelected ? 'bg-navy-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
-                    {cat.code}
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-500 truncate mt-1">
-                  {cat.subcategories.length} Subtopics Available
-                </p>
-              </button>
-            );
-          })}
+      {/* Topic & Subtopic dropdowns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+            <span>1. Master Topic</span>
+            <span className="text-slate-400 font-normal text-[11px]">(Required Pillar)</span>
+          </label>
+          <select
+            value={selectedCategoryId || activeTopic?.id || ''}
+            onChange={(e) => {
+              const cat = keyMessages.find(k => k.id === e.target.value);
+              onCategoryChange(e.target.value);
+              if (cat && cat.subcategories.length > 0) {
+                onSubcategoryChange(cat.subcategories[0].id);
+              }
+            }}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-navy-500 focus:bg-white focus:ring-2 focus:ring-navy-500/20 font-medium"
+          >
+            {keyMessages.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name} ({cat.code}) — {cat.subcategories.length} subtopics
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+            <span>2. Master Subtopic</span>
+            <span className="text-navy-700 font-mono text-[11px] font-bold">
+              {activeSubtopics.length} available
+            </span>
+          </label>
+          <select
+            value={selectedSubcategoryId || ''}
+            onChange={(e) => onSubcategoryChange(e.target.value)}
+            disabled={activeSubtopics.length === 0}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-navy-500 focus:bg-white focus:ring-2 focus:ring-navy-500/20 font-medium disabled:opacity-50"
+          >
+            <option value="">-- Select Subtopic --</option>
+            {activeSubtopics.map((sub) => (
+              <option key={sub.id} value={sub.id}>
+                {sub.name} ({sub.code})
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Subtopic List */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
-          <span>2. Master Subtopic</span>
-          <span className="text-navy-700 font-mono text-[11px] font-bold">
-            {activeSubtopics.length} available under {activeTopic?.name}
-          </span>
-        </label>
-
-        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-          {activeSubtopics.map((sub) => {
-            const isSubSelected = sub.id === selectedSubcategoryId;
-            return (
-              <div
-                key={sub.id}
-                onClick={() => onSubcategoryChange(sub.id)}
-                className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start justify-between gap-3 ${
-                  isSubSelected
-                    ? 'bg-navy-50/80 border-navy-500 text-slate-900 shadow-sm ring-1 ring-navy-500/40'
-                    : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
-                }`}
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-navy-700 font-mono bg-navy-100 px-2 py-0.5 rounded border border-navy-200">
-                      {sub.code}
-                    </span>
-                    <span className="text-xs font-bold text-slate-900">{sub.name}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 leading-normal">
-                    {sub.description}
-                  </p>
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <span className="text-[10px] text-slate-500 font-medium">Target Audience:</span>
-                    {sub.targetAudience.map((aud, i) => (
-                      <span key={i} className="text-[10px] bg-slate-200/80 text-slate-700 font-medium px-1.5 py-0.2 rounded">
-                        {aud}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="shrink-0 pt-0.5">
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    isSubSelected ? 'border-navy-600 bg-navy-600 text-white' : 'border-slate-300 bg-white'
-                  }`}>
-                    {isSubSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {/* Selected subtopic detail */}
+      {activeSubtopic && (
+        <div className="p-3 rounded-xl border border-navy-200 bg-navy-50/60 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-navy-700 font-mono bg-navy-100 px-2 py-0.5 rounded border border-navy-200">
+              {activeSubtopic.code}
+            </span>
+            <span className="text-xs font-bold text-slate-900">{activeSubtopic.name}</span>
+          </div>
+          <p className="text-[11px] text-slate-600 leading-normal">
+            {activeSubtopic.description}
+          </p>
+          <div className="flex items-center flex-wrap gap-1.5 pt-1">
+            <span className="text-[10px] text-slate-500 font-medium">Target Audience:</span>
+            {activeSubtopic.targetAudience.map((aud, i) => (
+              <span key={i} className="text-[10px] bg-slate-200/80 text-slate-700 font-medium px-1.5 py-0.5 rounded">
+                {aud}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Selected Confirmation Footer */}
       {activeSubtopic && (

@@ -15,9 +15,9 @@ interface Tile {
 const TILES: Tile[] = [
   { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, desc: 'Brand → channel → sub-channel: every dimension that can be tagged for that combination.' },
   { to: '/overview', label: 'Campaigns', icon: Layers, desc: 'See every campaign taxonomy, grouped by promotional channel.' },
-  { to: '/dictionary', label: 'Content Metadata', icon: BookOpen, desc: 'Browse the master taxonomy — topics, brands, therapeutic areas, channels.' },
-  { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, desc: 'See how the AI model tags every campaign across channels, and give it feedback.' },
-  { to: '/help', label: 'Help', icon: LifeBuoy, desc: 'FAQs and support for taxonomy, formulas, and submissions.', soon: true },
+  { to: '/dictionary', label: 'Dictionary', icon: BookOpen, desc: 'Browse every taxonomy field — approved values and abbreviations.' },
+  { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, desc: 'See how the AI model tags every campaign across channels, and give it feedback.', soon: true },
+  { to: '/help', label: 'Help', icon: LifeBuoy, desc: 'FAQs and support for taxonomy, formulas, and submissions.' },
 ];
 
 /**
@@ -130,7 +130,7 @@ export const LauncherPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center font-extrabold text-lg">O</div>
                 <div>
-                  <div className="text-lg font-extrabold tracking-tight">Omnia</div>
+                  <div className="font-wordmark text-xl font-bold">Omnia</div>
                   <div className="text-[10px] text-navy-100 font-bold uppercase tracking-widest">
                     Digital Content Taxonomy &amp; Metadata
                   </div>

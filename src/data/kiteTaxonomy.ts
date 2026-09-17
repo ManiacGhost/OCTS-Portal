@@ -46,21 +46,28 @@ export const KITE_DIMENSIONS: KiteDimension[] = [
   { code: 'pulse_name', label: 'Pulse name', captures: 'Impiricus tactic identifier string' },
   { code: 'vault_asset_id', label: 'Vault asset ID', captures: 'Veeva Vault asset id' },
   { code: 'npi', label: 'NPI', captures: 'HCP national provider identifier' },
+  // IVA (field / CLM) source-specific fields.
+  { code: 'slide_count', label: 'Slide count', captures: 'Slides in the deck' },
+  { code: 'deck_id', label: 'Deck ID', captures: 'Parent visual-aid id' },
 ];
 
-export const KITE_CHANNELS = ['Digital', 'Social', 'Email'] as const;
+export const KITE_CHANNELS = ['Digital', 'Social', 'Search', 'Email', 'IVA'] as const;
 export type KiteChannel = (typeof KITE_CHANNELS)[number];
 
 export const KITE_SUBCHANNELS: Record<KiteChannel, string[]> = {
   Digital: ['3P Email', '3P SMS', 'Display'],
   Social: [],
+  Search: [],
   Email: [],
+  IVA: [],
 };
 
 export const KITE_MEDIUM: Record<KiteChannel, string> = {
   Digital: 'digital',
   Social: 'social',
+  Search: 'search',
   Email: 'email',
+  IVA: 'field',
 };
 
 /** C360 sources feeding each channel / sub-channel (image 1). */
@@ -69,7 +76,9 @@ export const KITE_SOURCES: Record<string, string[]> = {
   'Digital/3P SMS': ['Impiricus'],
   'Digital/Display': ['DeepIntent', 'Medscape', 'Open Evidence', 'ReachMD', 'Relevate Health'],
   Social: ['Equals5'],
+  Search: ['Google Ads'],
   Email: ['SFMC', 'Relevate Health'],
+  IVA: ['Veeva CLM'],
 };
 
 // ---------------------------------------------------------------------------
@@ -102,6 +111,10 @@ export const KITE_SOURCE_PRESENCE: Record<string, PresenceRow> = {
   Equals5:           row(Y,  Y,   N,      N,      Y,      Y,       N,    Y,    N,      N,      Y,      N,        N,      N,    N,        Y,   Y,   Y,       N,    N,      N,  Y),
   'Relevate Health': row(Y,  Y,   Y,      Y,      Y,      Y,       Y,    N,    N,      N,      Y,      N,        N,      N,    N,        Y,   Y,   Y,       N,    N,      Y,  Y),
   DeepIntent:        row(Y,  Y,   Y,      N,      Y,      Y,       N,    N,    Y,      N,      Y,      Y,        Y,      N,    N,        Y,   Y,   N,       N,    N,      Y,  Y),
+  //                  brd cpgn cpgn_id …                                        aset global …  topic sub_top indc chnl sub_chnl …    url dev
+  'Google Ads':      row(Y,  Y,   Y,      N,      N,      N,       Y,    Y,    N,      N,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  Y),
+  //                  brd cpgn cpgn_id …                                        aset global …  topic sub_top indc chnl sub_chnl …    url … | (impiricus N) | slide deck
+  'Veeva CLM':        row(Y,  Y,   Y,      N,      N,      N,       N,    N,    N,      N,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  N,   N,    N,    N,  Y,    Y),
 };
 
 // ---------------------------------------------------------------------------

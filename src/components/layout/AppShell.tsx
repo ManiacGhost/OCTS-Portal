@@ -43,7 +43,7 @@ export const AppShell: React.FC = () => {
               <div className="w-7 h-7 rounded-lg bg-navy-600 text-white flex items-center justify-center font-extrabold text-xs">
                 O
               </div>
-              <span className="font-extrabold tracking-tight">Omnia</span>
+              <span className="font-wordmark text-base font-bold">Omnia</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -104,7 +104,7 @@ export const AppShell: React.FC = () => {
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-navy-400" />
-              <span className="font-semibold text-white">Omnia</span>
+              <span className="font-wordmark font-semibold text-white">Omnia</span>
               <span>— Digital Content Taxonomy &amp; Metadata (DCTM)</span>
             </div>
             <span className="text-slate-500 font-mono text-[11px]">v2.4</span>

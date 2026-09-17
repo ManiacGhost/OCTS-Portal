@@ -162,7 +162,7 @@ export const LoginPage: React.FC = () => {
             O
           </div>
           <div>
-            <div className="text-xl font-extrabold tracking-tight">Omnia</div>
+            <div className="font-wordmark text-2xl font-bold">Omnia</div>
             <div className="text-[11px] text-navy-300 font-bold uppercase tracking-widest">
               Digital Content Taxonomy &amp; Metadata
             </div>
@@ -190,7 +190,7 @@ export const LoginPage: React.FC = () => {
               O
             </div>
             <div>
-              <div className="text-lg font-extrabold tracking-tight text-slate-900">Omnia</div>
+              <div className="font-wordmark text-lg font-bold text-slate-900">Omnia</div>
               <div className="text-[10px] text-navy-600 font-bold uppercase tracking-widest">DCTM</div>
             </div>
           </div>

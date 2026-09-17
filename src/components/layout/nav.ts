@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  FilePlus2,
   CheckSquare,
   BarChart3,
   BookOpen,
@@ -8,6 +7,7 @@ import {
   Sparkles,
   Route,
   LifeBuoy,
+  Link2,
   LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../../types';
@@ -22,13 +22,13 @@ export interface NavItem {
 const LAUNCHER_ROLES: UserRole[] = ['agency', 'marketer', 'analytics'];
 
 export const NAV_ITEMS: NavItem[] = [
+  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, roles: LAUNCHER_ROLES },
   { to: '/overview', label: 'Campaigns', icon: LayoutDashboard, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
-  { to: '/campaigns', label: 'Campaign Builder', icon: FilePlus2, roles: ['agency'] },
+  { to: '/utm', label: 'UTM Generator', icon: Link2, roles: LAUNCHER_ROLES },
   { to: '/approvals', label: 'Approvals', icon: CheckSquare, roles: ['marketer'] },
   { to: '/compliance', label: 'Compliance', icon: BarChart3, roles: ['analytics'] },
   { to: '/admin', label: 'Administration', icon: ShieldAlert, roles: ['superadmin'] },
-  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, roles: LAUNCHER_ROLES },
-  { to: '/dictionary', label: 'Content Metadata', icon: BookOpen, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
+  { to: '/dictionary', label: 'Dictionary', icon: BookOpen, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
   { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, roles: LAUNCHER_ROLES },
   { to: '/help', label: 'Help', icon: LifeBuoy, roles: LAUNCHER_ROLES },
 ];

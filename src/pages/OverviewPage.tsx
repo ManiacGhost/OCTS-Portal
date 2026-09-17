@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { RefreshCw, Activity } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { RefreshCw, Activity, Plus } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 import {
@@ -25,6 +26,7 @@ function greeting(): string {
 
 export const OverviewPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { isLoading, campaigns, analytics, agencies, personas, keyMessages, auditLogs } = usePersona();
 
   const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>('all');
@@ -83,14 +85,26 @@ export const OverviewPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Greeting */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-          {greeting()}, {user.name.split(' ')[0]}
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          <span className="capitalize font-semibold text-slate-700">{user.roleTitle}</span>
-          <span className="text-slate-400"> · {user.organization}</span>
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            {greeting()}, {user.name.split(' ')[0]}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            <span className="capitalize font-semibold text-slate-700">{user.roleTitle}</span>
+            <span className="text-slate-400"> · {user.organization}</span>
+          </p>
+        </div>
+        {user.role === 'agency' && (
+          <button
+            type="button"
+            onClick={() => navigate('/campaigns/new')}
+            className="shrink-0 flex items-center gap-2 text-sm font-bold text-white bg-navy-600 hover:bg-navy-700 rounded-xl px-4 py-2.5 shadow-sm transition"
+          >
+            <Plus className="w-4 h-4" />
+            Create campaign
+          </button>
+        )}
       </div>
 
       {/* Headline stats — clickable ones filter the list below */}

@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
-import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
-import { TaxonomyCodeGenerator } from '../common/TaxonomyCodeGenerator';
 import { TaxonomyTooltip, TAXONOMY_TOOLTIPS } from '../common/TaxonomyTooltip';
 import {
   CHANNEL_TYPES,
@@ -24,41 +23,18 @@ import {
 const CHANNEL_ID: Record<MediaChannelType, string> = {
   Digital: 'chan-digital',
   Social: 'chan-social',
+  Search: 'chan-search',
   Email: 'chan-email',
+  IVA: 'chan-iva',
 };
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
-import {
-  FilePlus,
-  CheckCircle2,
-  Copy,
-  Send,
-  Layers,
-  Tag,
-  Check,
-  BookOpen,
-  Code,
-  ArrowRight,
-  ArrowLeft,
-  Info,
-  Download,
-  BarChart3,
-  Globe,
-  Briefcase
-} from 'lucide-react';
+import { FilePlus, CheckCircle2, Send, Layers, Code, ArrowRight, ArrowLeft, Info } from 'lucide-react';
 
 export const AgencyDashboard: React.FC = () => {
-  const {
-    brands,
-    campaigns,
-    programs,
-    addCampaign,
-    showToast,
-    selectedMarket
-  } = usePersona();
+  const { brands, addCampaign, showToast, selectedMarket } = usePersona();
   const { user } = useAuth();
-
-  const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'registry' | 'generator' | 'dictionary'>('builder');
+  const navigate = useNavigate();
 
   // Multi-step Builder Flow State
   const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4>(1);
@@ -80,10 +56,13 @@ export const AgencyDashboard: React.FC = () => {
   const [messagingType, setMessagingType] = useState(MESSAGING_TYPES[0]);
   const [target, setTarget] = useState('HCP');
   const [indication, setIndication] = useState(INDICATIONS[0]);
+  const [platform, setPlatform] = useState('');
   const [subChannelMeta, setSubChannelMeta] = useState<Record<string, string>>({});
 
+  const platformOptions =
+    (CAMPAIGN_FORMULA[channelType].find(t => t.key === 'platform')?.options) || [];
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
   // Stable machine `Code (m)` token for this builder session.
   const machineCode = useMemo(() => generateCode(), []);
@@ -95,6 +74,7 @@ export const AgencyDashboard: React.FC = () => {
     setChannelType(ch);
     setSubChannel(SUB_CHANNELS[ch][0] || '');
     setSubChannelMeta({});
+    setPlatform((CAMPAIGN_FORMULA[ch].find(t => t.key === 'platform')?.options || [])[0] || '');
   };
   const chooseSubChannel = (sc: string) => {
     setSubChannel(sc);
@@ -110,7 +90,7 @@ export const AgencyDashboard: React.FC = () => {
     ta: selectedTaId === 'ta-cart' ? 'CART' : (selectedTaId === 'ta-hem' ? 'HEM' : 'ONC'),
     target,
     indication,
-    platform: subChannel,
+    platform: platformOptions.length ? platform : subChannel,
     year: yearToken,
     code: machineCode,
     ...subChannelMeta,
@@ -150,89 +130,38 @@ export const AgencyDashboard: React.FC = () => {
       });
 
       if (created) {
-        setActiveTab('registry');
         setBuilderStep(1);
+        navigate('/overview');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCopyCode = (code: string, id: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCodeId(id);
-    setTimeout(() => setCopiedCodeId(null), 2000);
-    showToast('Taxonomy code copied to clipboard!', 'success');
-  };
-
   return (
     <div className="space-y-6">
 
       {/* Page header */}
-      <div>
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Campaign Builder</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Build compliant campaign taxonomy, generate tracking codes, and submit for marketer approval
-          &mdash; {selectedMarket} &middot; {user?.organization}
-        </p>
-      </div>
-
-      {/* Navigation Sub-Tabs for Agency User */}
-      <div className="flex items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">New Campaign</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Build compliant campaign taxonomy and submit for marketer approval
+            &mdash; {selectedMarket} &middot; {user?.organization}
+          </p>
+        </div>
         <button
-          onClick={() => setActiveTab('builder')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'builder' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
+          type="button"
+          onClick={() => navigate('/overview')}
+          className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 hover:border-navy-300 transition"
         >
-          <FilePlus className="w-4 h-4" />
-          <span>1. Campaign Taxonomy Builder (Step Flow)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'overview' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>2. Programs & Tactics Overview</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('registry')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'registry' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>3. Submitted Campaigns ({campaigns.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('generator')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'generator' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <Code className="w-4 h-4" />
-          <span>4. Code &amp; UTM Generator</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('dictionary')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'dictionary' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>5. Master Taxonomy Dictionary</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to Campaigns
         </button>
       </div>
 
-      {/* Tab 1: Step-by-Step Campaign Taxonomy Builder */}
-      {activeTab === 'builder' && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-6 shadow-sm text-slate-900">
+      {/* Step-by-Step Campaign Taxonomy Builder */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-6 shadow-sm text-slate-900">
           
           {/* Flow Stepper Header */}
           <div className="border-b border-slate-100 pb-5 space-y-4">
@@ -501,6 +430,7 @@ export const AgencyDashboard: React.FC = () => {
                       messagingType: { value: messagingType, set: setMessagingType, options: MESSAGING_TYPES },
                       target: { value: target, set: setTarget, options: TARGETS },
                       indication: { value: indication, set: setIndication, options: INDICATIONS },
+                      platform: { value: platform, set: setPlatform, options: t.options || platformOptions },
                     };
                     const ctl = map[t.key];
                     if (!ctl) return null;
@@ -708,182 +638,6 @@ export const AgencyDashboard: React.FC = () => {
           )}
 
         </div>
-      )}
-
-      {/* Tab 2: Detailed Overview of Programs, Campaigns, and Tactics */}
-      {activeTab === 'overview' && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-6 shadow-sm text-slate-900">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-navy-600" />
-                Master Program, Campaign & Tactic Portfolio Overview
-              </h3>
-              <p className="text-xs text-slate-500">
-                Detailed breakdown of programs, active campaigns, and tactical assets currently managed across agencies.
-              </p>
-            </div>
-
-            <a
-              href="/api/export/csv?type=campaigns"
-              download
-              className="bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-sm shrink-0"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export Portfolio Overview CSV</span>
-            </a>
-          </div>
-
-          <div className="space-y-4">
-            {programs.map((program) => {
-              const pCode = program.code || program.programCode || 'PRG-GILD-2026';
-              const pShort = pCode.length >= 7 ? pCode.substring(4, 7) : pCode;
-              const pMarket = program.market || 'US Commercial';
-              const pAgency = program.agencyOwner || 'Omnicom / IPG Health';
-
-              return (
-                <div
-                  key={program.id}
-                  className="p-4 rounded-2xl border border-slate-200 hover:border-navy-300 bg-slate-50/50 transition space-y-3"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-navy-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-sm uppercase">
-                        {pShort}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-slate-900">{program.programName}</h4>
-                        <p className="text-[11px] text-slate-500 font-mono">
-                          Code: <span className="text-navy-700 font-bold">{pCode}</span> &bull; Market: {pMarket}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold bg-white text-slate-800 px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
-                        {program.campaignCount} Campaigns
-                      </span>
-                      <span className="text-xs font-bold bg-navy-50 text-navy-800 px-3 py-1 rounded-xl border border-navy-200 shadow-2xs">
-                        {program.tacticCount} Tactics
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Therapeutic Area / Brand</span>
-                      <span className="font-bold text-slate-800">{program.therapeuticArea} &bull; {program.brand}</span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Lead Agency Owner</span>
-                      <span className="font-bold text-slate-800">{pAgency}</span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Taxonomy Alignment</span>
-                      <span className="font-mono text-navy-700 font-extrabold">100% Compliant</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 3: Submitted Campaigns Registry */}
-      {activeTab === 'registry' && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-4 shadow-sm text-slate-900">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">
-                Agency Campaign Registry & Taxonomy Status
-              </h3>
-              <p className="text-xs text-slate-500">
-                Master record of agency campaign taxonomy submissions across commercial brand portfolios.
-              </p>
-            </div>
-
-            <a
-              href="/api/export/csv?type=campaigns"
-              download
-              className="bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm border border-navy-500/30 flex items-center gap-1.5 shrink-0"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export CSV</span>
-            </a>
-          </div>
-
-          <div className="overflow-x-auto border border-slate-200 rounded-xl">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
-                <tr>
-                  <th className="p-3">Campaign Name / Code</th>
-                  <th className="p-3">Brand / Market</th>
-                  <th className="p-3">Topic / Subtopic</th>
-                  <th className="p-3">Taxonomy Code</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {campaigns.map((cmp) => {
-                  const brand = brands.find(b => b.id === cmp.brandId);
-                  const isCopied = copiedCodeId === cmp.id;
-                  return (
-                    <tr key={cmp.id} className="hover:bg-slate-50 transition">
-                      <td className="p-3">
-                        <div className="font-bold text-slate-900 text-xs">{cmp.campaignName}</div>
-                        <div className="font-mono text-[10px] text-navy-700 font-bold">{cmp.campaignCode}</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="font-bold text-slate-800">{brand?.name || 'Yescarta®'}</div>
-                        <div className="text-[10px] text-slate-500 font-medium">{cmp.region} • {cmp.quarter}</div>
-                      </td>
-                      <td className="p-3">
-                        <span className="font-mono text-[10px] font-bold bg-navy-50 text-navy-800 px-2 py-0.5 rounded border border-navy-200">
-                          {cmp.keyMessageSubcategoryId}
-                        </span>
-                      </td>
-                      <td className="p-3 font-mono text-[11px] text-slate-800 max-w-xs truncate font-medium">
-                        {cmp.taxonomyString}
-                      </td>
-                      <td className="p-3">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                          cmp.status === 'approved' || cmp.status === 'active'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : cmp.status === 'submitted'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : 'bg-slate-100 text-slate-600 border border-slate-200'
-                        }`}>
-                          {cmp.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right">
-                        <button
-                          onClick={() => handleCopyCode(cmp.taxonomyString, cmp.id)}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-slate-200 transition inline-flex items-center gap-1 shadow-sm"
-                        >
-                          {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                          <span>{isCopied ? 'Copied' : 'Copy Code'}</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-
-      {/* Tab 5: Gilead Taxonomy Master */}
-      {activeTab === 'generator' && <TaxonomyCodeGenerator />}
-
-      {activeTab === 'dictionary' && <TaxonomyDictionaryView />}
-
     </div>
   );
 };
