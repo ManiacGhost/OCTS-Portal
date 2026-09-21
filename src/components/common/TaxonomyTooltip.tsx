@@ -189,5 +189,17 @@ export const TAXONOMY_TOOLTIPS: Record<string, { fieldName: string; taxonomyCode
     taxonomyCode: 'TACTIC',
     description: 'Individual execution asset under a campaign (e.g. 300x250 Banner Ad, Veeva CRM Slide Deck, Email Nurture).',
     purpose: 'Establishes granular tracking for creative variations and media channel performance.'
+  },
+  assetId: {
+    fieldName: 'Asset ID',
+    taxonomyCode: 'ASET_ID',
+    description: 'The unique identifier of the promotional asset (e.g. a Veeva Vault creative ID) this campaign is built around.',
+    purpose: 'The starting point of every campaign flow — anchors the campaign to a single approved, MLR-reviewed asset before a tactic or channel is chosen.'
+  },
+  tacticId: {
+    fieldName: 'Tactic ID',
+    taxonomyCode: 'TACT_ID',
+    description: 'The identifier of the specific tactic used to promote the asset (e.g. a media plan line item or CRM tactic code).',
+    purpose: 'Links the asset to how it is being run — feeds tactic-level attribution and the C360 `tact_id` taxonomy dimension.'
   }
 };

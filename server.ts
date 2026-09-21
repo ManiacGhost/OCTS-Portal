@@ -416,6 +416,8 @@ app.post('/api/campaigns', (req: Request, res: Response) => {
     channelId: body.channelId,
     channelType: body.channelType,
     subChannel: body.subChannel,
+    assetId: body.assetId,
+    tacticId: body.tacticId,
     formulaInputs: body.formulaInputs,
     format: body.format || body.subChannel || 'Digital Asset',
     targetAudience: body.targetAudience || 'HCP',

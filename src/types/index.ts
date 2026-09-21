@@ -125,6 +125,12 @@ export interface CampaignTaxonomy {
   /** Approved-formula channel + sub-channel used by the Campaign Builder. */
   channelType?: MediaChannelType;
   subChannel?: string;
+  /** Promotional-asset identifier and the tactic it runs under — the starting point of every
+   *  Campaign Builder flow, captured before the campaign context itself. Mirrored into
+   *  `formulaInputs.aset_id` / `formulaInputs.tact_id` (the matching C360 dimension codes) so
+   *  they auto-populate the Tagging Strategy / Code & UTM Generator. */
+  assetId?: string;
+  tacticId?: string;
   /** Raw field values captured while building the taxonomy string. */
   formulaInputs?: Record<string, string>;
   targetAudience: string;

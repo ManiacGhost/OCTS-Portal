@@ -29,7 +29,7 @@ const CHANNEL_ID: Record<MediaChannelType, string> = {
 };
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
-import { FilePlus, CheckCircle2, Send, Layers, Code, ArrowRight, ArrowLeft, Info } from 'lucide-react';
+import { FilePlus, CheckCircle2, Send, Layers, Code, ArrowRight, ArrowLeft, Info, Hash } from 'lucide-react';
 
 export const AgencyDashboard: React.FC = () => {
   const { brands, addCampaign, showToast, selectedMarket } = usePersona();
@@ -37,7 +37,11 @@ export const AgencyDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Multi-step Builder Flow State
-  const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4>(1);
+  const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  // Asset & Tactic — the starting point of every campaign flow, captured before context.
+  const [assetId, setAssetId] = useState('');
+  const [tacticId, setTacticId] = useState('');
 
   // Campaign Form State
   const [campaignName, setCampaignName] = useState('Yescarta 2L LBCL — ORR HCP Meta');
@@ -93,8 +97,14 @@ export const AgencyDashboard: React.FC = () => {
     platform: platformOptions.length ? platform : subChannel,
     year: yearToken,
     code: machineCode,
+    // Mirror the flow's starting point into the matching C360 dimension codes so they
+    // auto-populate the Tagging Strategy / Code & UTM Generator (see kiteTaxonomy.ts).
+    aset_id: assetId,
+    tact_id: tacticId,
     ...subChannelMeta,
   };
+
+  const assetTacticReady = assetId.trim().length > 0 && tacticId.trim().length > 0;
 
   const built = buildCampaignTaxonomy(channelType, formulaInputs);
   const extraFields = SUB_CHANNEL_FIELDS[channelType][subChannel] || [];
@@ -117,6 +127,8 @@ export const AgencyDashboard: React.FC = () => {
         channelId: CHANNEL_ID[channelType],
         channelType,
         subChannel,
+        assetId,
+        tacticId,
         format: subChannel,
         formulaInputs,
         campaignCode: built.string,
@@ -177,12 +189,12 @@ export const AgencyDashboard: React.FC = () => {
               </div>
 
               <div className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-                Step <span className="text-navy-600 font-mono text-sm">{builderStep}</span> of <span className="font-mono text-sm">4</span>
+                Step <span className="text-navy-600 font-mono text-sm">{builderStep}</span> of <span className="font-mono text-sm">5</span>
               </div>
             </div>
 
             {/* Stepper Progress Indicator */}
-            <div className="grid grid-cols-4 gap-2 text-xs">
+            <div className="grid grid-cols-5 gap-2 text-xs">
               <button
                 onClick={() => setBuilderStep(1)}
                 className={`p-2.5 rounded-xl border text-left transition font-bold ${
@@ -193,7 +205,7 @@ export const AgencyDashboard: React.FC = () => {
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
-                1. Campaign Context
+                1. Asset &amp; Tactic
               </button>
 
               <button
@@ -206,7 +218,7 @@ export const AgencyDashboard: React.FC = () => {
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
-                2. Topic & Subtopic
+                2. Campaign Context
               </button>
 
               <button
@@ -219,7 +231,7 @@ export const AgencyDashboard: React.FC = () => {
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
-                3. Channel & Formula
+                3. Topic & Subtopic
               </button>
 
               <button
@@ -227,21 +239,122 @@ export const AgencyDashboard: React.FC = () => {
                 className={`p-2.5 rounded-xl border text-left transition font-bold ${
                   builderStep === 4
                     ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
+                    : builderStep > 4
+                    ? 'bg-navy-50 text-navy-800 border-navy-200'
                     : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
-                4. Review & Submit
+                4. Channel & Formula
+              </button>
+
+              <button
+                onClick={() => setBuilderStep(5)}
+                className={`p-2.5 rounded-xl border text-left transition font-bold ${
+                  builderStep === 5
+                    ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
+                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                }`}
+              >
+                5. Review & Submit
               </button>
             </div>
           </div>
 
-          {/* STEP 1: Campaign Context */}
+          {/* Asset & Tactic recap — stays visible once past step 1 so the flow's anchor is never lost */}
+          {builderStep > 1 && (assetId || tacticId) && (
+            <div className="flex flex-wrap items-center gap-2 text-[11px] -mt-2">
+              <span className="text-slate-400 font-bold uppercase tracking-wider">Anchored to:</span>
+              <span className="font-mono font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-2 py-0.5">
+                Asset {assetId || '—'}
+              </span>
+              <span className="font-mono font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-2 py-0.5">
+                Tactic {tacticId || '—'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setBuilderStep(1)}
+                className="text-navy-600 hover:text-navy-800 font-bold underline underline-offset-2"
+              >
+                edit
+              </button>
+            </div>
+          )}
+
+          {/* STEP 1: Asset & Tactic */}
           {builderStep === 1 && (
+            <div className="space-y-5 animate-fade-in">
+              <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
+                <Hash className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-navy-950">Step 1: Asset &amp; Tactic</h4>
+                  <p className="mt-0.5 text-navy-800">
+                    Every campaign flow starts here: the promotional asset being run, and the tactic
+                    it&rsquo;s running under. Everything else in this builder &mdash; context, topic,
+                    channel &mdash; is scoped to this asset + tactic pair.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
+                    <span>Asset ID</span>
+                    <span className="text-navy-600 mr-1">*</span>
+                    <TaxonomyTooltip {...TAXONOMY_TOOLTIPS.assetId} />
+                  </label>
+                  <input
+                    type="text"
+                    value={assetId}
+                    onChange={(e) => setAssetId(e.target.value)}
+                    placeholder="e.g. VV-ASET-48213"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-mono font-medium"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    The ID of the promotional asset (e.g. a Veeva Vault creative ID) this campaign is built around.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
+                    <span>Tactic ID</span>
+                    <span className="text-navy-600 mr-1">*</span>
+                    <TaxonomyTooltip {...TAXONOMY_TOOLTIPS.tacticId} />
+                  </label>
+                  <input
+                    type="text"
+                    value={tacticId}
+                    onChange={(e) => setTacticId(e.target.value)}
+                    placeholder="e.g. TACT-2026-0091"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-500 font-mono font-medium"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    The tactic this asset is being promoted under (media plan line item / CRM tactic code).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setBuilderStep(2)}
+                  disabled={!assetTacticReady}
+                  title={assetTacticReady ? undefined : 'Enter both an Asset ID and a Tactic ID to continue'}
+                  className="bg-navy-600 hover:bg-navy-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
+                >
+                  <span>Next: Campaign Context</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: Campaign Context */}
+          {builderStep === 2 && (
             <div className="space-y-5 animate-fade-in">
               <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
                 <Info className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-navy-950">Step 1: Campaign Context & Scope</h4>
+                  <h4 className="font-bold text-navy-950">Step 2: Campaign Context & Scope</h4>
                   <p className="mt-0.5 text-navy-800">
                     Define the campaign title, market scope, and execution quarter. This establishes the base taxonomy string prefix.
                   </p>
@@ -299,10 +412,19 @@ export const AgencyDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setBuilderStep(2)}
+                  onClick={() => setBuilderStep(1)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Asset &amp; Tactic</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBuilderStep(3)}
                   className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
                   <span>Next: Topic & Subtopic Selection</span>
@@ -312,8 +434,8 @@ export const AgencyDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 2: Topic & Subtopic Selection */}
-          {builderStep === 2 && (
+          {/* STEP 3: Topic & Subtopic Selection */}
+          {builderStep === 3 && (
             <div className="space-y-5 animate-fade-in">
               <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 space-y-2">
                 <div className="flex items-center gap-2 text-navy-400 font-bold text-xs">
@@ -339,7 +461,7 @@ export const AgencyDashboard: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setBuilderStep(1)}
+                  onClick={() => setBuilderStep(2)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -348,7 +470,7 @@ export const AgencyDashboard: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setBuilderStep(3)}
+                  onClick={() => setBuilderStep(4)}
                   className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
                   <span>Next: Channel & Formula</span>
@@ -358,13 +480,13 @@ export const AgencyDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 3: Channel & Approved Taxonomy Formula */}
-          {builderStep === 3 && (
+          {/* STEP 4: Channel & Approved Taxonomy Formula */}
+          {builderStep === 4 && (
             <div className="space-y-5 animate-fade-in">
               <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
                 <Info className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-navy-950">Step 3: Channel &amp; Approved Taxonomy Formula</h4>
+                  <h4 className="font-bold text-navy-950">Step 4: Channel &amp; Approved Taxonomy Formula</h4>
                   <p className="mt-0.5 text-navy-800">
                     Pick the promotional channel and sub-channel. The approved Kite Campaign Name
                     formula for that channel is applied below &mdash; you fill the highlighted fields,
@@ -547,7 +669,7 @@ export const AgencyDashboard: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setBuilderStep(2)}
+                  onClick={() => setBuilderStep(3)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -556,7 +678,7 @@ export const AgencyDashboard: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setBuilderStep(4)}
+                  onClick={() => setBuilderStep(5)}
                   className="bg-navy-600 hover:bg-navy-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
                 >
                   <span>Next: Review & Submit</span>
@@ -566,8 +688,8 @@ export const AgencyDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 4: Review, Preview Code & Submit */}
-          {builderStep === 4 && (
+          {/* STEP 5: Review, Preview Code & Submit */}
+          {builderStep === 5 && (
             <div className="space-y-5 animate-fade-in">
               <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -581,6 +703,16 @@ export const AgencyDashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Asset ID:</span>
+                    <span className="font-mono font-bold text-white truncate block">{assetId || '—'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Tactic ID:</span>
+                    <span className="font-mono font-bold text-white truncate block">{tacticId || '—'}</span>
+                  </div>
+
                   <div>
                     <span className="text-slate-400 block text-[10px]">Campaign:</span>
                     <span className="font-bold text-white truncate block">{campaignName}</span>
@@ -617,7 +749,7 @@ export const AgencyDashboard: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setBuilderStep(3)}
+                  onClick={() => setBuilderStep(4)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
