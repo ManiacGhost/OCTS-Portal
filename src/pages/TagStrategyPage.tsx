@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Tag, ArrowRight } from 'lucide-react';
+import { Route, Tag, ArrowRight, Target, CheckCircle2, CircleDot, Circle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePersona } from '../context/PersonaContext';
 import { useBrandStrategy } from '../data/brandStrategyStore';
@@ -9,6 +9,7 @@ import {
   kiteDimensionsFor,
   kiteSourcesFor,
 } from '../data/kiteTaxonomy';
+import { kbqsForScope, KbqStatus } from '../data/kbqKpiMap';
 
 const VALUE_INPUT =
   'w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-navy-500 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none transition';
@@ -20,6 +21,7 @@ export const TagStrategyPage: React.FC = () => {
   const [brandId, setBrandId] = useState<string>(brands[0]?.id || '');
   const [channel, setChannel] = useState<string>('Digital');
   const [subChannel, setSubChannel] = useState<string>(kiteSubChannels('Digital')[0] || '');
+  const [kbqId, setKbqId] = useState<string>('');
 
   const brand = brands.find(b => b.id === brandId) || brands[0];
   const bId = brand?.id || brandId;
@@ -60,6 +62,29 @@ export const TagStrategyPage: React.FC = () => {
   const editDim = (code: string, patch: { name?: string; captures?: string; defaultValue?: string }) =>
     bs.setEdit(bId, channel, scopeSub, code, patch);
 
+  const kbqs = kbqsForScope(channel, codes, selected);
+  const kbqCoveredCount = kbqs.filter(k => k.status === 'covered').length;
+  const kbqPartialCount = kbqs.filter(k => k.status === 'partial').length;
+  const kbqNoneCount = kbqs.filter(k => k.status === 'none').length;
+  const kbqCountFor = (code: string) => kbqs.filter(k => k.applicableDimensions.includes(code)).length;
+
+  const STATUS_STYLE: Record<KbqStatus, { label: string; className: string; Icon: typeof CheckCircle2 }> = {
+    covered: { label: 'Covered', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', Icon: CheckCircle2 },
+    partial: { label: 'Partial', className: 'bg-amber-50 text-amber-700 border-amber-200', Icon: CircleDot },
+    none: { label: 'Not tagged', className: 'bg-slate-100 text-slate-500 border-slate-200', Icon: Circle },
+  };
+  // Native <option> elements can't take Tailwind classes, so colour status with an emoji dot
+  // instead — matching the legend's emerald / amber / slate scheme as closely as text allows.
+  const STATUS_PREFIX: Record<KbqStatus, string> = { covered: '🟢', partial: '🟡', none: '⚪' };
+
+  // Keep the picked KBQ valid as the channel/sub-channel scope (and its KBQ list) changes.
+  useEffect(() => {
+    if (!kbqs.some(k => k.id === kbqId)) setKbqId(kbqs[0]?.id || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel, scopeSub]);
+
+  const activeKbq = kbqs.find(k => k.id === kbqId) || kbqs[0];
+
   return (
     <div className="space-y-5">
       <div>
@@ -71,9 +96,97 @@ export const TagStrategyPage: React.FC = () => {
           Kite C360 taxonomy. Pick a brand, a channel and (for Digital) a sub-channel. The dimensions
           shown are the fields the C360 sources for that sub-channel actually carry &mdash; their names
           and what they capture are fixed. Tick the ones this brand tags and give each a default value;
-          the ticked rows become the editable UTM fields in the Code &amp; UTM Generator.
+          the ticked rows become the editable UTM fields in the Code &amp; UTM Generator. Each dimension
+          also traces to the business question(s) it lets analytics answer &mdash; see the coverage
+          below.
         </p>
       </div>
+
+      {/* Business questions & KPIs this strategy answers */}
+      {kbqs.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs">
+              <Target className="w-4 h-4 text-navy-600 shrink-0" />
+              <span className="font-bold text-slate-800">Business questions &amp; KPIs</span>
+              <span className="text-slate-400">for {scopeLabel}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+                <CheckCircle2 className="w-3 h-3" />
+                {kbqCoveredCount} Covered
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200">
+                <CircleDot className="w-3 h-3" />
+                {kbqPartialCount} Partial
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-slate-100 text-slate-500 border-slate-200">
+                <Circle className="w-3 h-3" />
+                {kbqNoneCount} Not tagged
+              </span>
+            </div>
+          </div>
+
+          <select
+            value={activeKbq?.id || ''}
+            onChange={e => setKbqId(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-navy-500 focus:bg-white"
+          >
+            {kbqs.map(kbq => (
+              <option key={kbq.id} value={kbq.id}>
+                {STATUS_PREFIX[kbq.status]} {kbq.question}
+              </option>
+            ))}
+          </select>
+
+          {activeKbq &&
+            (() => {
+              const { label, className, Icon } = STATUS_STYLE[activeKbq.status];
+              return (
+                <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50/60 flex flex-col sm:flex-row sm:items-start gap-3">
+                  <div className="sm:w-32 shrink-0">
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 ${className}`}>
+                      <Icon className="w-3 h-3" />
+                      {label}
+                    </span>
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <p className="text-xs font-bold text-slate-900">{activeKbq.question}</p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-slate-400 font-medium">KPI:</span>
+                      {activeKbq.kpis.map(kpi => (
+                        <span
+                          key={kpi}
+                          className="text-[10px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1.5 py-0.5"
+                        >
+                          {kpi}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-slate-400 font-medium">Needs:</span>
+                      {activeKbq.applicableDimensions.map(code => {
+                        const tagged = selected.includes(code);
+                        return (
+                          <span
+                            key={code}
+                            className={`text-[10px] font-mono font-bold rounded px-1.5 py-0.5 border ${
+                              tagged
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-slate-100 text-slate-500 border-slate-200'
+                            }`}
+                          >
+                            {code}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+        </div>
+      )}
 
       {/* Step 1 — Brand */}
       <div>
@@ -168,7 +281,7 @@ export const TagStrategyPage: React.FC = () => {
               <b className="text-slate-800">{scopeLabel}</b>
               {sources.length > 0 && (
                 <span className="text-slate-400">
-                  {' '}&nbsp;·&nbsp; sources:{' '}
+                  {' '}&nbsp;·&nbsp; publishers:{' '}
                   {sources.map((s, i) => (
                     <React.Fragment key={s}>
                       {i > 0 && ', '}
@@ -232,7 +345,18 @@ export const TagStrategyPage: React.FC = () => {
                           />
                         </td>
                         <td className="p-3 font-mono text-[11px] text-slate-400">{d.code}</td>
-                        <td className="p-3 font-bold text-slate-900">{ed.name ?? d.label}</td>
+                        <td className="p-3 font-bold text-slate-900">
+                          {ed.name ?? d.label}
+                          {kbqCountFor(d.code) > 0 && (
+                            <span
+                              title={`Feeds ${kbqCountFor(d.code)} business question${kbqCountFor(d.code) > 1 ? 's' : ''}`}
+                              className="ml-1.5 inline-flex items-center gap-0.5 text-[9px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1 py-0.5 align-middle"
+                            >
+                              <Target className="w-2.5 h-2.5" />
+                              {kbqCountFor(d.code)}
+                            </span>
+                          )}
+                        </td>
                         <td className="p-3 text-slate-600">{ed.captures ?? d.captures}</td>
                         <td className="p-2">
                           <input
@@ -251,6 +375,7 @@ export const TagStrategyPage: React.FC = () => {
           )}
         </div>
       </div>
+
     </div>
   );
 };
