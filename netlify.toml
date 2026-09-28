@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Client-side routing (react-router BrowserRouter) — send every path to index.html so
+# direct links / refreshes on e.g. /overview or /tagging-strategy don't 404 on Netlify.
+# (public/_redirects carries the same rule; both are harmless together.)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

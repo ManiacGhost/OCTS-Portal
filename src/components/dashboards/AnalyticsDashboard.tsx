@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
+import { resolveDiscrepancy, exportCsv } from '../../services/api';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
 import {
   BarChart3,
@@ -29,12 +30,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const handleResolve = async (id: string) => {
     setResolvingId(id);
     try {
-      const res = await fetch('/api/analytics/discrepancy/resolve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      const data = await res.json();
+      const data = await resolveDiscrepancy(id);
       if (data.success) {
         showToast('Discrepancy marked as resolved!', 'success');
         await refreshAnalytics();
@@ -292,14 +288,14 @@ export const AnalyticsDashboard: React.FC = () => {
               <p className="text-xs text-slate-500">
                 <strong>Description:</strong> Downloads standard campaign taxonomy strings, Topic & Subtopic codes, UTM source/medium parameters, agency owners, and compliance scores formatted for media planning sheets and Veeva CRM imports.
               </p>
-              <a
-                href="/api/export/csv?type=campaigns"
-                download
+              <button
+                type="button"
+                onClick={() => exportCsv('campaigns')}
                 className="inline-flex items-center gap-2 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Campaign Taxonomy CSV</span>
-              </a>
+              </button>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl space-y-3">
@@ -307,14 +303,14 @@ export const AnalyticsDashboard: React.FC = () => {
               <p className="text-xs text-slate-500">
                 <strong>Description:</strong> Downloads all Therapeutic Areas, Brands, Topic codes, and Subtopic codes used as the master taxonomy source of truth.
               </p>
-              <a
-                href="/api/export/csv?type=keymessages"
-                download
+              <button
+                type="button"
+                onClick={() => exportCsv('keymessages')}
                 className="inline-flex items-center gap-2 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Topic & Subtopic Dictionary CSV</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>

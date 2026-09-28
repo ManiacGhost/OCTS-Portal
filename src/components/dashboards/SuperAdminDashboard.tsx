@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
+import { addKeyMessageSubcategory } from '../../services/api';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
 import { UserPersona, AgencyPartner } from '../../types';
@@ -100,18 +101,13 @@ export const SuperAdminDashboard: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const res = await fetch('/api/taxonomy/keymessage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          categoryId: selectedCatId,
-          subcategoryName,
-          subcategoryCode,
-          description,
-          targetAudience: [targetAudience]
-        })
+      const data = await addKeyMessageSubcategory({
+        categoryId: selectedCatId,
+        subcategoryName,
+        subcategoryCode,
+        description,
+        targetAudience: [targetAudience]
       });
-      const data = await res.json();
       if (data.success) {
         showToast(`Subtopic ${subcategoryCode} added to the Master Taxonomy!`, 'success');
         await refreshTaxonomy();
