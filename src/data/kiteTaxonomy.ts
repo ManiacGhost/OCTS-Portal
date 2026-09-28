@@ -102,17 +102,21 @@ function row(...vals: boolean[]): PresenceRow {
 
 export const KITE_SOURCE_PRESENCE: Record<string, PresenceRow> = {
   //                  brd cpgn cpgn_id tact_id tact_nm plact_nm cr_id cr_nm audn_id audn_nm aset_id global_id sugg_id topic sub_topic indc chnl sub_chnl email subj_ln url devc
-  SFMC:              row(Y,  N,   N,      N,      N,      N,       N,    N,    N,      N,      Y,      Y,        Y,      Y,    Y,        Y,   Y,   N,       Y,    Y,      Y,  Y),
+  // Evoke agency spec (2026-09) confirms SFMC captures Audience — flipped audn_id/audn_nm to Y.
+  SFMC:              row(Y,  N,   N,      N,      N,      N,       N,    N,    Y,      Y,      Y,      Y,        Y,      Y,    Y,        Y,   Y,   N,       Y,    Y,      Y,  Y),
+  // Evoke agency spec (2026-09) confirms "Paid Media" captures Audience, Campaign, Tactic,
+  // Topic/Subtopic and Creative — flipped whichever of those were still N below (Digital,
+  // Social, Search are all "Paid Media" in that spec). Comments mark each flipped cell.
   //                  brd cpgn cpgn_id …                                                          chnl sub_chnl …                 | pulse vault npi
-  Impiricus:         row(Y,  Y,   Y,      N,      N,      N,       N,    N,    N,      N,      N,      N,        N,      N,    N,        N,   Y,   Y,       N,    N,      N,  N,   Y,    Y,    Y),
+  Impiricus:         row(Y,  Y,   Y,      Y,      Y,      N,       Y,    Y,    Y,      Y,      N,      N,        N,      Y,    Y,        N,   Y,   Y,       N,    N,      N,  N,   Y,    Y,    Y), // +tact_id/nm, +creative_id/nm, +audn_id/nm, +topic/sub_topic
   ReachMD:           row(Y,  Y,   N,      N,      Y,      Y,       N,    N,    N,      N,      Y,      N,        N,      Y,    Y,        Y,   Y,   Y,       N,    N,      N,  Y),
   'Open Evidence':   row(Y,  Y,   Y,      N,      Y,      Y,       N,    Y,    N,      N,      Y,      N,        N,      N,    N,        Y,   Y,   N,       N,    N,      N,  Y),
-  Medscape:          row(Y,  Y,   Y,      Y,      Y,      Y,       Y,    Y,    N,      N,      Y,      N,        N,      N,    N,        Y,   Y,   Y,       N,    Y,      Y,  Y),
-  Equals5:           row(Y,  Y,   N,      N,      Y,      Y,       N,    Y,    N,      N,      Y,      N,        N,      N,    N,        Y,   Y,   Y,       N,    N,      N,  Y),
+  Medscape:          row(Y,  Y,   Y,      Y,      Y,      Y,       Y,    Y,    Y,      Y,      Y,      N,        N,      N,    N,        Y,   Y,   Y,       N,    Y,      Y,  Y), // +audn_id/nm
+  Equals5:           row(Y,  Y,   Y,      Y,      Y,      Y,       Y,    Y,    Y,      Y,      Y,      N,        N,      Y,    Y,        Y,   Y,   Y,       N,    N,      N,  Y), // +cpgn_id, +tact_id, +creative_id, +audn_id/nm, +topic/sub_topic
   'Relevate Health': row(Y,  Y,   Y,      Y,      Y,      Y,       Y,    N,    N,      N,      Y,      N,        N,      N,    N,        Y,   Y,   Y,       N,    N,      Y,  Y),
   DeepIntent:        row(Y,  Y,   Y,      N,      Y,      Y,       N,    N,    Y,      N,      Y,      Y,        Y,      N,    N,        Y,   Y,   N,       N,    N,      Y,  Y),
   //                  brd cpgn cpgn_id …                                        aset global …  topic sub_top indc chnl sub_chnl …    url dev
-  'Google Ads':      row(Y,  Y,   Y,      N,      N,      N,       Y,    Y,    N,      N,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  Y),
+  'Google Ads':      row(Y,  Y,   Y,      Y,      Y,      N,       Y,    Y,    Y,      Y,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  Y), // +tact_id/nm, +audn_id/nm
   //                  brd cpgn cpgn_id …                                        aset global …  topic sub_top indc chnl sub_chnl …    url … | (impiricus N) | slide deck
   'Veeva CLM':        row(Y,  Y,   Y,      N,      N,      N,       N,    N,    N,      N,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  N,   N,    N,    N,  Y,    Y),
 };

@@ -1,6 +1,6 @@
 {
-  "name": "Omnia — Digital Content Taxonomy & Metadata (DCTM)",
-  "description": "Omnia (DCTM) — role-based omnichannel content taxonomy and metadata governance: login-gated dashboards, campaign metadata source-of-truth, Topic & Subtopic governance, and automated content tagging for enterprise commercial operations.",
+  "name": "Tagging360 — Digital Content Taxonomy & Metadata (DCTM)",
+  "description": "Tagging360 (DCTM) — role-based omnichannel content taxonomy and metadata governance: login-gated dashboards, campaign metadata source-of-truth, Topic & Subtopic governance, and automated content tagging for enterprise commercial operations.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

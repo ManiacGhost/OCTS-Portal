@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Tag, ArrowRight, Target, CheckCircle2, CircleDot, Circle } from 'lucide-react';
+import { Route, Tag, ArrowRight, Target, CheckCircle2, CircleDot, Circle, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePersona } from '../context/PersonaContext';
 import { useBrandStrategy } from '../data/brandStrategyStore';
@@ -9,10 +9,12 @@ import {
   kiteDimensionsFor,
   kiteSourcesFor,
 } from '../data/kiteTaxonomy';
-import { kbqsForScope, KbqStatus } from '../data/kbqKpiMap';
+import { kbqsForScope, KbqStatus, KbqScope } from '../data/kbqKpiMap';
 
 const VALUE_INPUT =
   'w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-navy-500 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none transition';
+const SCOPE_SELECT =
+  'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-navy-500 focus:bg-white';
 
 export const TagStrategyPage: React.FC = () => {
   const { brands } = usePersona();
@@ -68,10 +70,20 @@ export const TagStrategyPage: React.FC = () => {
   const kbqNoneCount = kbqs.filter(k => k.status === 'none').length;
   const kbqCountFor = (code: string) => kbqs.filter(k => k.applicableDimensions.includes(code)).length;
 
+  // Core KBQs are asked the same way regardless of channel; channel KBQs only make sense for
+  // the channel(s) they're scoped to. Group them separately (per client feedback) rather than
+  // mixing them into one flat list.
+  const coreKbqs = kbqs.filter(k => k.scope === 'core');
+  const channelKbqs = kbqs.filter(k => k.scope === 'channel');
+
   const STATUS_STYLE: Record<KbqStatus, { label: string; className: string; Icon: typeof CheckCircle2 }> = {
     covered: { label: 'Covered', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', Icon: CheckCircle2 },
     partial: { label: 'Partial', className: 'bg-amber-50 text-amber-700 border-amber-200', Icon: CircleDot },
     none: { label: 'Not tagged', className: 'bg-slate-100 text-slate-500 border-slate-200', Icon: Circle },
+  };
+  const SCOPE_STYLE: Record<KbqScope, { label: string; className: string }> = {
+    core: { label: 'Core · every channel', className: 'bg-navy-50 text-navy-700 border-navy-200' },
+    channel: { label: `${channel}-specific`, className: 'bg-purple-50 text-purple-700 border-purple-200' },
   };
   // Native <option> elements can't take Tailwind classes, so colour status with an emoji dot
   // instead — matching the legend's emerald / amber / slate scheme as closely as text allows.
@@ -92,14 +104,49 @@ export const TagStrategyPage: React.FC = () => {
           <Route className="w-5 h-5 text-navy-600" />
           Tagging Strategy
         </h1>
-        <p className="text-sm text-slate-500 mt-0.5 max-w-3xl">
-          Kite C360 taxonomy. Pick a brand, a channel and (for Digital) a sub-channel. The dimensions
-          shown are the fields the C360 sources for that sub-channel actually carry &mdash; their names
-          and what they capture are fixed. Tick the ones this brand tags and give each a default value;
-          the ticked rows become the editable UTM fields in the Code &amp; UTM Generator. Each dimension
-          also traces to the business question(s) it lets analytics answer &mdash; see the coverage
-          below.
-        </p>
+      </div>
+
+      {/* Scope — brand, channel and sub-channel, all as plain dropdowns */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5">
+        <div className={`grid grid-cols-1 ${hasSubChannels ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Brand</label>
+            <select value={brandId} onChange={e => pickBrand(e.target.value)} className={SCOPE_SELECT}>
+              {brands.map(b => (
+                <option key={b.id} value={b.id}>
+                  {b.name.split(/[ (]/)[0]} ({b.code})
+                </option>
+              ))}
+            </select>
+            {brand?.indication && <p className="text-[10px] text-slate-400 mt-1">{brand.indication}</p>}
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Channel</label>
+            <select value={channel} onChange={e => pickChannel(e.target.value)} className={SCOPE_SELECT}>
+              {KITE_CHANNELS.map(c => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {hasSubChannels && (
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Sub-channel in {channel}
+              </label>
+              <select value={subChannel} onChange={e => setSubChannel(e.target.value)} className={SCOPE_SELECT}>
+                {subChannelList.map(sc => (
+                  <option key={sc} value={sc}>
+                    {sc}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Business questions & KPIs this strategy answers */}
@@ -109,7 +156,7 @@ export const TagStrategyPage: React.FC = () => {
             <div className="flex items-center gap-2 text-xs">
               <Target className="w-4 h-4 text-navy-600 shrink-0" />
               <span className="font-bold text-slate-800">Business questions &amp; KPIs</span>
-              <span className="text-slate-400">for {scopeLabel}</span>
+              <span className="text-slate-400">for <b className="text-slate-700 font-bold">{scopeLabel}</b></span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
@@ -127,147 +174,133 @@ export const TagStrategyPage: React.FC = () => {
             </div>
           </div>
 
-          <select
-            value={activeKbq?.id || ''}
-            onChange={e => setKbqId(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-navy-500 focus:bg-white"
-          >
-            {kbqs.map(kbq => (
-              <option key={kbq.id} value={kbq.id}>
-                {STATUS_PREFIX[kbq.status]} {kbq.question}
-              </option>
-            ))}
-          </select>
+          <div className={`grid grid-cols-1 ${channelKbqs.length > 0 ? 'sm:grid-cols-2' : ''} gap-3`}>
+            <div className="rounded-xl border-2 border-navy-200 bg-navy-50/50 p-3">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="w-2 h-2 rounded-full bg-navy-500 shrink-0" />
+                <span className="text-[10px] font-extrabold text-navy-800 uppercase tracking-wider">
+                  Cross-channel questions
+                </span>
+                <span className="text-[10px] font-bold text-navy-400">({coreKbqs.length})</span>
+              </div>
+              <select
+                value={activeKbq?.scope === 'core' ? activeKbq.id : ''}
+                onChange={e => e.target.value && setKbqId(e.target.value)}
+                className="w-full bg-white border border-navy-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-navy-500"
+              >
+                <option value="" disabled>— select a question —</option>
+                {coreKbqs.map(kbq => (
+                  <option key={kbq.id} value={kbq.id}>
+                    {STATUS_PREFIX[kbq.status]} {kbq.question}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {channelKbqs.length > 0 && (
+              <div className="rounded-xl border-2 border-purple-200 bg-purple-50/50 p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                  <span className="text-[10px] font-extrabold text-purple-800 uppercase tracking-wider">
+                    {channel}-specific questions
+                  </span>
+                  <span className="text-[10px] font-bold text-purple-400">({channelKbqs.length})</span>
+                </div>
+                <select
+                  value={activeKbq?.scope === 'channel' ? activeKbq.id : ''}
+                  onChange={e => e.target.value && setKbqId(e.target.value)}
+                  className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-purple-500"
+                >
+                  <option value="" disabled>— select a question —</option>
+                  {channelKbqs.map(kbq => (
+                    <option key={kbq.id} value={kbq.id}>
+                      {STATUS_PREFIX[kbq.status]} {kbq.question}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
           {activeKbq &&
             (() => {
               const { label, className, Icon } = STATUS_STYLE[activeKbq.status];
+              const scopeStyle = SCOPE_STYLE[activeKbq.scope];
               return (
-                <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50/60 flex flex-col sm:flex-row sm:items-start gap-3">
-                  <div className="sm:w-32 shrink-0">
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 ${className}`}>
-                      <Icon className="w-3 h-3" />
-                      {label}
-                    </span>
-                  </div>
-                  <div className="flex-1 space-y-1.5">
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="px-3.5 py-2.5 bg-slate-50/60 border-b border-slate-200">
                     <p className="text-xs font-bold text-slate-900">{activeKbq.question}</p>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] text-slate-400 font-medium">KPI:</span>
-                      {activeKbq.kpis.map(kpi => (
-                        <span
-                          key={kpi}
-                          className="text-[10px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1.5 py-0.5"
-                        >
-                          {kpi}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] text-slate-400 font-medium">Needs:</span>
-                      {activeKbq.applicableDimensions.map(code => {
-                        const tagged = selected.includes(code);
-                        return (
-                          <span
-                            key={code}
-                            className={`text-[10px] font-mono font-bold rounded px-1.5 py-0.5 border ${
-                              tagged
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-slate-100 text-slate-500 border-slate-200'
-                            }`}
-                          >
-                            {code}
-                          </span>
-                        );
-                      })}
-                    </div>
                   </div>
+                  <table className="w-full text-left text-xs">
+                    <tbody className="divide-y divide-slate-100">
+                      <tr>
+                        <td className="p-2.5 w-28 shrink-0 text-[10px] font-bold text-slate-500 uppercase tracking-wider align-middle">
+                          Status
+                        </td>
+                        <td className="p-2.5">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 ${className}`}>
+                            <Icon className="w-3 h-3" />
+                            {label}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider align-middle">
+                          Scope
+                        </td>
+                        <td className="p-2.5">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 ${scopeStyle.className}`}>
+                            <Layers className="w-3 h-3" />
+                            {scopeStyle.label}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider align-middle">
+                          KPI
+                        </td>
+                        <td className="p-2.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {activeKbq.kpis.map(kpi => (
+                              <span
+                                key={kpi}
+                                className="text-[10px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1.5 py-0.5"
+                              >
+                                {kpi}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider align-middle">
+                          Dimensions
+                        </td>
+                        <td className="p-2.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {activeKbq.applicableDimensions.map(code => {
+                              const tagged = selected.includes(code);
+                              return (
+                                <span
+                                  key={code}
+                                  className={`text-[10px] font-mono font-bold rounded px-1.5 py-0.5 border ${
+                                    tagged
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                                  }`}
+                                >
+                                  {code}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               );
             })()}
-        </div>
-      )}
-
-      {/* Step 1 — Brand */}
-      <div>
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">1 · Brand</div>
-        <div className="flex flex-wrap gap-2">
-          {brands.map(b => {
-            const on = b.id === brand?.id;
-            return (
-              <button
-                key={b.id}
-                onClick={() => pickBrand(b.id)}
-                className={`text-left rounded-2xl border px-4 py-3 transition ${
-                  on
-                    ? 'bg-navy-600 text-white border-navy-600 shadow-md'
-                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-sm">{b.name.split(/[ (]/)[0]}</span>
-                  <span
-                    className={`font-mono text-[10px] font-bold rounded px-1 py-0.5 border ${
-                      on ? 'bg-white/15 border-white/30 text-white' : 'bg-navy-50 border-navy-200 text-navy-700'
-                    }`}
-                  >
-                    {b.code}
-                  </span>
-                </div>
-                <div className={`text-[11px] mt-0.5 ${on ? 'text-navy-50' : 'text-slate-400'}`}>{b.indication}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Step 2 — Channel */}
-      <div>
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">2 · Channel</div>
-        <div className="flex flex-wrap items-center gap-2">
-          {KITE_CHANNELS.map(c => {
-            const on = c === channel;
-            return (
-              <button
-                key={c}
-                onClick={() => pickChannel(c)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                  on
-                    ? 'bg-navy-600 text-white border-navy-600'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                {c}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Step 3 — Sub-channel */}
-      {hasSubChannels && (
-        <div>
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            3 · Sub-channel in {channel}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {subChannelList.map(sc => {
-              const on = sc === subChannel;
-              return (
-                <button
-                  key={sc}
-                  onClick={() => setSubChannel(sc)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                    on
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  {sc}
-                </button>
-              );
-            })}
-          </div>
         </div>
       )}
 

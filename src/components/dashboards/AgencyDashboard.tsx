@@ -29,7 +29,7 @@ const CHANNEL_ID: Record<MediaChannelType, string> = {
 };
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
-import { FilePlus, CheckCircle2, Send, Layers, Code, ArrowRight, ArrowLeft, Info, Hash } from 'lucide-react';
+import { FilePlus, CheckCircle2, Send, Layers, Code, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export const AgencyDashboard: React.FC = () => {
   const { brands, addCampaign, showToast, selectedMarket } = usePersona();
@@ -283,18 +283,6 @@ export const AgencyDashboard: React.FC = () => {
           {/* STEP 1: Asset & Tactic */}
           {builderStep === 1 && (
             <div className="space-y-5 animate-fade-in">
-              <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
-                <Hash className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-navy-950">Step 1: Asset &amp; Tactic</h4>
-                  <p className="mt-0.5 text-navy-800">
-                    Every campaign flow starts here: the promotional asset being run, and the tactic
-                    it&rsquo;s running under. Everything else in this builder &mdash; context, topic,
-                    channel &mdash; is scoped to this asset + tactic pair.
-                  </p>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">
@@ -351,15 +339,6 @@ export const AgencyDashboard: React.FC = () => {
           {/* STEP 2: Campaign Context */}
           {builderStep === 2 && (
             <div className="space-y-5 animate-fade-in">
-              <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
-                <Info className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-navy-950">Step 2: Campaign Context & Scope</h4>
-                  <p className="mt-0.5 text-navy-800">
-                    Define the campaign title, market scope, and execution quarter. This establishes the base taxonomy string prefix.
-                  </p>
-                </div>
-              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -483,17 +462,6 @@ export const AgencyDashboard: React.FC = () => {
           {/* STEP 4: Channel & Approved Taxonomy Formula */}
           {builderStep === 4 && (
             <div className="space-y-5 animate-fade-in">
-              <div className="bg-navy-50/60 p-4 rounded-2xl border border-navy-100 flex items-start gap-3 text-xs text-navy-900">
-                <Info className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-navy-950">Step 4: Channel &amp; Approved Taxonomy Formula</h4>
-                  <p className="mt-0.5 text-navy-800">
-                    Pick the promotional channel and sub-channel. The approved Kite Campaign Name
-                    formula for that channel is applied below &mdash; you fill the highlighted fields,
-                    everything else is filled automatically.
-                  </p>
-                </div>
-              </div>
 
               {/* Channel */}
               <div>

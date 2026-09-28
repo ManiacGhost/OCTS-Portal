@@ -104,15 +104,21 @@ export const KBQ_LIBRARY: KbqDefinition[] = [
 
 export type KbqStatus = 'covered' | 'partial' | 'none';
 
+/** 'core' = asked the same way regardless of channel (no `channels` restriction on the
+ *  definition); 'channel' = only meaningful for the channel(s) it's scoped to. */
+export type KbqScope = 'core' | 'channel';
+
 export interface ScopedKbq extends KbqDefinition {
   /** requiredDimensions narrowed to codes that actually exist in this scope */
   applicableDimensions: string[];
   status: KbqStatus;
+  scope: KbqScope;
 }
 
 /**
  * KBQs relevant to a channel/sub-channel scope, with coverage computed against the
- * currently-selected (ticked) dimension codes for that scope.
+ * currently-selected (ticked) dimension codes for that scope. Core KBQs (no `channels`
+ * restriction — the same question regardless of channel) sort before channel-specific ones.
  */
 export function kbqsForScope(
   channel: string,
@@ -126,6 +132,9 @@ export function kbqsForScope(
     const coveredCount = applicableDimensions.filter(c => selectedCodes.includes(c)).length;
     const status: KbqStatus =
       coveredCount === applicableDimensions.length ? 'covered' : coveredCount > 0 ? 'partial' : 'none';
-    return { ...kbq, applicableDimensions, status };
-  }).filter((k): k is ScopedKbq => !!k);
+    const scope: KbqScope = kbq.channels ? 'channel' : 'core';
+    return { ...kbq, applicableDimensions, status, scope };
+  })
+    .filter((k): k is ScopedKbq => !!k)
+    .sort((a, b) => (a.scope === b.scope ? 0 : a.scope === 'core' ? -1 : 1));
 }

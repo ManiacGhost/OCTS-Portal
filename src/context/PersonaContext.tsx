@@ -151,8 +151,8 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAnalytics(anaData.analytics);
       setAuditLogs(logData.auditLogs);
     } catch (err) {
-      console.error('Failed to initialize Omnia data:', err);
-      showToast('Error connecting to the Omnia taxonomy backend.', 'error');
+      console.error('Failed to initialize Tagging360 data:', err);
+      showToast('Error connecting to the Tagging360 taxonomy backend.', 'error');
     } finally {
       setIsLoading(false);
     }

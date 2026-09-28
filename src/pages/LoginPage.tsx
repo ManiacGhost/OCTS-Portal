@@ -159,10 +159,10 @@ export const LoginPage: React.FC = () => {
 
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-navy-600 flex items-center justify-center font-extrabold text-xl shadow-md">
-            O
+            T
           </div>
           <div>
-            <div className="font-wordmark text-2xl font-bold">Omnia</div>
+            <div className="font-wordmark text-2xl font-bold">Tagging360</div>
             <div className="text-[11px] text-navy-300 font-bold uppercase tracking-widest">
               Digital Content Taxonomy &amp; Metadata
             </div>
@@ -187,10 +187,10 @@ export const LoginPage: React.FC = () => {
         <div className="w-full max-w-md space-y-6">
           <div className="lg:hidden flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-navy-600 text-white flex items-center justify-center font-extrabold text-lg">
-              O
+              T
             </div>
             <div>
-              <div className="font-wordmark text-lg font-bold text-slate-900">Omnia</div>
+              <div className="font-wordmark text-lg font-bold text-slate-900">Tagging360</div>
               <div className="text-[10px] text-navy-600 font-bold uppercase tracking-widest">DCTM</div>
             </div>
           </div>

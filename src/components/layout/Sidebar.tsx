@@ -42,10 +42,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ variant = 'desktop', onNavigat
       <div className="px-5 py-5 border-b border-slate-100">
         <Link to={homePathFor(user.role)} className="flex items-center gap-2.5 group" title="Home">
           <div className="w-8 h-8 rounded-xl bg-navy-600 text-white flex items-center justify-center font-extrabold text-sm shadow-sm">
-            O
+            T
           </div>
           <div className="leading-tight">
-            <div className="font-wordmark text-lg font-bold text-slate-900 group-hover:text-navy-700 transition">Omnia</div>
+            <div className="font-wordmark text-lg font-bold text-slate-900 group-hover:text-navy-700 transition">Tagging360</div>
             <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">DCTM</div>
           </div>
         </Link>

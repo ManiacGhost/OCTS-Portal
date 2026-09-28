@@ -65,7 +65,7 @@ function addAuditLog(user: string, role: any, action: string, target: string, de
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    system: 'Omnia — Digital Content Taxonomy & Metadata (DCTM)',
+    system: 'Tagging360 — Digital Content Taxonomy & Metadata (DCTM)',
     client: 'Global Commercial Operations',
     version: '2.4.0',
     timestamp: new Date().toISOString()
@@ -622,7 +622,7 @@ async function startServer() {
   }
 
   app.listen(PORT, HOST, () => {
-    console.log(`[Omnia] Digital Content Taxonomy & Metadata (DCTM) server running at http://${HOST}:${PORT}`);
+    console.log(`[Tagging360] Digital Content Taxonomy & Metadata (DCTM) server running at http://${HOST}:${PORT}`);
   });
 }
 

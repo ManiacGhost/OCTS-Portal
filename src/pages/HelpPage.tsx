@@ -20,7 +20,7 @@ export const HelpPage: React.FC = () => (
   <div className="space-y-4">
     <div>
       <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Help &amp; Support</h1>
-      <p className="text-sm text-slate-500 mt-0.5">Answers to common questions about Omnia.</p>
+      <p className="text-sm text-slate-500 mt-0.5">Answers to common questions about Tagging360.</p>
     </div>
 
     <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-2xl">
