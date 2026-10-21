@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { LifeBuoy, BookOpen, HelpCircle, Mail, X, ChevronDown, Send, Copy, ArrowRight } from 'lucide-react';
 import { usePersona } from '../context/PersonaContext';
 import { useAuth } from '../auth/AuthContext';
+import { KBQ_ENABLED } from '../data/kbqKpiMap';
 
 /** Where the "Reach out to us" email goes. Left blank on purpose — set the real support
  *  address here once the client confirms it; until then the sender types it in the To field. */
@@ -35,7 +36,9 @@ const DOCS: DocSection[] = [
       {
         kind: 'list',
         items: [
-          'Tagging Strategy — decide which dimensions each brand tags on each channel, and see which business questions that answers.',
+          KBQ_ENABLED
+            ? 'Tagging Strategy — decide which dimensions each brand tags on each channel, and see which business questions that answers.'
+            : 'Tagging Strategy — decide which dimensions each brand tags on each channel, and see what is tagged where.',
           'Campaigns — build a campaign’s taxonomy string from the approved formula, starting from its Asset and Tactic.',
           'UTM Generator — turn a campaign and a tagging strategy into a taxonomy string and a tracking URL.',
           'Dictionary — browse every approved value and abbreviation.',
@@ -74,25 +77,33 @@ const DOCS: DocSection[] = [
     blocks: [
       {
         kind: 'p',
-        text: 'This screen answers: for this brand, on this channel, what do we tag — and what can analytics learn from it?',
+        text: KBQ_ENABLED
+          ? 'This screen answers: for this brand, on every channel, what do we tag — and what can analytics learn from it? It opens on a read-only Overview: pick a brand and see each business question with, for every channel it applies to, its status and which dimensions are tagged (highlighted). Switch to Edit strategy to change what a brand tags.'
+          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged. Switch to Edit strategy to change what a brand tags.',
       },
       {
         kind: 'steps',
         items: [
-          'Choose Brand, Channel and Sub-channel from the dropdowns at the top. The list of dimensions is the set the data sources for that channel actually carry.',
+          'In Edit strategy, choose Brand, Channel and Sub-channel from the dropdowns at the top. The list of dimensions is the set the data sources for that channel actually carry.',
           'Tick the dimensions this brand tags. Use the checkbox in the header to tick or clear them all.',
           'Type a Default value for any dimension that usually takes the same value. Dimension names and what they capture are fixed.',
-          'Watch the counters on the Business questions & KPIs card — Covered, Partial and Not tagged — as you tick.',
+          ...(KBQ_ENABLED
+            ? ['Watch the counters on the Business questions & KPIs card — Covered, Partial and Not tagged — as you tick.']
+            : []),
         ],
       },
-      {
-        kind: 'p',
-        text: 'Business questions come in two groups. Cross-channel questions are the same on every channel. Channel-specific questions only appear for the channel they belong to. Pick one from either dropdown to see its status, the KPIs it feeds and the dimensions it needs (green = already ticked).',
-      },
-      {
-        kind: 'p',
-        text: 'A small target badge next to a dimension’s name shows how many business questions it feeds.',
-      },
+      ...(KBQ_ENABLED
+        ? ([
+            {
+              kind: 'p',
+              text: 'Business questions come in two groups. Cross-channel questions are the same on every channel. Channel-specific questions only appear for the channel they belong to. Pick one from either dropdown to see its status, the KPIs it feeds and the dimensions it needs (green = already ticked).',
+            },
+            {
+              kind: 'p',
+              text: 'A small target badge next to a dimension’s name shows how many business questions it feeds.',
+            },
+          ] as Block[])
+        : []),
     ],
   },
   {
@@ -215,9 +226,13 @@ const DOCS: DocSection[] = [
         items: [
           { term: 'Taxonomy string', def: 'The underscore-joined campaign name built from the approved formula.' },
           { term: 'Dimension', def: 'A tagged field such as Campaign ID, Topic or Audience.' },
-          { term: 'KBQ', def: 'Key Business Question — something analytics needs to be able to answer, e.g. which topics drive engagement.' },
-          { term: 'KPI', def: 'Key Performance Indicator — the measure a KBQ is answered with.' },
-          { term: 'Cross-channel / channel-specific', def: 'Whether a business question applies the same way to every channel, or only to one.' },
+          ...(KBQ_ENABLED
+            ? [
+                { term: 'KBQ', def: 'Key Business Question — something analytics needs to be able to answer, e.g. which topics drive engagement.' },
+                { term: 'KPI', def: 'Key Performance Indicator — the measure a KBQ is answered with.' },
+                { term: 'Cross-channel / channel-specific', def: 'Whether a business question applies the same way to every channel, or only to one.' },
+              ]
+            : []),
           { term: 'Asset ID', def: 'The identifier of the promotional asset a campaign is built around.' },
           { term: 'Tactic ID', def: 'The identifier of the tactic the asset is promoted under.' },
           { term: 'Topic / Subtopic', def: 'The master key-message taxonomy every asset is classified against.' },

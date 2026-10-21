@@ -9,12 +9,21 @@ import {
   kiteDimensionsFor,
   kiteSourcesFor,
 } from '../data/kiteTaxonomy';
-import { kbqsForScope, KbqStatus, KbqScope } from '../data/kbqKpiMap';
+import { kbqsForScope, KbqStatus, KbqScope, KBQ_ENABLED } from '../data/kbqKpiMap';
+import { TagStrategyOverview } from './TagStrategyOverview';
 
 const VALUE_INPUT =
   'w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-navy-500 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none transition';
 const SCOPE_SELECT =
   'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-navy-500 focus:bg-white';
+
+const SectionLabel: React.FC<{ n: string; text: string }> = ({ n, text }) => (
+  <div className="flex items-center gap-2">
+    <span className="w-5 h-5 rounded-full bg-navy-600 text-white text-[10px] font-extrabold flex items-center justify-center">{n}</span>
+    <span className="text-[11px] font-extrabold text-navy-800 uppercase tracking-wider">{text}</span>
+    <span className="flex-1 h-px bg-navy-200" />
+  </div>
+);
 
 export const TagStrategyPage: React.FC = () => {
   const { brands } = usePersona();
@@ -24,6 +33,7 @@ export const TagStrategyPage: React.FC = () => {
   const [channel, setChannel] = useState<string>('Digital');
   const [subChannel, setSubChannel] = useState<string>(kiteSubChannels('Digital')[0] || '');
   const [kbqId, setKbqId] = useState<string>('');
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
 
   const brand = brands.find(b => b.id === brandId) || brands[0];
   const bId = brand?.id || brandId;
@@ -98,15 +108,62 @@ export const TagStrategyPage: React.FC = () => {
   const activeKbq = kbqs.find(k => k.id === kbqId) || kbqs[0];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
         <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <Route className="w-5 h-5 text-navy-600" />
           Tagging Strategy
         </h1>
+        <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm mt-3">
+          {(
+            [
+              ['view', 'Overview (read-only)'],
+              ['edit', 'Edit strategy'],
+            ] as const
+          ).map(([m, label]) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                mode === m ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {mode === 'view' && (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Brand</span>
+            {brands.map(b => (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => pickBrand(b.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                  b.id === bId
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {b.name.split(/[ (]/)[0]} ({b.code})
+              </button>
+            ))}
+          </div>
+          <TagStrategyOverview brandId={bId} />
+        </>
+      )}
+
+      {mode === 'edit' && (
+      <>
+
       {/* Scope — brand, channel and sub-channel, all as plain dropdowns */}
+      <section className="space-y-2">
+      <SectionLabel n="1" text="Choose scope" />
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5">
         <div className={`grid grid-cols-1 ${hasSubChannels ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
           <div>
@@ -148,32 +205,36 @@ export const TagStrategyPage: React.FC = () => {
           )}
         </div>
       </div>
+      </section>
 
       {/* Business questions & KPIs this strategy answers */}
-      {kbqs.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      {KBQ_ENABLED && kbqs.length > 0 && (
+        <section className="space-y-2">
+        <SectionLabel n="2" text="Business questions & KPIs" />
+        <div className="bg-white border-2 border-navy-300 rounded-2xl shadow-lg ring-4 ring-navy-100/60 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-navy-600 text-white px-4 py-3">
             <div className="flex items-center gap-2 text-xs">
-              <Target className="w-4 h-4 text-navy-600 shrink-0" />
-              <span className="font-bold text-slate-800">Business questions &amp; KPIs</span>
-              <span className="text-slate-400">for <b className="text-slate-700 font-bold">{scopeLabel}</b></span>
+              <Target className="w-4 h-4 shrink-0" />
+              <span className="font-extrabold">Business questions &amp; KPIs</span>
+              <span className="text-navy-100">for <b className="text-white font-bold">{scopeLabel}</b></span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-white text-emerald-700 border-emerald-200">
                 <CheckCircle2 className="w-3 h-3" />
                 {kbqCoveredCount} Covered
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-white text-amber-700 border-amber-200">
                 <CircleDot className="w-3 h-3" />
                 {kbqPartialCount} Partial
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-slate-100 text-slate-500 border-slate-200">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-white text-slate-600 border-slate-200">
                 <Circle className="w-3 h-3" />
                 {kbqNoneCount} Not tagged
               </span>
             </div>
           </div>
 
+          <div className="p-4 space-y-3 bg-navy-50/30">
           <div className={`grid grid-cols-1 ${channelKbqs.length > 0 ? 'sm:grid-cols-2' : ''} gap-3`}>
             <div className="rounded-xl border-2 border-navy-200 bg-navy-50/50 p-3">
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -301,10 +362,14 @@ export const TagStrategyPage: React.FC = () => {
                 </div>
               );
             })()}
+          </div>
         </div>
+        </section>
       )}
 
       {/* Dimensions for the scope */}
+      <section className="space-y-2">
+      <SectionLabel n={KBQ_ENABLED ? '3' : '2'} text="Dimensions" />
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -380,7 +445,7 @@ export const TagStrategyPage: React.FC = () => {
                         <td className="p-3 font-mono text-[11px] text-slate-400">{d.code}</td>
                         <td className="p-3 font-bold text-slate-900">
                           {ed.name ?? d.label}
-                          {kbqCountFor(d.code) > 0 && (
+                          {KBQ_ENABLED && kbqCountFor(d.code) > 0 && (
                             <span
                               title={`Feeds ${kbqCountFor(d.code)} business question${kbqCountFor(d.code) > 1 ? 's' : ''}`}
                               className="ml-1.5 inline-flex items-center gap-0.5 text-[9px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1 py-0.5 align-middle"
@@ -408,6 +473,9 @@ export const TagStrategyPage: React.FC = () => {
           )}
         </div>
       </div>
+      </section>
+      </>
+      )}
 
     </div>
   );

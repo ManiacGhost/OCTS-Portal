@@ -15,6 +15,14 @@
 
 import { KiteChannel } from './kiteTaxonomy';
 
+/**
+ * Master switch for the KBQ/KPI layer (Tagging Strategy business-questions card, the per-dimension
+ * target badge, the KBQ-led read-only overview, and the KBQ/KPI wording in Help).
+ * The client doesn't want it for now but expects to ask again — so it is switched OFF here rather
+ * than removed. Flip to `true` to bring all of it back.
+ */
+export const KBQ_ENABLED = false;
+
 export interface KbqDefinition {
   id: string;
   question: string;
