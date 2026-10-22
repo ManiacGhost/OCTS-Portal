@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Tag, ArrowRight, Target, CheckCircle2, CircleDot, Circle, Layers } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Route, Tag, Target, CheckCircle2, CircleDot, Circle, Layers } from 'lucide-react';
 import { usePersona } from '../context/PersonaContext';
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import {
@@ -8,9 +7,12 @@ import {
   kiteSubChannels,
   kiteDimensionsFor,
   kiteSourcesFor,
+  isPublisherScope,
+  INCLUDE_PORTAL_FIELDS,
 } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, KbqScope, KBQ_ENABLED } from '../data/kbqKpiMap';
 import { TagStrategyOverview } from './TagStrategyOverview';
+import { groupDims, DIM_GROUP_STYLE, DimGroupKey } from '../data/dimensionGroups';
 
 const VALUE_INPUT =
   'w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-navy-500 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none transition';
@@ -33,6 +35,10 @@ export const TagStrategyPage: React.FC = () => {
   const [channel, setChannel] = useState<string>('Digital');
   const [subChannel, setSubChannel] = useState<string>(kiteSubChannels('Digital')[0] || '');
   const [kbqId, setKbqId] = useState<string>('');
+  // '' = all publishers; otherwise show just that publisher's dimensions (publisher-sheet scopes only)
+  const [publisher, setPublisher] = useState<string>('');
+  // which dimension group the table shows (Core / Execution-Engagement) — switched from the bar above the column names
+  const [dimTab, setDimTab] = useState<DimGroupKey>('core');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
   const brand = brands.find(b => b.id === brandId) || brands[0];
@@ -55,8 +61,11 @@ export const TagStrategyPage: React.FC = () => {
     if (!subs.length && subChannel) setSubChannel('');
   }, [channel, subChannel]);
 
-  const dims = kiteDimensionsFor(channel, scopeSub);
+  const showPublisher = isPublisherScope(channel, scopeSub);
   const sources = kiteSourcesFor(channel, scopeSub);
+  // derived, so a stale pick (after changing channel / sub-channel) quietly falls back to All
+  const activePublisher = showPublisher && sources.includes(publisher) ? publisher : '';
+  const dims = kiteDimensionsFor(channel, scopeSub, activePublisher || undefined);
   const scopeLabel = hasSubChannels && subChannel ? `${channel} → ${subChannel}` : channel;
 
   const selected = bs.getSelected(bId, channel, scopeSub);
@@ -64,11 +73,16 @@ export const TagStrategyPage: React.FC = () => {
   const codes = dims.map(d => d.code);
   const chosen = codes.filter(c => selected.includes(c)).length;
   const allOn = chosen === codes.length && codes.length > 0;
+  const groups = groupDims(dims);
+  const activeGroup = groups.find(g => g.meta.key === dimTab) ?? groups[0];
+  const viewCodes = activeGroup ? activeGroup.items.map(d => d.code) : [];
+  const viewChosen = viewCodes.filter(c => selected.includes(c)).length;
+  const viewAllOn = viewChosen === viewCodes.length && viewCodes.length > 0;
 
   const toggle = (code: string) => bs.toggle(bId, channel, scopeSub, code);
   const setAll = (on: boolean) => {
     const set = new Set(selected);
-    codes.forEach(c => (on ? set.add(c) : set.delete(c)));
+    viewCodes.forEach(c => (on ? set.add(c) : set.delete(c)));
     bs.setSelected(bId, channel, scopeSub, Array.from(set));
   };
   const editDim = (code: string, patch: { name?: string; captures?: string; defaultValue?: string }) =>
@@ -165,7 +179,13 @@ export const TagStrategyPage: React.FC = () => {
       <section className="space-y-2">
       <SectionLabel n="1" text="Choose scope" />
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5">
-        <div className={`grid grid-cols-1 ${hasSubChannels ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
+        <div
+          className={`grid grid-cols-1 ${
+            ({ 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4' } as Record<number, string>)[
+              2 + (hasSubChannels ? 1 : 0) + (showPublisher ? 1 : 0)
+            ]
+          } gap-3`}
+        >
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Brand</label>
             <select value={brandId} onChange={e => pickBrand(e.target.value)} className={SCOPE_SELECT}>
@@ -174,6 +194,7 @@ export const TagStrategyPage: React.FC = () => {
                   {b.name.split(/[ (]/)[0]} ({b.code})
                 </option>
               ))}
+              
             </select>
             {brand?.indication && <p className="text-[10px] text-slate-400 mt-1">{brand.indication}</p>}
           </div>
@@ -198,6 +219,20 @@ export const TagStrategyPage: React.FC = () => {
                 {subChannelList.map(sc => (
                   <option key={sc} value={sc}>
                     {sc}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {showPublisher && (
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Publisher</label>
+              <select value={activePublisher} onChange={e => setPublisher(e.target.value)} className={SCOPE_SELECT}>
+                <option value="">All publishers ({sources.length})</option>
+                {sources.map(p => (
+                  <option key={p} value={p}>
+                    {p}
                   </option>
                 ))}
               </select>
@@ -375,9 +410,17 @@ export const TagStrategyPage: React.FC = () => {
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Tag className="w-4 h-4 text-navy-600" />
             <span>
-              <b className="text-slate-800">{selectedCount}</b> of {dims.length} dimensions in the strategy for{' '}
+              <b className="text-slate-800">{chosen}</b> of {dims.length} dimensions in the strategy for{' '}
               <b className="text-slate-800">{scopeLabel}</b>
-              {sources.length > 0 && (
+              {activePublisher && (
+                <span className="text-slate-400">
+                  {' '}&nbsp;·&nbsp; publisher: <b className="text-slate-700">{activePublisher}</b>{' '}
+                  <button type="button" onClick={() => setPublisher('')} className="font-bold text-navy-600 hover:text-navy-800 underline underline-offset-2">
+                    show all
+                  </button>
+                </span>
+              )}
+              {!activePublisher && sources.length > 0 && (
                 <span className="text-slate-400">
                   {' '}&nbsp;·&nbsp; publishers:{' '}
                   {sources.map((s, i) => (
@@ -390,14 +433,18 @@ export const TagStrategyPage: React.FC = () => {
               )}
             </span>
           </div>
-          <Link
-            to="/campaigns"
-            className="flex items-center gap-1 text-[11px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded-lg px-2.5 py-1.5 hover:bg-navy-100 transition"
-          >
-            Use in Code &amp; UTM Generator
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
         </div>
+
+        {showPublisher && INCLUDE_PORTAL_FIELDS && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded bg-navy-100 border border-navy-300" /> in the publisher sheet
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded bg-purple-50 border border-dashed border-purple-400" /> portal field, not in the sheet
+            </span>
+          </div>
+        )}
 
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           {dims.length === 0 ? (
@@ -405,6 +452,31 @@ export const TagStrategyPage: React.FC = () => {
               No dimensions defined for this scope.
             </div>
           ) : (
+            <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 bg-slate-50/60 border-b border-slate-200">
+              {groups.map(g => {
+                const st = DIM_GROUP_STYLE[g.meta.key];
+                const on = activeGroup?.meta.key === g.meta.key;
+                const tagged = g.items.filter(d => selected.includes(d.code)).length;
+                return (
+                  <button
+                    key={g.meta.key}
+                    type="button"
+                    onClick={() => setDimTab(g.meta.key)}
+                    className={`text-left rounded-xl px-3.5 py-2.5 transition ${st.row} ${st.text} ${
+                      on ? 'shadow-md ring-2 ring-offset-1 ring-slate-300' : 'opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="text-[11px] font-extrabold uppercase tracking-wider">
+                      {g.meta.label} <span className="opacity-70">({g.items.length})</span>
+                    </div>
+                    <div className="text-[11px] opacity-80">
+                      {g.meta.hint} · <b>{tagged}</b> tagged
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50/60 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
@@ -413,23 +485,26 @@ export const TagStrategyPage: React.FC = () => {
                       <input
                         type="checkbox"
                         aria-label="Select all"
-                        title={allOn ? 'Clear all' : 'Select all'}
+                        title={viewAllOn ? 'Clear all' : 'Select all'}
                         ref={el => {
-                          if (el) el.indeterminate = chosen > 0 && !allOn;
+                          if (el) el.indeterminate = viewChosen > 0 && !viewAllOn;
                         }}
-                        checked={allOn}
-                        onChange={() => setAll(!allOn)}
+                        checked={viewAllOn}
+                        onChange={() => setAll(!viewAllOn)}
                         className="w-3.5 h-3.5 accent-navy-600 cursor-pointer"
                       />
                     </th>
                     <th className="p-3 w-28">Code</th>
                     <th className="p-3 w-56">Dimension</th>
                     <th className="p-3">Captures</th>
+                    <th className="p-3">Publishers</th>
                     <th className="p-3">Default value</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {dims.map(d => {
+                  {(activeGroup ? [activeGroup] : []).map(g => (
+                  <React.Fragment key={g.meta.key}>
+                  {g.items.map(d => {
                     const on = selected.includes(d.code);
                     const ed = bs.getEdit(bId, channel, scopeSub, d.code);
                     return (
@@ -456,6 +531,24 @@ export const TagStrategyPage: React.FC = () => {
                           )}
                         </td>
                         <td className="p-3 text-slate-600">{ed.captures ?? d.captures}</td>
+                        <td className="p-3">
+                          <div className="flex flex-wrap gap-1">
+                            {d.sheetSources.map(p => (
+                              <span key={p} className="text-[10px] font-bold text-navy-700 bg-navy-50 border border-navy-200 rounded px-1.5 py-0.5">
+                                {p}
+                              </span>
+                            ))}
+                            {d.portalSources.map(p => (
+                              <span
+                                key={p}
+                                title="Added by the portal — not in the publisher sheet"
+                                className="text-[10px] font-bold text-purple-700 bg-purple-50 border border-dashed border-purple-400 rounded px-1.5 py-0.5"
+                              >
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
                         <td className="p-2">
                           <input
                             value={ed.defaultValue ?? ''}
@@ -467,9 +560,12 @@ export const TagStrategyPage: React.FC = () => {
                       </tr>
                     );
                   })}
+                  </React.Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       </div>

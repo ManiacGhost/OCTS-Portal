@@ -79,13 +79,14 @@ const DOCS: DocSection[] = [
         kind: 'p',
         text: KBQ_ENABLED
           ? 'This screen answers: for this brand, on every channel, what do we tag — and what can analytics learn from it? It opens on a read-only Overview: pick a brand and see each business question with, for every channel it applies to, its status and which dimensions are tagged (highlighted). Switch to Edit strategy to change what a brand tags.'
-          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged. Switch to Edit strategy to change what a brand tags.',
+          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, split into Core attributes and Execution / Engagement attributes. A small grid icon on each channel opens a floating tile listing every available dimension, in the same two groups (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags — there, the Core and Execution / Engagement bar above the column names switches the table between the two groups.',
       },
       {
         kind: 'steps',
         items: [
           'In Edit strategy, choose Brand, Channel and Sub-channel from the dropdowns at the top. The list of dimensions is the set the data sources for that channel actually carry.',
-          'Tick the dimensions this brand tags. Use the checkbox in the header to tick or clear them all.',
+          'For channels with publisher data (3P Email, 3P SMS, Display, Email, Social) a Publisher dropdown appears. Leave it on All publishers to see every dimension, or pick one publisher to see just its dimensions. The Publishers column shows which publishers carry each dimension.',
+          'Tick the dimensions this brand tags. Use the checkbox in the header to tick or clear them all (it applies to the rows you are looking at).',
           'Type a Default value for any dimension that usually takes the same value. Dimension names and what they capture are fixed.',
           ...(KBQ_ENABLED
             ? ['Watch the counters on the Business questions & KPIs card — Covered, Partial and Not tagged — as you tick.']

@@ -11,6 +11,8 @@
  * sub-channel shows the union of the dimensions present across its sources.
  */
 
+import { PUBLISHER_DIMENSIONS } from './publisherDimensions';
+
 export interface KiteDimension {
   code: string;
   label: string;
@@ -49,6 +51,58 @@ export const KITE_DIMENSIONS: KiteDimension[] = [
   // IVA (field / CLM) source-specific fields.
   { code: 'slide_count', label: 'Slide count', captures: 'Slides in the deck' },
   { code: 'deck_id', label: 'Deck ID', captures: 'Parent visual-aid id' },
+  // Fields from 'Channel-publisher based Dimensions.xlsx' (see publisherDimensions.ts). The sheet has no
+  // definitions, so labels are expanded from the abbreviated codes. STILL TO CONFIRM WITH THE CLIENT:
+  // eid, asel_cd, sgtn_id (cryptic); the rest are best-effort reads.
+  { code: 'eid', label: 'EID', captures: 'Publisher-sheet identifier' },
+  { code: 'act_nm', label: 'Activity name', captures: 'Activity name' },
+  { code: 'act_dt', label: 'Activity date', captures: 'Activity date' },
+  { code: 'act_typ', label: 'Activity type', captures: 'Activity type' },
+  { code: 'act_cnt', label: 'Activity count', captures: 'Number of activities' },
+  { code: 'alrt_typ', label: 'Alert type', captures: 'Alert type' },
+  { code: 'ta', label: 'Therapeutic area', captures: 'Therapeutic area' },
+  { code: 'trans_id', label: 'Transaction ID', captures: 'Transaction identifier' },
+  { code: 'trans_dttime', label: 'Transaction date-time', captures: 'Transaction date and time' },
+  { code: 'execution_date', label: 'Execution date', captures: 'Date the activity ran' },
+  { code: 'execution_cycle_id', label: 'Execution cycle ID', captures: 'Execution cycle identifier' },
+  { code: 'plact_id', label: 'Placement ID', captures: 'Placement identifier' },
+  { code: 'pkg_id', label: 'Package ID', captures: 'Package identifier' },
+  { code: 'pkg_nm', label: 'Package name', captures: 'Package name' },
+  { code: 'ptnr_id', label: 'Partner ID', captures: 'Partner identifier' },
+  { code: 'asel_cd', label: 'ASEL code', captures: 'Publisher-sheet code' },
+  { code: 'aset_nm', label: 'Asset name', captures: 'Asset name' },
+  { code: 'aset_size', label: 'Asset size', captures: 'Asset size' },
+  { code: 'endemic', label: 'Endemic', captures: 'Whether the placement is endemic inventory' },
+  { code: 'ad_grp_id', label: 'Ad group ID', captures: 'Ad group identifier' },
+  { code: 'ad_grp_nm', label: 'Ad group name', captures: 'Ad group name' },
+  { code: 'ad_bnr_nm', label: 'Ad banner name', captures: 'Ad banner name' },
+  { code: 'page_desc', label: 'Page description', captures: 'Page description' },
+  { code: 'chnl_cd', label: 'Channel code', captures: 'Channel code' },
+  { code: 'metric_cd', label: 'Metric code', captures: 'Metric code' },
+  { code: 'devc_type', label: 'Device type', captures: 'Device type' },
+  { code: 'hcp_veeva_id', label: 'HCP Veeva ID', captures: 'HCP identifier in Veeva' },
+  { code: 'prod_nm', label: 'Product name', captures: 'Product name' },
+  { code: 'sls_frc_nm', label: 'Sales force name', captures: 'Sales force name' },
+  { code: 'terr_id', label: 'Territory ID', captures: 'Territory identifier' },
+  { code: 'terr_nm', label: 'Territory name', captures: 'Territory name' },
+  { code: 'region_id', label: 'Region ID', captures: 'Region identifier' },
+  { code: 'region_nm', label: 'Region name', captures: 'Region name' },
+  { code: 'area_id', label: 'Area ID', captures: 'Area identifier' },
+  { code: 'area_nm', label: 'Area name', captures: 'Area name' },
+  { code: 'rep_id', label: 'Rep ID', captures: 'Sales rep identifier' },
+  { code: 'rep_nm', label: 'Rep name', captures: 'Sales rep name' },
+  { code: 'sgtn_id', label: 'SGTN ID', captures: 'Suggestion-related identifier' },
+  { code: 'email_stat', label: 'Email status', captures: 'Email delivery status' },
+  { code: 'email_sent', label: 'Email sent', captures: 'Email sent' },
+  { code: 'email_opened', label: 'Email opened', captures: 'Email opened' },
+  { code: 'email_last_open_dt', label: 'Email last opened date', captures: 'Date the email was last opened' },
+  { code: 'email_clicked', label: 'Email clicked', captures: 'Email clicked' },
+  { code: 'email_last_clicked_dt', label: 'Email last clicked date', captures: 'Date the email was last clicked' },
+  { code: 'email_subj', label: 'Email subject', captures: 'Email subject' },
+  { code: 'apv_email_tmpl', label: 'Approved email template', captures: 'Approved email template' },
+  { code: 'valid_cnsnt_exist', label: 'Valid consent exists', captures: 'Whether valid consent exists' },
+  { code: 'bus_mth_strt_dt', label: 'Business month start date', captures: 'Business month start date' },
+  { code: 'bus_wk_end_dt', label: 'Business week end date', captures: 'Business week end date' },
 ];
 
 export const KITE_CHANNELS = ['Digital', 'Social', 'Search', 'Email', 'IVA'] as const;
@@ -127,22 +181,78 @@ export function kiteSubChannels(channel: string): string[] {
   return KITE_SUBCHANNELS[channel as KiteChannel] || [];
 }
 
+/**
+ * Whether publisher-sheet scopes also show fields the portal used to add per publisher (the old
+ * KITE_SOURCE_PRESENCE rows) on top of the sheet's own list. OFF: the client wants the sheet's real
+ * dimensions only. Flip to `true` to bring the portal-added fields (and their purple tags) back.
+ */
+export const INCLUDE_PORTAL_FIELDS = false;
+
+const scopeKey = (channel: string, subChannel: string) => (subChannel ? `${channel}/${subChannel}` : channel);
+
+/** True when this scope is driven by the publisher sheet (3P Email, 3P SMS, Display, Email, Social).
+ *  IVA and Search keep the original source model and have no per-publisher view. */
+export function isPublisherScope(channel: string, subChannel: string): boolean {
+  return !!PUBLISHER_DIMENSIONS[scopeKey(channel, subChannel)];
+}
+
+/** Publishers / sources for a scope — the sheet's publishers where it has them. */
 export function kiteSourcesFor(channel: string, subChannel: string): string[] {
-  return KITE_SOURCES[subChannel ? `${channel}/${subChannel}` : channel] || [];
+  const key = scopeKey(channel, subChannel);
+  return PUBLISHER_DIMENSIONS[key] ? Object.keys(PUBLISHER_DIMENSIONS[key]) : KITE_SOURCES[key] || [];
 }
 
 export interface KiteScopedDimension extends KiteDimension {
-  /** sources in this scope where the dimension is present */
+  /** publishers / sources in this scope that carry the dimension (sheet + portal) */
   sources: string[];
+  /** publishers that list it in the publisher sheet */
+  sheetSources: string[];
+  /** publishers that carry it only because the portal model adds it (not in the sheet) */
+  portalSources: string[];
 }
 
-/** Dimensions present for a channel / sub-channel = union across its sources. */
-export function kiteDimensionsFor(channel: string, subChannel: string): KiteScopedDimension[] {
-  const sources = kiteSourcesFor(channel, subChannel);
-  return KITE_DIMENSIONS.map(d => {
-    const present = sources.filter(s => KITE_SOURCE_PRESENCE[s]?.[d.code]);
-    return present.length ? { ...d, sources: present } : null;
-  }).filter((d): d is KiteScopedDimension => !!d);
+/**
+ * Dimensions present for a channel / sub-channel = union across its publishers (or just `publisher`
+ * when given).
+ *
+ * Publisher-sheet scopes: a publisher carries a dimension if the sheet lists it, in the sheet's own
+ * order; dimensions the portal model adds for that publisher (KITE_SOURCE_PRESENCE) but the sheet
+ * doesn't list follow, flagged via `portalSources`. Other scopes (IVA, Search): the original
+ * source-presence logic, unchanged.
+ */
+export function kiteDimensionsFor(channel: string, subChannel: string, publisher?: string): KiteScopedDimension[] {
+  const key = scopeKey(channel, subChannel);
+  const sheet = PUBLISHER_DIMENSIONS[key];
+  const pubs = publisher ? [publisher] : kiteSourcesFor(channel, subChannel);
+
+  if (!sheet) {
+    return KITE_DIMENSIONS.map(d => {
+      const present = pubs.filter(p => KITE_SOURCE_PRESENCE[p]?.[d.code]);
+      return present.length ? { ...d, sources: present, sheetSources: present, portalSources: [] } : null;
+    }).filter((d): d is KiteScopedDimension => !!d);
+  }
+
+  // sheet order: first-seen across the chosen publishers
+  const order: string[] = [];
+  pubs.forEach(p => (sheet[p] || []).forEach(c => !order.includes(c) && order.push(c)));
+  // portal-added codes (not in any chosen publisher's sheet list), in portal order
+  if (INCLUDE_PORTAL_FIELDS) {
+    KITE_DIMENSIONS.forEach(d => {
+      if (!order.includes(d.code) && pubs.some(p => KITE_SOURCE_PRESENCE[p]?.[d.code])) order.push(d.code);
+    });
+  }
+
+  return order
+    .map(code => {
+      const def = kiteDimensionByCode(code);
+      if (!def) return null;
+      const sheetSources = pubs.filter(p => (sheet[p] || []).includes(code));
+      const portalSources = INCLUDE_PORTAL_FIELDS
+        ? pubs.filter(p => !sheetSources.includes(p) && KITE_SOURCE_PRESENCE[p]?.[code])
+        : [];
+      return { ...def, sources: [...sheetSources, ...portalSources], sheetSources, portalSources };
+    })
+    .filter((d): d is KiteScopedDimension => !!d);
 }
 
 export function kiteDimensionByCode(code: string): KiteDimension | undefined {
