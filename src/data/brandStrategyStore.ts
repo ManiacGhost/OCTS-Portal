@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from 'react';
 import { kiteDimensionsFor } from './kiteTaxonomy';
-import { dimGroupOf } from './dimensionGroups';
 
 /**
  * Brand tagging strategy, persisted to localStorage (no backend):
@@ -80,14 +79,21 @@ function getSnapshot() {
 }
 
 // ---- selection ----
-/** Until a user saves a choice for a scope, its Core dimensions count as tagged, so a fresh
- *  deployment never shows "nothing tagged". Once saved (even to empty), their choice wins. */
+/** A starter set — a few Core and a few Execution / Engagement fields — that counts as tagged
+ *  until a user saves a choice for a scope, so a fresh deployment never shows "nothing tagged".
+ *  Only codes that exist on the channel apply. Once saved (even to empty), their choice wins. */
+const BASIC_DIMENSIONS = [
+  // Core
+  'brd', 'ta', 'indc', 'creative_nm', 'aset_id', 'topic',
+  // Execution / Engagement
+  'src', 'chnl', 'cpgn', 'tact_nm', 'execution_date', 'devc_nm',
+];
 const defaultCache: Record<string, string[]> = {};
 function defaultSelection(channel: string, subChannel: string): string[] {
   const k = `${channel}::${subChannel || '-'}`;
   return (defaultCache[k] ||= kiteDimensionsFor(channel, subChannel)
-    .filter(d => dimGroupOf(d.code) === 'core')
-    .map(d => d.code));
+    .map(d => d.code)
+    .filter(c => BASIC_DIMENSIONS.includes(c)));
 }
 function selectionFor(map: SelectionMap, brandId: string, channel: string, subChannel: string): string[] {
   return map[strategyKey(brandId, channel, subChannel)] ?? defaultSelection(channel, subChannel);
