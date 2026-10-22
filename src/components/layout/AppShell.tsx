@@ -40,10 +40,7 @@ export const AppShell: React.FC = () => {
         <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
           <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3">
             <Link to={homePathFor(user.role)} className="flex items-center gap-2 md:hidden" title="Home">
-              <div className="w-7 h-7 rounded-lg bg-navy-600 text-white flex items-center justify-center font-extrabold text-xs">
-                T
-              </div>
-              <span className="font-wordmark text-base font-bold">Tagging360</span>
+              <img src="/logo-full.png" alt="Tagging360" className="h-11 w-auto" />
             </Link>
 
             <div className="hidden md:flex items-center gap-2 text-xs font-semibold text-slate-500">

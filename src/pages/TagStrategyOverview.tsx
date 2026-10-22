@@ -3,7 +3,8 @@ import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X } f
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
-import { groupDims, DIM_GROUP_STYLE } from '../data/dimensionGroups';
+import { dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
+import { ReachLegend } from '../components/common/ReachLegend';
 
 interface Scope {
   channel: string;
@@ -189,13 +190,15 @@ const ATTR_LABEL: Record<string, string> = {
   exec: 'Execution / Engagement attributes',
 };
 
+type GroupKey = 'core' | 'exec';
 interface Popover {
   rowKey: string;
+  group: GroupKey;
   top: number;
   left: number;
 }
-const POP_W = 680; // px
-const POP_H = 380; // px, max height — used to decide whether to flip above the button
+const POP_W = 520; // px
+const POP_H = 320; // px, max height — used to decide whether to flip above the button
 
 /** Plain read-only overview (used while the KBQ layer is switched off): for the chosen brand,
  *  which dimensions are tagged on each channel / sub-channel, split into Core and Execution /
@@ -233,19 +236,20 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
     };
   }, [pop]);
 
-  const openPop = (e: React.MouseEvent<HTMLButtonElement>, rowKey: string) => {
+  const openPop = (e: React.MouseEvent<HTMLButtonElement>, rowKey: string, group: GroupKey) => {
     e.stopPropagation();
-    if (pop && pop.rowKey === rowKey) return setPop(null);
+    if (pop && pop.rowKey === rowKey && pop.group === group) return setPop(null);
     const r = e.currentTarget.getBoundingClientRect();
     const width = Math.min(POP_W, window.innerWidth - 16);
     const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
     // below the button; flip above when there isn't room
     const below = r.bottom + 6;
     const top = below + POP_H > window.innerHeight ? Math.max(8, r.top - POP_H - 6) : below;
-    setPop({ rowKey, top, left });
+    setPop({ rowKey, group, top, left });
   };
 
   const popRow = pop ? rows.find(r => r.scope.label === pop.rowKey) : undefined;
+  const popDims = popRow && pop ? popRow.dims.filter(d => dimGroupOf(d.code) === pop.group) : [];
 
   // one chip, shared by the table and the tile
   const chip = (d: { code: string; label: string; captures: string }, cls: string, codeCls: string) => (
@@ -257,13 +261,6 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
       {d.label}
       <span className={`font-mono text-[9px] font-medium ${codeCls}`}>{d.code}</span>
     </span>
-  );
-
-  const groupLabel = (key: 'core' | 'exec', count: number) => (
-    <div className={`w-44 shrink-0 pt-1 text-[10px] font-extrabold uppercase tracking-wider leading-tight ${DIM_GROUP_STYLE[key].text}`}>
-      {ATTR_LABEL[key]} <span className="font-bold opacity-60">({count})</span>
-      <span className="font-extrabold"> :</span>
-    </div>
   );
 
   return (
@@ -278,66 +275,55 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
         </span>
       </div>
 
+      <ReachLegend className="px-1" />
+
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-50/60 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
             <tr>
-              <th className="px-4 py-3 w-56">Channel</th>
-              <th className="px-4 py-3 w-44">Tagged dimensions</th>
-              <th className="px-4 py-3">Dimensions</th>
+              <th className="px-4 py-3 w-48">Channel</th>
+              <th className="px-4 py-3 w-28">Tagged dimensions</th>
+              {(['core', 'exec'] as GroupKey[]).map(k => (
+                <th key={k} className={`px-4 py-3 ${DIM_GROUP_STYLE[k].text}`}>
+                  {ATTR_LABEL[k]}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {rows.map(r => {
-              const active = pop?.rowKey === r.scope.label;
-              const toggleBtn = (
-                <button
-                  type="button"
-                  onClick={e => openPop(e, r.scope.label)}
-                  title="Show all available dimensions"
-                  aria-label="Show all available dimensions"
-                  className={`inline-flex items-center justify-center shrink-0 p-0 w-6 h-6 border border-dashed rounded-lg transition ${
-                    active
-                      ? 'text-white bg-navy-600 border-navy-600'
-                      : 'text-navy-600 hover:text-navy-800 border-navy-300 hover:border-navy-500'
-                  }`}
-                >
-                  <LayoutGrid size={14} className="block shrink-0" />
-                </button>
-              );
-              const taggedGroups = groupDims(r.tagged);
-              return (
-                <tr key={r.scope.label} className="align-top">
-                  <td className="px-4 py-3 font-bold text-slate-900">{r.scope.label}</td>
-                  <td className="px-4 py-3 text-slate-600">
-                    <b className="text-slate-900">{r.tagged.length}</b> of {r.dims.length}
-                  </td>
-                  <td className="px-4 py-3">
-                    {taggedGroups.length === 0 ? (
-                      <span className="inline-flex items-center gap-2 flex-wrap">
-                        <span className="text-slate-400">Nothing tagged yet</span>
-                        {toggleBtn}
-                      </span>
-                    ) : (
-                      <div className="space-y-2.5">
-                        {taggedGroups.map((g, gi, arr) => {
-                          const st = DIM_GROUP_STYLE[g.meta.key];
-                          return (
-                            <div key={g.meta.key} className="flex items-start gap-3">
-                              {groupLabel(g.meta.key, g.items.length)}
-                              <div className="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
-                                {g.items.map(d => chip(d, st.chip, st.code))}
-                                {gi === arr.length - 1 && toggleBtn}
-                              </div>
-                            </div>
-                          );
-                        })}
+            {rows.map(r => (
+              <tr key={r.scope.label} className="align-top">
+                <td className="px-4 py-3 font-bold text-slate-900">{r.scope.label}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  <b className="text-slate-900">{r.tagged.length}</b> of {r.dims.length}
+                </td>
+                {(['core', 'exec'] as GroupKey[]).map(k => {
+                  const st = DIM_GROUP_STYLE[k];
+                  const all = r.dims.filter(d => dimGroupOf(d.code) === k);
+                  const tagged = r.tagged.filter(d => dimGroupOf(d.code) === k);
+                  const active = pop?.rowKey === r.scope.label && pop.group === k;
+                  return (
+                    <td key={k} className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {tagged.length === 0 && <span className="text-slate-400">Nothing tagged yet</span>}
+                        {tagged.map(d => chip(d, reachChipClass(d.code, st.chip), reachCodeClass(d.code, st.code)))}
+                        <button
+                          type="button"
+                          onClick={e => openPop(e, r.scope.label, k)}
+                          title={`Show all available ${ATTR_LABEL[k].toLowerCase()} (${tagged.length} of ${all.length} tagged)`}
+                          aria-label={`Show all available ${ATTR_LABEL[k].toLowerCase()}`}
+                          className={`inline-flex items-center justify-center shrink-0 p-0 w-6 h-6 border border-dashed rounded-lg transition ${
+                            active ? st.btnActive : st.btn
+                          }`}
+                        >
+                          <LayoutGrid size={14} className="block shrink-0" />
+                        </button>
                       </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -352,32 +338,22 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
         >
           <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-t-xl bg-navy-600 text-white">
             <div className="text-[11px] font-extrabold uppercase tracking-wider">
-              {popRow.scope.label} · all available dimensions
-              <span className="font-bold opacity-70"> ({popRow.dims.length})</span>
+              {popRow.scope.label} · all available {ATTR_LABEL[pop.group].toLowerCase()}
+              <span className="font-bold opacity-70"> ({popDims.length})</span>
             </div>
             <button type="button" aria-label="Close" onClick={() => setPop(null)} className="p-0.5 rounded hover:bg-white/15">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="p-3.5 space-y-3 overflow-y-auto" style={{ maxHeight: POP_H - 90 }}>
-            {groupDims(popRow.dims).map(g => {
-              const st = DIM_GROUP_STYLE[g.meta.key];
-              return (
-                <div key={g.meta.key} className="flex items-start gap-3">
-                  {groupLabel(g.meta.key, g.items.length)}
-                  <div className="flex-1 min-w-0 flex flex-wrap gap-1.5">
-                    {g.items.map(d =>
-                      popRow.selected.includes(d.code)
-                        ? chip(d, 'text-slate-400 bg-slate-100 border-slate-200', 'text-slate-300')
-                        : chip(d, st.chip, st.code)
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="p-3.5 flex flex-wrap gap-1.5 overflow-y-auto" style={{ maxHeight: POP_H - 90 }}>
+            {popDims.map(d =>
+              popRow.selected.includes(d.code)
+                ? chip(d, 'text-slate-400 bg-slate-100 border-slate-200', 'text-slate-300')
+                : chip(d, reachChipClass(d.code, DIM_GROUP_STYLE[pop.group].chip), reachCodeClass(d.code, DIM_GROUP_STYLE[pop.group].code))
+            )}
           </div>
           <div className="px-3.5 py-2 border-t border-slate-100 text-[10px] text-slate-400">
-            Greyed out = already tagged. View only.
+            Greyed out = already tagged · navy = on every channel · amber = on one channel only. View only.
           </div>
         </div>
       )}

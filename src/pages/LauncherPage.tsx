@@ -128,9 +128,8 @@ export const LauncherPage: React.FC = () => {
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center font-extrabold text-lg">T</div>
+                <img src="/logo-full.png" alt="Tagging360" className="h-20 w-auto brightness-0 invert" />
                 <div>
-                  <div className="font-wordmark text-xl font-bold">Tagging360</div>
                   <div className="text-[10px] text-navy-100 font-bold uppercase tracking-widest">
                     Digital Content Taxonomy &amp; Metadata
                   </div>

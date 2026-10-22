@@ -158,11 +158,8 @@ export const LoginPage: React.FC = () => {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-900/60 to-slate-900/90" />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-navy-600 flex items-center justify-center font-extrabold text-xl shadow-md">
-            T
-          </div>
+          <img src="/logo-full.png" alt="Tagging360" className="h-24 w-auto brightness-0 invert" />
           <div>
-            <div className="font-wordmark text-2xl font-bold">Tagging360</div>
             <div className="text-[11px] text-navy-300 font-bold uppercase tracking-widest">
               Digital Content Taxonomy &amp; Metadata
             </div>
@@ -186,11 +183,8 @@ export const LoginPage: React.FC = () => {
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md space-y-6">
           <div className="lg:hidden flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-navy-600 text-white flex items-center justify-center font-extrabold text-lg">
-              T
-            </div>
+            <img src="/logo-full.png" alt="Tagging360" className="h-16 w-auto" />
             <div>
-              <div className="font-wordmark text-lg font-bold text-slate-900">Tagging360</div>
               <div className="text-[10px] text-navy-600 font-bold uppercase tracking-widest">DCTM</div>
             </div>
           </div>

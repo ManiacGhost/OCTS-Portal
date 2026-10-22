@@ -12,7 +12,8 @@ import {
 } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, KbqScope, KBQ_ENABLED } from '../data/kbqKpiMap';
 import { TagStrategyOverview } from './TagStrategyOverview';
-import { groupDims, DIM_GROUP_STYLE, DimGroupKey } from '../data/dimensionGroups';
+import { groupDims, DIM_GROUP_STYLE, DimGroupKey, REACH_STYLE, reachOf, reachChipClass } from '../data/dimensionGroups';
+import { ReachLegend } from '../components/common/ReachLegend';
 
 const VALUE_INPUT =
   'w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-navy-500 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none transition';
@@ -477,6 +478,7 @@ export const TagStrategyPage: React.FC = () => {
                 );
               })}
             </div>
+            <ReachLegend className="px-3 py-2 border-b border-slate-100" />
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50/60 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
@@ -517,7 +519,14 @@ export const TagStrategyPage: React.FC = () => {
                             className="w-3.5 h-3.5 accent-navy-600 cursor-pointer mt-1"
                           />
                         </td>
-                        <td className="p-3 font-mono text-[11px] text-slate-400">{d.code}</td>
+                        <td className="p-3">
+                          <span
+                            title={reachOf(d.code) ? REACH_STYLE[reachOf(d.code)!].label : undefined}
+                            className={`inline-block font-mono text-[11px] font-medium border rounded px-1.5 py-0.5 ${reachChipClass(d.code, 'text-slate-500 bg-slate-50 border-slate-200')}`}
+                          >
+                            {d.code}
+                          </span>
+                        </td>
                         <td className="p-3 font-bold text-slate-900">
                           {ed.name ?? d.label}
                           {KBQ_ENABLED && kbqCountFor(d.code) > 0 && (

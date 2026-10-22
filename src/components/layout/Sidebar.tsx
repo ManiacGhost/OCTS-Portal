@@ -41,13 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ variant = 'desktop', onNavigat
     <aside className="hidden md:flex md:flex-col md:w-60 shrink-0 border-r border-slate-200 bg-white">
       <div className="px-5 py-5 border-b border-slate-100">
         <Link to={homePathFor(user.role)} className="flex items-center gap-2.5 group" title="Home">
-          <div className="w-8 h-8 rounded-xl bg-navy-600 text-white flex items-center justify-center font-extrabold text-sm shadow-sm">
-            T
-          </div>
-          <div className="leading-tight">
-            <div className="font-wordmark text-lg font-bold text-slate-900 group-hover:text-navy-700 transition">Tagging360</div>
-            <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">DCTM</div>
-          </div>
+          <img src="/logo-full.png" alt="Tagging360 (DCTM)" className="h-20 w-auto mx-auto" />
         </Link>
       </div>
 

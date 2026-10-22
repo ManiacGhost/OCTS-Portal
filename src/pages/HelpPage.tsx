@@ -79,7 +79,7 @@ const DOCS: DocSection[] = [
         kind: 'p',
         text: KBQ_ENABLED
           ? 'This screen answers: for this brand, on every channel, what do we tag — and what can analytics learn from it? It opens on a read-only Overview: pick a brand and see each business question with, for every channel it applies to, its status and which dimensions are tagged (highlighted). Switch to Edit strategy to change what a brand tags.'
-          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, split into Core attributes and Execution / Engagement attributes. A small grid icon on each channel opens a floating tile listing every available dimension, in the same two groups (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags — there, the Core and Execution / Engagement bar above the column names switches the table between the two groups.',
+          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, shown in two columns: Core attributes and Execution / Engagement attributes. The small grid icon at the end of each column opens a floating tile listing every available dimension in that group (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags — there, the Core and Execution / Engagement bar above the column names switches the table between the two groups.',
       },
       {
         kind: 'steps',
