@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from 'react';
+import { kiteDimensionsFor } from './kiteTaxonomy';
+import { dimGroupOf } from './dimensionGroups';
 
 /**
  * Brand tagging strategy, persisted to localStorage (no backend):
@@ -78,8 +80,20 @@ function getSnapshot() {
 }
 
 // ---- selection ----
+/** Until a user saves a choice for a scope, its Core dimensions count as tagged, so a fresh
+ *  deployment never shows "nothing tagged". Once saved (even to empty), their choice wins. */
+const defaultCache: Record<string, string[]> = {};
+function defaultSelection(channel: string, subChannel: string): string[] {
+  const k = `${channel}::${subChannel || '-'}`;
+  return (defaultCache[k] ||= kiteDimensionsFor(channel, subChannel)
+    .filter(d => dimGroupOf(d.code) === 'core')
+    .map(d => d.code));
+}
+function selectionFor(map: SelectionMap, brandId: string, channel: string, subChannel: string): string[] {
+  return map[strategyKey(brandId, channel, subChannel)] ?? defaultSelection(channel, subChannel);
+}
 export function getSelectedDimensions(brandId: string, channel: string, subChannel: string): string[] {
-  return selections[strategyKey(brandId, channel, subChannel)] || [];
+  return selectionFor(selections, brandId, channel, subChannel);
 }
 export function setSelectedDimensions(brandId: string, channel: string, subChannel: string, names: string[]) {
   selections = { ...selections, [strategyKey(brandId, channel, subChannel)]: names };
@@ -123,9 +137,9 @@ export function setDimEdit(
 export function useBrandStrategy() {
   const snap = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   return {
-    getSelected: (b: string, c: string, s: string): string[] => snap.selections[strategyKey(b, c, s)] || [],
+    getSelected: (b: string, c: string, s: string): string[] => selectionFor(snap.selections, b, c, s),
     isSelected: (b: string, c: string, s: string, n: string): boolean =>
-      (snap.selections[strategyKey(b, c, s)] || []).includes(n),
+      selectionFor(snap.selections, b, c, s).includes(n),
     toggle: toggleDimension,
     setSelected: setSelectedDimensions,
     getEdit: (b: string, c: string, s: string, n: string): DimEdit =>
