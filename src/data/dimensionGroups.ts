@@ -137,3 +137,7 @@ export function groupDims<T extends { code: string }>(dims: T[]): { meta: DimGro
     g => g.items.length > 0
   );
 }
+
+/** A–Z by display label (a copy; the input is untouched). */
+export const byLabel = <T extends { label: string }>(dims: T[]): T[] =>
+  [...dims].sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));

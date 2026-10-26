@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Target, CheckCircle2, CircleDot, Circle, ChevronDown, ChevronsUpDown, Layers, LayoutGrid, Tag, X } from 'lucide-react';
+import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X } from 'lucide-react';
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
-import { dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
+import { byLabel, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
 import { ReachLegend } from '../components/common/ReachLegend';
 
 interface Scope {
@@ -18,6 +18,13 @@ const SCOPES: Scope[] = KITE_CHANNELS.flatMap(ch => {
     ? subs.map(s => ({ channel: ch as string, sub: s, label: `${ch} → ${s}` }))
     : [{ channel: ch as string, sub: '', label: ch as string }];
 });
+
+/** Channel / sub-channel labels each dimension is available on (for the hover tile). */
+const CHANNELS_BY_CODE: Record<string, string[]> = {};
+SCOPES.forEach(sc =>
+  kiteDimensionsFor(sc.channel, sc.sub).forEach(d => (CHANNELS_BY_CODE[d.code] ||= []).push(sc.label))
+);
+const channelsWith = (code: string) => CHANNELS_BY_CODE[code] || [];
 
 const STATUS: Record<KbqStatus, { label: string; cls: string; Icon: typeof CheckCircle2 }> = {
   covered: { label: 'Covered', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', Icon: CheckCircle2 },
@@ -207,17 +214,10 @@ const POP_H = 320; // px, max height — used to decide whether to flip above th
 const PlainOverview: React.FC<Props> = ({ brandId }) => {
   const bs = useBrandStrategy();
   const [pop, setPop] = useState<Popover | null>(null);
-  const [open, setOpen] = useState<Set<string>>(new Set()); // rows showing their tagged chips
-  const toggleOpen = (key: string) =>
-    setOpen(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
   const popRef = useRef<HTMLDivElement>(null);
-
+  const [hover, setHover] = useState<{ code: string; label: string; top: number; left: number } | null>(null);
   const rows = SCOPES.map(scope => {
-    const dims = kiteDimensionsFor(scope.channel, scope.sub);
+    const dims = byLabel(kiteDimensionsFor(scope.channel, scope.sub));
     const selected = bs.getSelected(brandId, scope.channel, scope.sub);
     return { scope, dims, selected, tagged: dims.filter(d => selected.includes(d.code)) };
   });
@@ -263,7 +263,13 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
     <span
       key={d.code}
       title={d.captures}
-      className={`inline-flex items-center gap-1 text-[11px] font-bold border rounded-lg px-2 py-0.5 ${cls}`}
+      onMouseEnter={e => {
+        const r = e.currentTarget.getBoundingClientRect();
+        const left = Math.max(8, Math.min(r.left, window.innerWidth - 248));
+        setHover({ code: d.code, label: d.label, top: r.bottom + 6, left });
+      }}
+      onMouseLeave={() => setHover(null)}
+      className={`inline-flex items-center gap-1 text-[11px] font-bold border rounded-lg px-2 py-0.5 cursor-default ${cls}`}
     >
       {d.label}
       <span className={`font-mono text-[9px] font-medium ${codeCls}`}>{d.code}</span>
@@ -282,114 +288,88 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-        <ReachLegend />
-        <button
-          type="button"
-          onClick={() => setOpen(open.size === rows.length ? new Set() : new Set(rows.map(r => r.scope.label)))}
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-navy-600 hover:bg-navy-700 rounded-lg px-3 py-1.5 shadow-sm transition"
-        >
-          <ChevronsUpDown className="w-3.5 h-3.5" />
-          {open.size === rows.length ? 'Collapse all' : 'Expand all'}
-        </button>
-      </div>
+      <ReachLegend className="px-1" />
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full table-fixed text-left text-xs">
-          {/* fixed layout + explicit widths: columns never shift as rows expand */}
+          {/* fixed layout + explicit widths: columns never shift with the number of chips */}
           <colgroup>
-            <col className="w-56" />
+            <col className="w-44" />
+            <col className="w-28" />
             <col />
             <col />
-            <col className="w-12" />
           </colgroup>
           <thead className="bg-slate-50/60 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
             <tr>
               <th className="px-4 py-3">Channel</th>
+              <th className="px-4 py-3">Tagged dimensions</th>
               {(['core', 'exec'] as GroupKey[]).map(k => (
                 <th key={k} className={`px-4 py-3 ${DIM_GROUP_STYLE[k].text}`}>
                   {ATTR_LABEL[k]}
                 </th>
               ))}
-              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {rows.map(r => {
-              const isOpen = open.has(r.scope.label);
-              const groups = (['core', 'exec'] as GroupKey[]).map(k => {
-                const all = r.dims.filter(d => dimGroupOf(d.code) === k);
-                const tagged = r.tagged.filter(d => dimGroupOf(d.code) === k);
-                return { k, st: DIM_GROUP_STYLE[k], all, tagged };
-              });
-              const gridBtn = (k: GroupKey, st: (typeof groups)[number]['st'], tagged: number, all: number) => (
-                <button
-                  type="button"
-                  onClick={e => openPop(e, r.scope.label, k)}
-                  title={`Show all available ${ATTR_LABEL[k].toLowerCase()} (${tagged} of ${all} tagged)`}
-                  aria-label={`Show all available ${ATTR_LABEL[k].toLowerCase()}`}
-                  className={`inline-flex items-center justify-center shrink-0 p-0 w-6 h-6 border border-dashed rounded-lg transition ${
-                    pop?.rowKey === r.scope.label && pop.group === k ? st.btnActive : st.btn
-                  }`}
-                >
-                  <LayoutGrid size={14} className="block shrink-0" />
-                </button>
-              );
-              return (
-                <React.Fragment key={r.scope.label}>
-                  <tr
-                    className="cursor-pointer hover:bg-slate-50/70"
-                    onClick={() => toggleOpen(r.scope.label)}
-                    aria-expanded={isOpen}
-                  >
-                    <td className="px-4 py-3 font-bold text-slate-900">
-                      {r.scope.label}
-                      <div className="text-[10px] font-medium text-slate-400">
-                        {r.tagged.length} of {r.dims.length} tagged
+            {rows.map(r => (
+              <tr key={r.scope.label} className="align-top">
+                <td className="px-4 py-3 font-bold text-slate-900">{r.scope.label}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  <b className="text-slate-900">{r.tagged.length}</b> of {r.dims.length}
+                </td>
+                {(['core', 'exec'] as GroupKey[]).map(k => {
+                  const st = DIM_GROUP_STYLE[k];
+                  const all = r.dims.filter(d => dimGroupOf(d.code) === k);
+                  const tagged = r.tagged.filter(d => dimGroupOf(d.code) === k);
+                  const active = pop?.rowKey === r.scope.label && pop.group === k;
+                  return (
+                    <td key={k} className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {tagged.length === 0 && <span className="text-slate-400">Nothing tagged yet</span>}
+                        {tagged.map(d => chip(d, reachChipClass(d.code, st.chip), reachCodeClass(d.code, st.code)))}
+                        <button
+                          type="button"
+                          onClick={e => openPop(e, r.scope.label, k)}
+                          title={`Show all available ${ATTR_LABEL[k].toLowerCase()} (${tagged.length} of ${all.length} tagged)`}
+                          aria-label={`Show all available ${ATTR_LABEL[k].toLowerCase()}`}
+                          className={`inline-flex items-center justify-center shrink-0 p-0 w-6 h-6 border border-dashed rounded-lg transition ${
+                            active ? st.btnActive : st.btn
+                          }`}
+                        >
+                          <LayoutGrid size={14} className="block shrink-0" />
+                        </button>
                       </div>
                     </td>
-                    {groups.map(({ k, st, all, tagged }) => (
-                      <td key={k} className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-40">
-                            <div className="text-slate-600">
-                              <b className="text-slate-900 text-sm">{tagged.length}</b> of {all.length}
-                            </div>
-                            <div className="mt-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${k === 'core' ? 'bg-navy-600' : 'bg-slate-500'}`}
-                                style={{ width: `${all.length ? (tagged.length / all.length) * 100 : 0}%` }}
-                              />
-                            </div>
-                          </div>
-                          <span onClick={e => e.stopPropagation()}>{gridBtn(k, st, tagged.length, all.length)}</span>
-                        </div>
-                      </td>
-                    ))}
-                    <td className="px-4 py-3 text-slate-400">
-                      <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                    </td>
-                  </tr>
-                  {isOpen && (
-                    <tr className="bg-slate-50/40">
-                      <td />
-                      {groups.map(({ k, st, tagged }) => (
-                        <td key={k} className="px-4 pb-4 pt-1 align-top">
-                          <div className="flex flex-wrap gap-1.5">
-                            {tagged.length === 0 && <span className="text-slate-400">Nothing tagged yet</span>}
-                            {tagged.map(d => chip(d, reachChipClass(d.code, st.chip), reachCodeClass(d.code, st.code)))}
-                          </div>
-                        </td>
-                      ))}
-                      <td />
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
+                  );
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
+
+      {hover && (
+        <div
+          role="tooltip"
+          style={{ position: 'fixed', top: hover.top, left: hover.left, width: 240 }}
+          className="z-[60] pointer-events-none bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden"
+        >
+          <div className="px-3 py-2 bg-navy-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+            {hover.label} <span className="font-mono font-medium opacity-70 normal-case">{hover.code}</span>
+          </div>
+          <div className="px-3 py-2 text-[11px] text-slate-700 space-y-1">
+            <div className="text-[10px] text-slate-400">
+              Available on {channelsWith(hover.code).length} of {SCOPES.length} channels
+            </div>
+            {channelsWith(hover.code).map(l => (
+              <div key={l} className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-navy-500" />
+                {l}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {pop && popRow && (
         <div

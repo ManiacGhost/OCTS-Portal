@@ -12,7 +12,7 @@ import {
 } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, KbqScope, KBQ_ENABLED } from '../data/kbqKpiMap';
 import { TagStrategyOverview } from './TagStrategyOverview';
-import { groupDims, DIM_GROUP_STYLE, DimGroupKey, REACH_STYLE, reachOf, reachChipClass } from '../data/dimensionGroups';
+import { byLabel, groupDims, DIM_GROUP_STYLE, DimGroupKey, REACH_STYLE, reachOf, reachChipClass } from '../data/dimensionGroups';
 import { ReachLegend } from '../components/common/ReachLegend';
 
 const VALUE_INPUT =
@@ -66,7 +66,7 @@ export const TagStrategyPage: React.FC = () => {
   const sources = kiteSourcesFor(channel, scopeSub);
   // derived, so a stale pick (after changing channel / sub-channel) quietly falls back to All
   const activePublisher = showPublisher && sources.includes(publisher) ? publisher : '';
-  const dims = kiteDimensionsFor(channel, scopeSub, activePublisher || undefined);
+  const dims = byLabel(kiteDimensionsFor(channel, scopeSub, activePublisher || undefined));
   const scopeLabel = hasSubChannels && subChannel ? `${channel} → ${subChannel}` : channel;
 
   const selected = bs.getSelected(bId, channel, scopeSub);
