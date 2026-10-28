@@ -38,8 +38,8 @@ export const TagStrategyPage: React.FC = () => {
   const [kbqId, setKbqId] = useState<string>('');
   // '' = all publishers; otherwise show just that publisher's dimensions (publisher-sheet scopes only)
   const [publisher, setPublisher] = useState<string>('');
-  // which dimension group the table shows (Core / Execution-Engagement) — switched from the bar above the column names
-  const [dimTab, setDimTab] = useState<DimGroupKey>('core');
+  // which dimension group the table shows (GA / Content) — switched from the bar above the column names
+  const [dimTab, setDimTab] = useState<DimGroupKey>('ga');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
   const brand = brands.find(b => b.id === brandId) || brands[0];

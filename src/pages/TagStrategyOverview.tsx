@@ -3,7 +3,7 @@ import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X } f
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
-import { byLabel, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
+import { byLabel, DimGroupKey, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
 import { ReachLegend } from '../components/common/ReachLegend';
 
 interface Scope {
@@ -193,11 +193,11 @@ const KbqOverview: React.FC<Props> = ({ brandId }) => {
 
 /** Overview wording for the two groups (the edit screen calls them "fields"). */
 const ATTR_LABEL: Record<string, string> = {
-  core: 'Core attributes',
-  exec: 'Execution / Engagement attributes',
+  ga: 'GA tags',
+  content: 'Content tags',
 };
 
-type GroupKey = 'core' | 'exec';
+type GroupKey = DimGroupKey;
 interface Popover {
   rowKey: string;
   group: GroupKey;
@@ -208,8 +208,7 @@ const POP_W = 520; // px
 const POP_H = 320; // px, max height — used to decide whether to flip above the button
 
 /** Plain read-only overview (used while the KBQ layer is switched off): for the chosen brand,
- *  which dimensions are tagged on each channel / sub-channel, split into Core and Execution /
- *  Engagement. One small inline button per channel opens a floating tile listing every available
+ *  which dimensions are tagged on each channel / sub-channel, split into GA and Content tags. One small inline button per channel opens a floating tile listing every available
  *  dimension in the same two groups, with the already-tagged ones greyed out. View only. */
 const PlainOverview: React.FC<Props> = ({ brandId }) => {
   const bs = useBrandStrategy();
@@ -303,7 +302,7 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
             <tr>
               <th className="px-4 py-3">Channel</th>
               <th className="px-4 py-3">Tagged dimensions</th>
-              {(['core', 'exec'] as GroupKey[]).map(k => (
+              {(['ga', 'content'] as GroupKey[]).map(k => (
                 <th key={k} className={`px-4 py-3 ${DIM_GROUP_STYLE[k].text}`}>
                   {ATTR_LABEL[k]}
                 </th>
@@ -317,7 +316,7 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
                 <td className="px-4 py-3 text-slate-600">
                   <b className="text-slate-900">{r.tagged.length}</b> of {r.dims.length}
                 </td>
-                {(['core', 'exec'] as GroupKey[]).map(k => {
+                {(['ga', 'content'] as GroupKey[]).map(k => {
                   const st = DIM_GROUP_STYLE[k];
                   const all = r.dims.filter(d => dimGroupOf(d.code) === k);
                   const tagged = r.tagged.filter(d => dimGroupOf(d.code) === k);
@@ -396,7 +395,7 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
             )}
           </div>
           <div className="px-3.5 py-2 border-t border-slate-100 text-[10px] text-slate-400">
-            Greyed out = already tagged · navy = on every channel · amber = on one channel only. View only.
+            Greyed out = already tagged · navy = multi channel · amber = single channel. View only.
           </div>
         </div>
       )}
