@@ -11,7 +11,7 @@
 import { MediaChannelType } from '../types';
 export type { MediaChannelType };
 
-export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Search', 'Email', 'IVA'];
+export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Search', 'Email', 'IVA', 'Website'];
 
 export type TokenKind = 'c' | 'v' | 'm' | 'f';
 
@@ -48,12 +48,14 @@ export const MEDIUMS: Record<MediaChannelType, string> = {
   Search: 'Search',
   Email: 'Email',
   IVA: 'Field',
+  Website: 'Web',
 };
 
 // ---- Campaign-level formula, per channel -----------------------------------
 
 const COUNTRY: FormulaToken = { key: 'country', label: 'Country', kind: 'c', source: 'input', options: COUNTRIES };
-const MEDIUM: FormulaToken = { key: 'medium', label: 'Medium', kind: 'c', source: 'channel' };
+// Medium (channel) is deliberately NOT in any Campaign Name formula any more (client request).
+// const MEDIUM: FormulaToken = { key: 'medium', label: 'Medium', kind: 'c', source: 'channel' };
 const PRODUCT: FormulaToken = { key: 'product', label: 'Product code', kind: 'c', source: 'brand' };
 const TA: FormulaToken = { key: 'ta', label: 'Therapeutic area', kind: 'c', source: 'ta' };
 const TARGET: FormulaToken = { key: 'target', label: 'Target', kind: 'c', source: 'input', options: TARGETS };
@@ -70,16 +72,18 @@ export const EMAIL_PLATFORMS = ['SFMC'];
 
 /**
  * Approved Campaign Name formulas — one per channel (Kite taxonomy sheet).
- *   Digital: country _ medium _ product _ messaging type _ TA _ target _ indication _ year _ Code
- *   Social / Search / SFMC(Email): country _ medium _ product _ TA _ target _ indication _ platform _ year _ Code
+ *   Digital: country _ product _ messaging type _ TA _ target _ indication _ year _ Code
+ *   Social / Search / SFMC(Email): country _ product _ TA _ target _ indication _ platform _ year _ Code
  *   IVA: Kite-internal (field / CLM), no platform token.
+ *   Website: owned web pages, no platform token (PLACEHOLDER — mirrors IVA until the client's real formula).
  */
 export const CAMPAIGN_FORMULA: Record<MediaChannelType, FormulaToken[]> = {
-  Digital: [COUNTRY, MEDIUM, PRODUCT, MESSAGING_TYPE, TA, TARGET, INDICATION, YEAR, CODE],
-  Social: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, platformToken(SOCIAL_PLATFORMS), YEAR, CODE],
-  Search: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, platformToken(SEARCH_PLATFORMS), YEAR, CODE],
-  Email: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, platformToken(EMAIL_PLATFORMS), YEAR, CODE],
-  IVA: [COUNTRY, MEDIUM, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE],
+  Digital: [COUNTRY, PRODUCT, MESSAGING_TYPE, TA, TARGET, INDICATION, YEAR, CODE],
+  Social: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, platformToken(SOCIAL_PLATFORMS), YEAR, CODE],
+  Search: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, platformToken(SEARCH_PLATFORMS), YEAR, CODE],
+  Email: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, platformToken(EMAIL_PLATFORMS), YEAR, CODE],
+  IVA: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE],
+  Website: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE], // TODO: confirm with client
 };
 
 /** Human-readable formula template shown in the breakdown panel. */
@@ -95,6 +99,7 @@ export const SUB_CHANNELS: Record<MediaChannelType, string[]> = {
   Search: [],
   Email: [],
   IVA: [],
+  Website: [],
 };
 
 export interface ExtraField {
@@ -123,6 +128,7 @@ export const SUB_CHANNEL_FIELDS: Record<MediaChannelType, Record<string, ExtraFi
   Search: {},
   Email: {},
   IVA: {},
+  Website: {},
 };
 
 // ---- assembler ------------------------------------------------------------

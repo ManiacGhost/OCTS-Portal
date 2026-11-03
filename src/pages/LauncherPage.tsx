@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Layers, BookOpen, Sparkles, Route, LifeBuoy, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
+import { Route, BookOpen, Link2, Tags, Database, FileText, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 
@@ -12,12 +12,14 @@ interface Tile {
   soon?: boolean;
 }
 
+/** The four components of Kite's content tagging & taxonomy model then Dictionary. */
 const TILES: Tile[] = [
-  { to: '/tagging-strategy', label: 'Tagging Strategy', icon: Route, desc: 'Brand → channel → sub-channel: every dimension that can be tagged for that combination.' },
-  { to: '/overview', label: 'Campaigns', icon: Layers, desc: 'See every campaign taxonomy, grouped by promotional channel.' },
-  { to: '/dictionary', label: 'Dictionary', icon: BookOpen, desc: 'Browse every taxonomy field — approved values and abbreviations.' },
-  { to: '/autotag', label: 'Auto Tagging', icon: Sparkles, desc: 'See how the AI model tags every campaign across channels, and give it feedback.', soon: true },
-  { to: '/help', label: 'Help', icon: LifeBuoy, desc: 'FAQs and support for taxonomy, formulas, and submissions.' },
+  { to: '/brand-strategy', label: 'Brand Tagging Strategy', icon: Route, desc: 'Review and Edit Channel-wise tagging strategy' },
+  { to: '/utm', label: 'GA Tagging', icon: Link2, desc: 'Identifiers attached to every link directing to the brand website — understand the source and measure channel-wise impact.' },
+  { to: '/autotag', label: 'Content Tagging', icon: Tags, desc: 'Tagging assets in VVPM using Content Metadata, so all content in flight has the right info for tracking.', soon: true },
+  { to: '/content-mdm', label: 'Content MDM', icon: Database, desc: 'Establishes and governs the standardized business information and taxonomy that content metadata refers to.' },
+  { to: '/overview', label: 'Content Metadata', icon: FileText, desc: 'Attributes that help understand what type of content an audience is engaging with — Topic, Subtopic, Key Message and more.' },
+  { to: '/dictionary', label: 'Dictionary', icon: BookOpen, desc: 'The Kite Digital Taxonomy — approved values and abbreviations, in one shared language.' },
 ];
 
 /**
@@ -161,7 +163,7 @@ export const LauncherPage: React.FC = () => {
 
       {/* Tiles — pulled up to overlap the hero */}
       <div className="max-w-6xl mx-auto w-full px-6 sm:px-10 -mt-28 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {TILES.map(({ to, label, desc, icon: Icon, soon }, i) => (
             <Link
               key={to}
@@ -178,7 +180,7 @@ export const LauncherPage: React.FC = () => {
                     <Icon className="w-5 h-5" />
                   </div>
                   {soon && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5">
+                    <span className="whitespace-nowrap text-[9px] font-bold uppercase tracking-wide text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5">
                       Coming soon
                     </span>
                   )}

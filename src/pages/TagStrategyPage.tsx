@@ -28,7 +28,9 @@ const SectionLabel: React.FC<{ n: string; text: string }> = ({ n, text }) => (
   </div>
 );
 
-export const TagStrategyPage: React.FC = () => {
+/** 'summary' = Tags (the current-state table only); 'brand' = Brand Tagging Strategy (per-brand overview + edit). */
+export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ variant = 'summary' }) => {
+  const isBrand = variant === 'brand';
   const { brands } = usePersona();
   const bs = useBrandStrategy();
 
@@ -127,8 +129,9 @@ export const TagStrategyPage: React.FC = () => {
       <div>
         <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <Route className="w-5 h-5 text-navy-600" />
-          Tagging Strategy
+          {isBrand ? 'Brand Tagging Strategy' : 'Tags'}
         </h1>
+        {isBrand && (
         <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm mt-3">
           {(
             [
@@ -148,10 +151,13 @@ export const TagStrategyPage: React.FC = () => {
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {mode === 'view' && (
         <>
+          {/* the current-state table is brand-independent, so no brand picker there */}
+          {isBrand && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Brand</span>
             {brands.map(b => (
@@ -169,11 +175,12 @@ export const TagStrategyPage: React.FC = () => {
               </button>
             ))}
           </div>
-          <TagStrategyOverview brandId={bId} />
+          )}
+          <TagStrategyOverview brandId={bId} variant={variant} />
         </>
       )}
 
-      {mode === 'edit' && (
+      {isBrand && mode === 'edit' && (
       <>
 
       {/* Scope — brand, channel and sub-channel, all as plain dropdowns */}

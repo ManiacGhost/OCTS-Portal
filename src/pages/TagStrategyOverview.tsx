@@ -3,8 +3,16 @@ import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X } f
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
+<<<<<<< Updated upstream
 import { byLabel, DimGroupKey, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
 import { ReachLegend } from '../components/common/ReachLegend';
+=======
+<<<<<<< Updated upstream
+=======
+import { byLabel, DimGroupKey, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass, REACH_STYLE } from '../data/dimensionGroups';
+import { ReachLegend } from '../components/common/ReachLegend';
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 interface Scope {
   channel: string;
@@ -403,5 +411,164 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
   );
 };
 
-export const TagStrategyOverview: React.FC<Props> = props =>
-  KBQ_ENABLED ? <KbqOverview {...props} /> : <PlainOverview {...props} />;
+/**
+ * Overview as the client's "Tagging and Taxonomy - Current State Assessment" table: what is tagged
+ * under each of the four components (GA Tagging, Content Tagging, Content MDM, Content Metadata),
+ * per channel, with the tags involved.
+ * Static reference content (the client's own table, minus the Development team and Housed in
+ * columns). Set LANDSCAPE_OVERVIEW to false to bring back the per-brand tagged-dimensions view.
+ */
+export const LANDSCAPE_OVERVIEW = true;
+
+interface LandscapeTag {
+  label: string;
+}
+interface LandscapeRow {
+  channel: string;
+  tags: LandscapeTag[];
+  /** shown instead of / after the tags */
+  note?: string;
+}
+
+const t = (label: string): LandscapeTag => ({ label });
+
+// GA Tagging carries just the three UTM tags: source, medium, campaign.
+const UTM_TAGS = [t('Source'), t('Medium'), t('Campaign')];
+
+const LANDSCAPE: { category: string; group: 'ga' | 'content'; rows: LandscapeRow[] }[] = [
+  {
+    category: 'GA Tagging',
+    group: 'ga',
+    rows: [
+      { channel: 'SFMC (email)', tags: UTM_TAGS },
+      { channel: 'RTE', tags: UTM_TAGS },
+      { channel: 'Paid Media (Medscape/DeepIntent)', tags: UTM_TAGS },
+      { channel: 'Paid Search', tags: UTM_TAGS },
+      { channel: 'Social (Equals5)', tags: UTM_TAGS },
+    ],
+  },
+  {
+    category: 'Content Tagging',
+    group: 'content',
+    rows: [
+      {
+        channel: 'IVA',
+        tags: [t('DocId'), t('Name'), t('Type'), t('Key Message'), t('Topic'), t('Subtopic')],
+      },
+      {
+        channel: 'Website - Pages & HVAs',
+        tags: [],
+        note: 'Pages & HVAs are currently not mapped to topic, subtopic or key message',
+      },
+      {
+        channel: 'Other Assets (banners, emails, white papers)',
+        tags: [t('Topic'), t('Subtopic'), t('Use case')],
+      },
+    ],
+  },
+  {
+    category: 'Content MDM',
+    group: 'content',
+    rows: [
+      {
+        channel: '-',
+        tags: [
+          t('Vault asset ID'),
+          t('Vault global ID'),
+          t('Topic'),
+          t('Subtopic'),
+          t('Indication'),
+        ],
+      },
+    ],
+  },
+  {
+    category: 'Content Metadata',
+    group: 'content',
+    rows: [
+      {
+        channel: '-',
+        tags: [t('Step ID'), t('Tactic ID'), t('Creative ID'), t('Audience ID')],
+      },
+    ],
+  },
+];
+
+// a tag listed on more than one channel row is multi channel; on exactly one row, single channel
+const TAG_ROWS: Record<string, number> = {};
+LANDSCAPE.forEach(g => g.rows.forEach(r => r.tags.forEach(tag => (TAG_ROWS[tag.label] = (TAG_ROWS[tag.label] || 0) + 1))));
+
+const LandscapeOverview: React.FC = () => (
+  <div className="space-y-4">
+    <ReachLegend className="px-1" />
+
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
+      <table className="w-full min-w-[640px] table-fixed text-left text-xs border-collapse">
+        <colgroup>
+          <col className="w-36" />
+          <col className="w-60" />
+          <col />
+        </colgroup>
+        <thead className="bg-navy-700 text-white text-[11px] font-bold">
+          <tr>
+            <th className="px-4 py-3 text-center border border-slate-300">Category</th>
+            <th className="px-4 py-3 text-center border border-slate-300">Channel</th>
+            <th className="px-4 py-3 text-center border border-slate-300">Tags</th>
+          </tr>
+        </thead>
+        <tbody>
+          {LANDSCAPE.map(group =>
+            group.rows.map((r, i) => {
+              return (
+                <tr key={group.category + r.channel}>
+                  {i === 0 && (
+                    <td
+                      rowSpan={group.rows.length}
+                      className="bg-slate-50 font-bold text-slate-800 text-[11px] align-middle px-4 border border-slate-300"
+                    >
+                      {group.category}
+                    </td>
+                  )}
+                  <td className="px-4 py-3.5 bg-slate-50 font-bold text-slate-800 text-[11px] align-middle border border-slate-300">
+                    {r.channel}
+                  </td>
+                  <td className="px-4 py-3.5 align-middle border border-slate-300">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {r.tags.map(tag => {
+                        const rs = REACH_STYLE[TAG_ROWS[tag.label] > 1 ? 'common' : 'unique'];
+                        return (
+                          <span
+                            key={tag.label}
+                            className={`inline-flex items-center text-[11px] font-bold border rounded-lg px-2 py-0.5 ${rs.chip}`}
+                          >
+                            {tag.label}
+                          </span>
+                        );
+                      })}
+                      {r.note && (
+                        <span className={`text-[11px] ${r.tags.length ? 'text-slate-400 ml-1' : 'text-slate-500 italic'}`}>
+                          {r.note}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
+/** 'summary' = the brand-independent current-state table; 'brand' = the per-brand tagged-tags view. */
+export const TagStrategyOverview: React.FC<Props & { variant?: 'summary' | 'brand' }> = ({ variant = 'summary', ...props }) =>
+  KBQ_ENABLED ? (
+    <KbqOverview {...props} />
+  ) : variant === 'summary' && LANDSCAPE_OVERVIEW ? (
+    <LandscapeOverview />
+  ) : (
+    <PlainOverview {...props} />
+  );
+

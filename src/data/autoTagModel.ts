@@ -1,6 +1,13 @@
 import { Brand, CampaignTaxonomy, KeyMessageCategory } from '../types';
 
 /**
+ * Master switch for Auto Tagging (the AI slide-tagging page and its Help text). The client wants it
+ * off for now, so /autotag shows a "coming soon" page and the page code below is kept, unused.
+ * Flip to `true` to bring it all back.
+ */
+export const AUTOTAG_ENABLED = false;
+
+/**
  * Lightweight, fully deterministic client-side stand-in for the auto-tagging model.
  * Given a campaign, it "reviews the channel journey" and proposes a Topic + Subtopic
  * (and, for content assets, the brand + indication), a confidence, and a rationale.

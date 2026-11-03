@@ -79,6 +79,11 @@ function getSnapshot() {
 }
 
 // ---- selection ----
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 /** A starter set — a few GA and a few Content fields — that counts as tagged
  *  until a user saves a choice for a scope, so a fresh deployment never shows "nothing tagged".
  *  Only codes that exist on the channel apply. Once saved (even to empty), their choice wins. */
@@ -87,6 +92,11 @@ const BASIC_DIMENSIONS = [
   'src', 'cpgn', 'chnl', 'creative_nm', 'tact_nm',
   // Content
   'brd', 'ta', 'indc', 'aset_id', 'topic', 'execution_date', 'devc_nm',
+<<<<<<< Updated upstream
+=======
+  // Website
+  'key_msg', 'page_nm',
+>>>>>>> Stashed changes
 ];
 const defaultCache: Record<string, string[]> = {};
 function defaultSelection(channel: string, subChannel: string): string[] {
@@ -98,6 +108,10 @@ function defaultSelection(channel: string, subChannel: string): string[] {
 function selectionFor(map: SelectionMap, brandId: string, channel: string, subChannel: string): string[] {
   return map[strategyKey(brandId, channel, subChannel)] ?? defaultSelection(channel, subChannel);
 }
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 export function getSelectedDimensions(brandId: string, channel: string, subChannel: string): string[] {
   return selectionFor(selections, brandId, channel, subChannel);
 }

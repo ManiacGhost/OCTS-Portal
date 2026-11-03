@@ -3,6 +3,7 @@ import { LifeBuoy, BookOpen, HelpCircle, Mail, X, ChevronDown, Send, Copy, Arrow
 import { usePersona } from '../context/PersonaContext';
 import { useAuth } from '../auth/AuthContext';
 import { KBQ_ENABLED } from '../data/kbqKpiMap';
+import { AUTOTAG_ENABLED } from '../data/autoTagModel';
 
 /** Where the "Reach out to us" email goes. Left blank on purpose — set the real support
  *  address here once the client confirms it; until then the sender types it in the To field. */
@@ -42,7 +43,7 @@ const DOCS: DocSection[] = [
           'Campaigns — build a campaign’s taxonomy string from the approved formula, starting from its Asset and Tactic.',
           'UTM Generator — turn a campaign and a tagging strategy into a taxonomy string and a tracking URL.',
           'Dictionary — browse every approved value and abbreviation.',
-          'Auto Tagging — review the AI’s suggested tags for IVA slides and give feedback.',
+          ...(AUTOTAG_ENABLED ? ['Auto Tagging — review the AI’s suggested tags for IVA slides and give feedback.'] : []),
         ],
       },
       {
@@ -78,8 +79,17 @@ const DOCS: DocSection[] = [
       {
         kind: 'p',
         text: KBQ_ENABLED
+<<<<<<< Updated upstream
           ? 'This screen answers: for this brand, on every channel, what do we tag — and what can analytics learn from it? It opens on a read-only Overview: pick a brand and see each business question with, for every channel it applies to, its status and which dimensions are tagged (highlighted). Switch to Edit strategy to change what a brand tags.'
+<<<<<<< Updated upstream
           : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, shown in two columns, GA tags and Content tags; hover a dimension to see which channels carry it. The small grid icon at the end of each column opens a floating tile listing every available dimension in that group (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags — there, the GA and Content bar above the column names switches the table between the two groups.',
+=======
+          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged. Switch to Edit strategy to change what a brand tags.',
+=======
+          ? 'This screen answers: for this brand, on every channel, what do we tag — and what can analytics learn from it? It opens on a read-only Overview: the current-state table of what is tagged under GA Tagging, Content Tagging, Content MDM and Content Metadata, per channel, with the parameters involved and where each taxonomy comes from. Switch to Edit strategy to change what a brand tags.'
+          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, shown in two columns, GA tags and Content tags; hover a dimension to see which channels carry it. The small grid icon at the end of each column opens a floating tile listing every available dimension in that group (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags — there, the GA and Content bar above the column names switches the table between the two groups.',
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
       },
       {
         kind: 'steps',
@@ -187,6 +197,8 @@ const DOCS: DocSection[] = [
       },
     ],
   },
+  ...(AUTOTAG_ENABLED
+    ? [
   {
     id: 'autotag',
     title: 'Auto Tagging',
@@ -204,6 +216,8 @@ const DOCS: DocSection[] = [
       },
     ],
   },
+    ] as DocSection[]
+    : []),
   {
     id: 'roles',
     title: 'Approvals, compliance & administration',
@@ -264,7 +278,7 @@ const DOCS: DocSection[] = [
 const FAQS = [
   {
     q: 'How is a Campaign Name taxonomy string built?',
-    a: 'The Campaign Builder applies the approved Kite formula for the channel you pick (Digital, Social, Search, Email or IVA). You fill a few controlled fields; the rest auto-fill from your earlier choices, and the string is assembled token-by-token.',
+    a: 'The Campaign Builder applies the approved Kite formula for the channel you pick (Digital, Social, Search, Email, IVA or Website). You fill a few controlled fields; the rest auto-fill from your earlier choices, and the string is assembled token-by-token.',
   },
   {
     q: 'What happens after I submit a campaign?',

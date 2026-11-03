@@ -75,7 +75,12 @@ function loadStore(): LocalStore {
     const parsed = JSON.parse(raw);
     // Merge onto a fresh seed so a field added later (e.g. a new mock campaign) isn't lost
     // just because an older snapshot is sitting in someone's browser.
-    return { ...seedStore(), ...parsed };
+    const seed = seedStore();
+    const merged: LocalStore = { ...seed, ...parsed };
+    // channels added after a snapshot was saved (e.g. Website) still need to show up
+    const have = new Set((merged.channels || []).map(c => c.id));
+    merged.channels = [...(merged.channels || []), ...seed.channels.filter(c => !have.has(c.id))];
+    return merged;
   } catch {
     return seedStore();
   }

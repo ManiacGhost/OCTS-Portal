@@ -26,6 +26,7 @@ const CHANNEL_ID: Record<MediaChannelType, string> = {
   Search: 'chan-search',
   Email: 'chan-email',
   IVA: 'chan-iva',
+  Website: 'chan-website',
 };
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };

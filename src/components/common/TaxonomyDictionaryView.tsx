@@ -1,12 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { BookOpen, Search } from 'lucide-react';
-import { TAXONOMY_DICTIONARY, DICTIONARY_HEADERS } from '../../data/taxonomyDictionary';
+import { TAXONOMY_DICTIONARY, DICTIONARY_HEADERS as SHEET_HEADERS } from '../../data/taxonomyDictionary';
+import { DICTIONARY_EXTRAS } from '../../data/taxonomyDictionaryExtras';
+
+// the Evoke sheet's fields, then the ones the portal added (Website channel)
+const DICTIONARY = { ...TAXONOMY_DICTIONARY, ...DICTIONARY_EXTRAS };
+const DICTIONARY_HEADERS = [...SHEET_HEADERS, ...Object.keys(DICTIONARY_EXTRAS)];
 
 export const TaxonomyDictionaryView: React.FC = () => {
   const [header, setHeader] = useState<string>(DICTIONARY_HEADERS[0] || '');
   const [query, setQuery] = useState('');
 
-  const entries = TAXONOMY_DICTIONARY[header] || [];
+  const entries = DICTIONARY[header] || [];
   const q = query.trim().toLowerCase();
   const filtered = useMemo(
     () =>
@@ -43,7 +48,7 @@ export const TaxonomyDictionaryView: React.FC = () => {
           >
             {DICTIONARY_HEADERS.map(h => (
               <option key={h} value={h}>
-                {h} ({TAXONOMY_DICTIONARY[h].length})
+                {h} ({DICTIONARY[h].length})
               </option>
             ))}
           </select>

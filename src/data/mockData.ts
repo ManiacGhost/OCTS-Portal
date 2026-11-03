@@ -376,6 +376,7 @@ export const INITIAL_CHANNELS: ChannelTaxonomy[] = [
   { id: 'chan-search', code: 'SEA', name: 'Search', formats: [...SUB_CHANNELS.Search], downstreamPlatform: 'Paid Search' },
   { id: 'chan-email', code: 'EML', name: 'Email', formats: [...SUB_CHANNELS.Email], downstreamPlatform: 'SFMC' },
   { id: 'chan-iva', code: 'IVA', name: 'IVA', formats: [...SUB_CHANNELS.IVA], downstreamPlatform: 'Veeva CLM / Field' },
+  { id: 'chan-website', code: 'WEB', name: 'Website', formats: [...SUB_CHANNELS.Website], downstreamPlatform: 'Website / Web analytics' },
 ];
 
 export const INITIAL_CAMPAIGNS: CampaignTaxonomy[] = [

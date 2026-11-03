@@ -32,6 +32,8 @@ export const MarketerDashboard: React.FC = () => {
   } = usePersona();
 
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  // campaigns where a rejection was attempted without a comment
+  const [needsComment, setNeedsComment] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<'approvals' | 'matrix' | 'dictionary'>('approvals');
 
   const pendingCampaigns = campaigns.filter(c => c.status === 'submitted');
@@ -46,7 +48,14 @@ export const MarketerDashboard: React.FC = () => {
   };
 
   const handleReject = async (id: string) => {
-    const notes = reviewNotes[id] || 'Rejected. Please review Topic & Subtopic code alignment.';
+    // a rejection must say why — the agency has nothing to act on otherwise
+    const notes = (reviewNotes[id] || '').trim();
+    if (!notes) {
+      setNeedsComment(prev => ({ ...prev, [id]: true }));
+      showToast('Please add a comment explaining the rejection.', 'error');
+      document.getElementById(`review-note-${id}`)?.focus();
+      return;
+    }
     const ok = await changeCampaignStatus(id, 'rejected', notes);
     if (ok) {
       showToast('Campaign taxonomy returned to agency for edits.', 'info');
@@ -212,12 +221,24 @@ export const MarketerDashboard: React.FC = () => {
                     {/* Reviewer Note Input */}
                     <div>
                       <input
+                        id={`review-note-${cmp.id}`}
                         type="text"
-                        placeholder="Add reviewer notes for agency..."
+                        placeholder="Add reviewer notes for agency (required to reject)..."
                         value={reviewNotes[cmp.id] || ''}
-                        onChange={(e) => setReviewNotes({ ...reviewNotes, [cmp.id]: e.target.value })}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-navy-500 font-medium"
+                        onChange={(e) => {
+                          setReviewNotes({ ...reviewNotes, [cmp.id]: e.target.value });
+                          if (needsComment[cmp.id]) setNeedsComment(prev => ({ ...prev, [cmp.id]: false }));
+                        }}
+                        aria-invalid={!!needsComment[cmp.id]}
+                        className={`w-full bg-white border rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none font-medium ${
+                          needsComment[cmp.id] ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-200 focus:border-navy-500'
+                        }`}
                       />
+                      {needsComment[cmp.id] && (
+                        <p className="text-[11px] font-bold text-red-600 mt-1">
+                          A comment is required to reject a taxonomy &mdash; tell the agency what to fix.
+                        </p>
+                      )}
                     </div>
                   </div>
                 );

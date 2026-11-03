@@ -10,7 +10,10 @@ import { LauncherPage } from './pages/LauncherPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { DictionaryPage } from './pages/DictionaryPage';
 import { AutoTaggingPage } from './pages/AutoTaggingPage';
+import { ComingSoonPage } from './pages/ComingSoonPage';
+import { AUTOTAG_ENABLED } from './data/autoTagModel';
 import { TagStrategyPage } from './pages/TagStrategyPage';
+import { ContentMdmPage } from './pages/ContentMdmPage';
 import { UtmGeneratorPage } from './pages/UtmGeneratorPage';
 import { HelpPage } from './pages/HelpPage';
 import { AgencyDashboard } from './components/dashboards/AgencyDashboard';
@@ -51,11 +54,23 @@ export default function App() {
           <Route path="/dictionary" element={<DictionaryPage />} />
           <Route
             path="/autotag"
-            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><AutoTaggingPage /></RoleRoute>}
+            element={
+              <RoleRoute roles={['agency', 'marketer', 'analytics']}>
+                {AUTOTAG_ENABLED ? <AutoTaggingPage /> : <ComingSoonPage title="Content Tagging" />}
+              </RoleRoute>
+            }
           />
           <Route
             path="/tagging-strategy"
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><TagStrategyPage /></RoleRoute>}
+          />
+          <Route
+            path="/brand-strategy"
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><TagStrategyPage variant="brand" /></RoleRoute>}
+          />
+          <Route
+            path="/content-mdm"
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><ContentMdmPage /></RoleRoute>}
           />
           <Route
             path="/utm"

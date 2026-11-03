@@ -20,6 +20,7 @@ const KITE_CHANNEL_OF: Record<string, KiteChannel> = {
   Search: 'Search',
   SFMC: 'Email',
   IVA: 'IVA',
+  Website: 'Website',
 };
 
 const slug = (v: string | undefined | null): string =>
@@ -418,7 +419,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
             Tagging-strategy dimensions &mdash; {scopeLabel}
           </div>
           <Link
-            to="/tagging-strategy"
+            to="/brand-strategy"
             className="flex items-center gap-1 text-[11px] font-bold text-navy-700 hover:text-navy-900"
           >
             Edit strategy
@@ -430,7 +431,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-900">
             No tagging strategy set for <b>{brandWord}</b> &middot; {scopeLabel}. Choose which dimensions this
             brand tags in{' '}
-            <Link to="/tagging-strategy" className="font-bold underline">
+            <Link to="/brand-strategy" className="font-bold underline">
               Tagging Strategy
             </Link>
             , then they appear here as editable UTM fields.

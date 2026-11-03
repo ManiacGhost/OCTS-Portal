@@ -2,9 +2,9 @@
  * Kite-specific taxonomy model (replaces the generic dimension catalogue on the
  * Tagging Strategy screen and in the Code & UTM Generator).
  *
- * Channels: Digital, Social, Email — nothing else.
+ * Channels: Digital, Social, Search, Email, IVA, Website.
  *   Digital sub-channels: 3P Email, 3P SMS, Display
- *   Social / Email: no sub-channels
+ *   Others: no sub-channels
  *
  * Dimensions come from the C360 taxonomy sheet (image 2). Each C360 source
  * (image 1) marks every dimension present (Y) or absent (N). A channel /
@@ -51,6 +51,11 @@ export const KITE_DIMENSIONS: KiteDimension[] = [
   // IVA (field / CLM) source-specific fields.
   { code: 'slide_count', label: 'Slide count', captures: 'Slides in the deck' },
   { code: 'deck_id', label: 'Deck ID', captures: 'Parent visual-aid id' },
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
   // Fields from 'Channel-publisher based Dimensions.xlsx' (see publisherDimensions.ts). The sheet has no
   // definitions, so labels are expanded from the abbreviated codes. STILL TO CONFIRM WITH THE CLIENT:
   // eid, asel_cd, sgtn_id (cryptic); the rest are best-effort reads.
@@ -103,9 +108,18 @@ export const KITE_DIMENSIONS: KiteDimension[] = [
   { code: 'valid_cnsnt_exist', label: 'Valid consent exists', captures: 'Whether valid consent exists' },
   { code: 'bus_mth_strt_dt', label: 'Business month start date', captures: 'Business month start date' },
   { code: 'bus_wk_end_dt', label: 'Business week end date', captures: 'Business week end date' },
+<<<<<<< Updated upstream
+=======
+  // Website channel fields (added with the Website channel; labels/definitions are ours — confirm with the client).
+  { code: 'key_msg', label: 'Key message', captures: 'Key message the page carries' },
+  { code: 'page_nm', label: 'Page name', captures: 'Name of the web page' },
+  { code: 'page_typ', label: 'Page type', captures: 'Type of page (e.g. landing, resource, HCP hub)' },
+  { code: 'site_sect', label: 'Site section', captures: 'Section of the website the page sits in' },
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 ];
 
-export const KITE_CHANNELS = ['Digital', 'Social', 'Search', 'Email', 'IVA'] as const;
+export const KITE_CHANNELS = ['Digital', 'Social', 'Search', 'Email', 'IVA', 'Website'] as const;
 export type KiteChannel = (typeof KITE_CHANNELS)[number];
 
 export const KITE_SUBCHANNELS: Record<KiteChannel, string[]> = {
@@ -114,6 +128,7 @@ export const KITE_SUBCHANNELS: Record<KiteChannel, string[]> = {
   Search: [],
   Email: [],
   IVA: [],
+  Website: [],
 };
 
 export const KITE_MEDIUM: Record<KiteChannel, string> = {
@@ -122,6 +137,7 @@ export const KITE_MEDIUM: Record<KiteChannel, string> = {
   Search: 'search',
   Email: 'email',
   IVA: 'field',
+  Website: 'web',
 };
 
 /** C360 sources feeding each channel / sub-channel (image 1). */
@@ -133,6 +149,7 @@ export const KITE_SOURCES: Record<string, string[]> = {
   Search: ['Google Ads'],
   Email: ['SFMC', 'Relevate Health'],
   IVA: ['Veeva CLM'],
+  Website: ['Website CMS'],
 };
 
 // ---------------------------------------------------------------------------
@@ -154,6 +171,13 @@ function row(...vals: boolean[]): PresenceRow {
   return r;
 }
 
+/** Presence row from a list of codes (`src` is always present); everything else is N. */
+function presence(...codes: string[]): PresenceRow {
+  const r: PresenceRow = {};
+  KITE_DIMENSIONS.forEach(d => (r[d.code] = d.code === 'src' || codes.includes(d.code)));
+  return r;
+}
+
 export const KITE_SOURCE_PRESENCE: Record<string, PresenceRow> = {
   //                  brd cpgn cpgn_id tact_id tact_nm plact_nm cr_id cr_nm audn_id audn_nm aset_id global_id sugg_id topic sub_topic indc chnl sub_chnl email subj_ln url devc
   // Evoke agency spec (2026-09) confirms SFMC captures Audience — flipped audn_id/audn_nm to Y.
@@ -172,6 +196,11 @@ export const KITE_SOURCE_PRESENCE: Record<string, PresenceRow> = {
   //                  brd cpgn cpgn_id …                                        aset global …  topic sub_top indc chnl sub_chnl …    url dev
   'Google Ads':      row(Y,  Y,   Y,      Y,      Y,      N,       Y,    Y,    Y,      Y,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  Y), // +tact_id/nm, +audn_id/nm
   //                  brd cpgn cpgn_id …                                        aset global …  topic sub_top indc chnl sub_chnl …    url … | (impiricus N) | slide deck
+  // Website: owned pages. Listed by code (row() is positional and can't take the new trailing fields).
+  'Website CMS': presence(
+    'brd', 'ta', 'indc', 'cpgn', 'cpgn_id', 'tact_nm', 'creative_nm', 'aset_id', 'global_id',
+    'topic', 'sub_topic', 'key_msg', 'chnl', 'url', 'devc_nm', 'page_nm', 'page_typ', 'site_sect', 'execution_date'
+  ),
   'Veeva CLM':        row(Y,  Y,   Y,      N,      N,      N,       N,    N,    N,      N,      Y,      Y,        N,      Y,    Y,        Y,   Y,   N,       N,    N,      Y,  N,   N,    N,    N,  Y,    Y),
 };
 
