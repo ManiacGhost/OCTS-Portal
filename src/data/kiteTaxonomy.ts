@@ -51,11 +51,6 @@ export const KITE_DIMENSIONS: KiteDimension[] = [
   // IVA (field / CLM) source-specific fields.
   { code: 'slide_count', label: 'Slide count', captures: 'Slides in the deck' },
   { code: 'deck_id', label: 'Deck ID', captures: 'Parent visual-aid id' },
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
   // Fields from 'Channel-publisher based Dimensions.xlsx' (see publisherDimensions.ts). The sheet has no
   // definitions, so labels are expanded from the abbreviated codes. STILL TO CONFIRM WITH THE CLIENT:
   // eid, asel_cd, sgtn_id (cryptic); the rest are best-effort reads.
@@ -108,15 +103,11 @@ export const KITE_DIMENSIONS: KiteDimension[] = [
   { code: 'valid_cnsnt_exist', label: 'Valid consent exists', captures: 'Whether valid consent exists' },
   { code: 'bus_mth_strt_dt', label: 'Business month start date', captures: 'Business month start date' },
   { code: 'bus_wk_end_dt', label: 'Business week end date', captures: 'Business week end date' },
-<<<<<<< Updated upstream
-=======
   // Website channel fields (added with the Website channel; labels/definitions are ours — confirm with the client).
   { code: 'key_msg', label: 'Key message', captures: 'Key message the page carries' },
   { code: 'page_nm', label: 'Page name', captures: 'Name of the web page' },
   { code: 'page_typ', label: 'Page type', captures: 'Type of page (e.g. landing, resource, HCP hub)' },
   { code: 'site_sect', label: 'Site section', captures: 'Section of the website the page sits in' },
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 ];
 
 export const KITE_CHANNELS = ['Digital', 'Social', 'Search', 'Email', 'IVA', 'Website'] as const;

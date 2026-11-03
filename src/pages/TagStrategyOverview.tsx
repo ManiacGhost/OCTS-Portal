@@ -3,16 +3,8 @@ import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X } f
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
-<<<<<<< Updated upstream
-import { byLabel, DimGroupKey, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass } from '../data/dimensionGroups';
-import { ReachLegend } from '../components/common/ReachLegend';
-=======
-<<<<<<< Updated upstream
-=======
 import { byLabel, DimGroupKey, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass, REACH_STYLE } from '../data/dimensionGroups';
 import { ReachLegend } from '../components/common/ReachLegend';
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 interface Scope {
   channel: string;
