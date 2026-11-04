@@ -18,15 +18,13 @@ export type TokenKind = 'c' | 'v' | 'm' | 'f';
 /** How a token's value is resolved in the builder. */
 export type TokenSource =
   | 'input' // planner picks it
-  | 'channel' // = MEDIUMS[channel]
   | 'brand' // = brand.code
-  | 'ta' // = therapeutic area code
-  | 'subChannel' // = selected sub-channel (the `platform` token)
-  | 'year' // = year from the campaign quarter
-  | 'code'; // machine-generated suffix
+  | 'ta'; // = therapeutic area
 
 export interface FormulaToken {
   key: string;
+  /** the token's name exactly as written in the approved formula (e.g. `productcode`) */
+  name: string;
   label: string;
   kind: TokenKind;
   source: TokenSource;
@@ -37,58 +35,48 @@ export interface FormulaToken {
 // ---- controlled vocabularies -------------------------------------------------
 
 export const COUNTRIES = ['US', 'CA', 'GB', 'DE', 'FR', 'Global'];
-export const MESSAGING_TYPES = ['Branded', 'Unbranded', 'Disease Awareness', 'Payer'];
-export const TARGETS = ['HCP', 'Patient', 'Caregiver', 'Payer'];
+/** Campaign formula: branded / unbranded only. */
+export const MESSAGING_TYPES = ['Branded', 'Unbranded'];
+/** Campaign formula `audience`: HCP or DTP (confirm HCP / DTP vs DTC with the client). */
+export const AUDIENCES = ['HCP', 'DTP'];
+/** Used by the UTM generator's audience picker. */
+export const TARGETS = ['HCP', 'DTP', 'Patient', 'Caregiver', 'Payer'];
 /** Indication is "Cancer" — captured at the specific CAR-T level. */
 export const INDICATIONS = ['LBCL', 'FL', 'MCL', 'B-ALL'];
+/** `always_on` = ongoing; `specific` = marketing-led, with its own window. */
+export const CAMPAIGN_TYPES = ['Always on', 'Specific'];
+/** Optional — the field stays in the formula even when left blank. */
+export const OBJECTIVES = ['Awareness', 'Referral'];
 
-export const MEDIUMS: Record<MediaChannelType, string> = {
-  Digital: 'Display',
-  Social: 'Social',
-  Search: 'Search',
-  Email: 'Email',
-  IVA: 'Field',
-  Website: 'Web',
-};
+// ---- Campaign Name formula (same for every channel) ----------------------------
+//
+//   country_TA_productcode_indication_messagingtype_audience_segmentname_segmentvalue_campaigntype_objective_date
+//
+// Channel is deliberately NOT part of it, and neither is a machine code (client: "Channel removed —
+// same campaign formula across channels … Code excluded"). Segment is split into name + value so a
+// delimiter inside the value can't break the string. `date` is always a range, YYYYMM-YYYYMM
+// (always_on = Jan–Dec; specific = its own window).
 
-// ---- Campaign-level formula, per channel -----------------------------------
+export const CAMPAIGN_FORMULA: FormulaToken[] = [
+  { key: 'country', name: 'country', label: 'Country', kind: 'c', source: 'input', options: COUNTRIES },
+  { key: 'ta', name: 'TA', label: 'Therapeutic area', kind: 'c', source: 'ta' },
+  { key: 'product', name: 'productcode', label: 'Product code', kind: 'c', source: 'brand' },
+  { key: 'indication', name: 'indication', label: 'Indication', kind: 'c', source: 'input', options: INDICATIONS },
+  { key: 'messagingType', name: 'messagingtype', label: 'Messaging type', kind: 'c', source: 'input', options: MESSAGING_TYPES },
+  { key: 'audience', name: 'audience', label: 'Audience', kind: 'c', source: 'input', options: AUDIENCES },
+  { key: 'segmentName', name: 'segmentname', label: 'Segment name', kind: 'f', source: 'input' },
+  { key: 'segmentValue', name: 'segmentvalue', label: 'Segment value', kind: 'f', source: 'input' },
+  { key: 'campaignType', name: 'campaigntype', label: 'Campaign type', kind: 'c', source: 'input', options: CAMPAIGN_TYPES },
+  { key: 'objective', name: 'objective', label: 'Objective', kind: 'c', source: 'input', options: OBJECTIVES },
+  { key: 'date', name: 'date', label: 'Date', kind: 'v', source: 'input' },
+];
 
-const COUNTRY: FormulaToken = { key: 'country', label: 'Country', kind: 'c', source: 'input', options: COUNTRIES };
-// Medium (channel) is deliberately NOT in any Campaign Name formula any more (client request).
-// const MEDIUM: FormulaToken = { key: 'medium', label: 'Medium', kind: 'c', source: 'channel' };
-const PRODUCT: FormulaToken = { key: 'product', label: 'Product code', kind: 'c', source: 'brand' };
-const TA: FormulaToken = { key: 'ta', label: 'Therapeutic area', kind: 'c', source: 'ta' };
-const TARGET: FormulaToken = { key: 'target', label: 'Target', kind: 'c', source: 'input', options: TARGETS };
-const INDICATION: FormulaToken = { key: 'indication', label: 'Indication', kind: 'c', source: 'input', options: INDICATIONS };
-const YEAR: FormulaToken = { key: 'year', label: 'Year', kind: 'c', source: 'year' };
-const CODE: FormulaToken = { key: 'code', label: 'Code', kind: 'm', source: 'code' };
-const MESSAGING_TYPE: FormulaToken = { key: 'messagingType', label: 'Messaging type', kind: 'c', source: 'input', options: MESSAGING_TYPES };
-/** `platform (c)` in the Social / Search / SFMC Campaign Name formulas. */
-const platformToken = (options: string[]): FormulaToken => ({ key: 'platform', label: 'Platform', kind: 'c', source: 'input', options });
-
-export const SOCIAL_PLATFORMS = ['Meta', 'Instagram', 'LinkedIn', 'TikTok', 'X (Twitter)', 'Reddit', 'Pinterest', 'YouTube'];
-export const SEARCH_PLATFORMS = ['Google Ads', 'Microsoft Ads (Bing)'];
-export const EMAIL_PLATFORMS = ['SFMC'];
-
-/**
- * Approved Campaign Name formulas — one per channel (Kite taxonomy sheet).
- *   Digital: country _ product _ messaging type _ TA _ target _ indication _ year _ Code
- *   Social / Search / SFMC(Email): country _ product _ TA _ target _ indication _ platform _ year _ Code
- *   IVA: Kite-internal (field / CLM), no platform token.
- *   Website: owned web pages, no platform token (PLACEHOLDER — mirrors IVA until the client's real formula).
- */
-export const CAMPAIGN_FORMULA: Record<MediaChannelType, FormulaToken[]> = {
-  Digital: [COUNTRY, PRODUCT, MESSAGING_TYPE, TA, TARGET, INDICATION, YEAR, CODE],
-  Social: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, platformToken(SOCIAL_PLATFORMS), YEAR, CODE],
-  Search: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, platformToken(SEARCH_PLATFORMS), YEAR, CODE],
-  Email: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, platformToken(EMAIL_PLATFORMS), YEAR, CODE],
-  IVA: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE],
-  Website: [COUNTRY, PRODUCT, TA, TARGET, INDICATION, YEAR, CODE], // TODO: confirm with client
-};
+/** The formula as the client writes it: country_TA_productcode_…_date */
+export const FORMULA_TEMPLATE = CAMPAIGN_FORMULA.map(t => t.name).join('_');
 
 /** Human-readable formula template shown in the breakdown panel. */
-export function formulaTemplate(channel: MediaChannelType): string {
-  return CAMPAIGN_FORMULA[channel].map(t => `${t.label} (${t.kind})`).join(' _ ');
+export function formulaTemplate(): string {
+  return FORMULA_TEMPLATE;
 }
 
 // ---- sub-channels & their extra fields -------------------------------------
@@ -151,21 +139,16 @@ export interface BuiltToken {
 
 /**
  * Assemble the Campaign Name taxonomy string from resolved inputs.
- * `inputs` is keyed by token key (country, medium, product, ta, target,
- * indication, messagingType, platform, year, code) with already-resolved values.
+ * `inputs` is keyed by token key (country, ta, product, indication, messagingType, audience,
+ * segmentName, segmentValue, campaignType, objective, date) with already-resolved values.
+ * The formula is the same for every channel and carries no channel token.
  */
 export function buildCampaignTaxonomy(
-  channel: MediaChannelType,
   inputs: Record<string, string>,
 ): { tokens: BuiltToken[]; string: string } {
-  const tokens: BuiltToken[] = CAMPAIGN_FORMULA[channel].map(t => {
+  const tokens: BuiltToken[] = CAMPAIGN_FORMULA.map(t => {
     const raw = inputs[t.key] ?? '';
     return { key: t.key, label: t.label, kind: t.kind, raw, value: normalizeToken(raw) };
   });
   return { tokens, string: tokens.map(t => t.value).join('_') };
-}
-
-/** Short machine code for the `Code (m)` token. */
-export function generateCode(): string {
-  return Math.random().toString(36).slice(2, 6);
 }

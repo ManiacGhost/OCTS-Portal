@@ -122,7 +122,7 @@ const DOCS: DocSection[] = [
           'Asset & Tactic — the Asset ID of the promotional asset and the Tactic ID it runs under. Both are required, and every later step is anchored to them.',
           'Campaign Context — the campaign name, market and target quarter.',
           'Topic & Subtopic — therapeutic area, brand, and the topic and subtopic the campaign is about.',
-          'Channel & Formula — the promotional channel (and sub-channel). Fill the highlighted fields; the rest fill automatically and the taxonomy string builds live from the approved formula for that channel.',
+          'Channel & Formula — pick the promotional channel (and sub-channel), then fill the highlighted fields; the rest fill automatically and the taxonomy string builds live from the approved Campaign Name formula, which is the same for every channel.',
           'Review & Submit — check the summary and submit. The campaign goes to the marketer for approval.',
         ],
       },
@@ -138,7 +138,7 @@ const DOCS: DocSection[] = [
     blocks: [
       {
         kind: 'p',
-        text: 'A taxonomy string is made of tokens joined by underscores, in the order the approved formula for the channel defines. For example us_display_yes_branded_cart_hcp_lbcl_2026_ab12 reads: US, Display, Yescarta, branded messaging, CAR-T, HCP, LBCL, 2026, and a machine code.',
+        text: 'A taxonomy string is made of tokens joined by underscores, in the order of the approved Campaign Name formula: country_TA_productcode_indication_messagingtype_audience_segmentname_segmentvalue_campaigntype_objective_date. The formula is the same for every channel and has no channel token. For example us_oncology_yes_lbcl_branded_hcp_treater_p1-cart-treaters_always-on_awareness_202601-202612 reads: US, oncology, Yescarta, LBCL, branded, HCP, segment treater = P1-CART-Treaters, always on, awareness, Jan–Dec 2026.',
       },
       {
         kind: 'terms',
@@ -269,7 +269,7 @@ const DOCS: DocSection[] = [
 const FAQS = [
   {
     q: 'How is a Campaign Name taxonomy string built?',
-    a: 'The Campaign Builder applies the approved Kite formula for the channel you pick (Digital, Social, Search, Email, IVA or Website). You fill a few controlled fields; the rest auto-fill from your earlier choices, and the string is assembled token-by-token.',
+    a: 'The Campaign Builder applies one approved Campaign Name formula to every campaign, whatever the channel (Digital, Social, Search, Email, IVA or Website). You fill a few controlled fields; the rest auto-fill from your earlier choices, and the string is assembled token-by-token.',
   },
   {
     q: 'What happens after I submit a campaign?',

@@ -80,6 +80,12 @@ function loadStore(): LocalStore {
     // channels added after a snapshot was saved (e.g. Website) still need to show up
     const have = new Set((merged.channels || []).map(c => c.id));
     merged.channels = [...(merged.channels || []), ...seed.channels.filter(c => !have.has(c.id))];
+    // the seeded campaigns follow the current Campaign Name formula, whatever an old snapshot saved
+    const seedById = new Map(seed.campaigns.map(c => [c.id, c]));
+    merged.campaigns = (merged.campaigns || []).map(c => {
+      const s = seedById.get(c.id);
+      return s ? { ...c, campaignCode: s.campaignCode, taxonomyString: s.taxonomyString, formulaInputs: s.formulaInputs, targetAudience: s.targetAudience } : c;
+    });
     return merged;
   } catch {
     return seedStore();

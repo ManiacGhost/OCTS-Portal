@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
@@ -9,14 +9,14 @@ import {
   CAMPAIGN_FORMULA,
   SUB_CHANNELS,
   SUB_CHANNEL_FIELDS,
-  MEDIUMS,
   COUNTRIES,
   MESSAGING_TYPES,
-  TARGETS,
+  AUDIENCES,
   INDICATIONS,
+  CAMPAIGN_TYPES,
+  OBJECTIVES,
   buildCampaignTaxonomy,
   formulaTemplate,
-  generateCode,
   MediaChannelType,
 } from '../../data/taxonomyFormulas';
 
@@ -52,34 +52,39 @@ export const AgencyDashboard: React.FC = () => {
   const [selectedSubId, setSelectedSubId] = useState('km-sub-eff-01');
   const [quarter, setQuarter] = useState('2026-Q3');
   const [region, setRegion] = useState('US Commercial');
-  const [notes, setNotes] = useState('Built from the approved Social Campaign Name formula.');
+  const [notes, setNotes] = useState('Built from the approved Campaign Name formula.');
 
   // Approved-formula channel state
   const [channelType, setChannelType] = useState<MediaChannelType>('Digital');
   const [subChannel, setSubChannel] = useState<string>(SUB_CHANNELS.Digital[0] || '');
   const [country, setCountry] = useState('US');
   const [messagingType, setMessagingType] = useState(MESSAGING_TYPES[0]);
-  const [target, setTarget] = useState('HCP');
+  const [audience, setAudience] = useState(AUDIENCES[0]);
   const [indication, setIndication] = useState(INDICATIONS[0]);
-  const [platform, setPlatform] = useState('');
+  // segment is split into name + value (free text) so a delimiter in the value can't break the string
+  const [segmentName, setSegmentName] = useState('treater');
+  const [segmentValue, setSegmentValue] = useState('P1-CART-Treaters');
+  const [campaignType, setCampaignType] = useState(CAMPAIGN_TYPES[0]);
+  const [objective, setObjective] = useState('');
+  // only used for a `specific` campaign; month inputs hold YYYY-MM
+  const [dateStart, setDateStart] = useState('2026-07');
+  const [dateEnd, setDateEnd] = useState('2026-09');
   const [subChannelMeta, setSubChannelMeta] = useState<Record<string, string>>({});
-
-  const platformOptions =
-    (CAMPAIGN_FORMULA[channelType].find(t => t.key === 'platform')?.options) || [];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Stable machine `Code (m)` token for this builder session.
-  const machineCode = useMemo(() => generateCode(), []);
-
   const selectedBrand = brands.find(b => b.id === selectedBrandId);
   const yearToken = (quarter.split('-')[0] || '2026');
+  // `date` is always a range, YYYYMM-YYYYMM: always_on spans Jan–Dec, specific is its own window
+  const isAlwaysOn = campaignType === CAMPAIGN_TYPES[0];
+  const dateToken = isAlwaysOn
+    ? `${yearToken}01-${yearToken}12`
+    : `${dateStart.replace('-', '')}-${dateEnd.replace('-', '')}`;
 
   const chooseChannel = (ch: MediaChannelType) => {
     setChannelType(ch);
     setSubChannel(SUB_CHANNELS[ch][0] || '');
     setSubChannelMeta({});
-    setPlatform((CAMPAIGN_FORMULA[ch].find(t => t.key === 'platform')?.options || [])[0] || '');
   };
   const chooseSubChannel = (sc: string) => {
     setSubChannel(sc);
@@ -89,15 +94,16 @@ export const AgencyDashboard: React.FC = () => {
   // Resolve every formula token to a value.
   const formulaInputs: Record<string, string> = {
     country,
-    medium: MEDIUMS[channelType],
+    ta: selectedTaId === 'ta-hem' ? 'hematology' : 'oncology',
     product: selectedBrand?.code || 'YES',
-    messagingType,
-    ta: selectedTaId === 'ta-cart' ? 'CART' : (selectedTaId === 'ta-hem' ? 'HEM' : 'ONC'),
-    target,
     indication,
-    platform: platformOptions.length ? platform : subChannel,
-    year: yearToken,
-    code: machineCode,
+    messagingType,
+    audience,
+    segmentName,
+    segmentValue,
+    campaignType,
+    objective,
+    date: dateToken,
     // Mirror the flow's starting point into the matching C360 dimension codes so they
     // auto-populate the Tagging Strategy / Code & UTM Generator (see kiteTaxonomy.ts).
     aset_id: assetId,
@@ -107,7 +113,7 @@ export const AgencyDashboard: React.FC = () => {
 
   const assetTacticReady = assetId.trim().length > 0 && tacticId.trim().length > 0;
 
-  const built = buildCampaignTaxonomy(channelType, formulaInputs);
+  const built = buildCampaignTaxonomy(formulaInputs);
   const extraFields = SUB_CHANNEL_FIELDS[channelType][subChannel] || [];
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
@@ -134,7 +140,7 @@ export const AgencyDashboard: React.FC = () => {
         formulaInputs,
         campaignCode: built.string,
         taxonomyString: built.string,
-        targetAudience: target,
+        targetAudience: audience,
         region: selectedMarket || region,
         quarter,
         agencyOwner: user?.organization || 'Klick Health',
@@ -490,7 +496,7 @@ export const AgencyDashboard: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">
                     Sub-channel
-                    <span className="text-slate-400 font-normal"> — sets the <span className="font-mono">platform</span> token &amp; its own fields</span>
+                    <span className="text-slate-400 font-normal"> — and its own details</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {SUB_CHANNELS[channelType].map(sc => (
@@ -511,31 +517,91 @@ export const AgencyDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Core formula fields the planner fills */}
+              {/* Formula fields the planner fills — the same for every channel */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {CAMPAIGN_FORMULA[channelType]
+                {CAMPAIGN_FORMULA
                   .filter(t => t.source === 'input')
                   .map(t => {
-                    const map: Record<string, { value: string; set: (v: string) => void; options: string[] }> = {
+                    const fieldCls =
+                      'w-full bg-white border border-navy-200 ring-1 ring-navy-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium';
+                    const select: Record<string, { value: string; set: (v: string) => void; options: string[]; blank?: boolean }> = {
                       country: { value: country, set: setCountry, options: COUNTRIES },
-                      messagingType: { value: messagingType, set: setMessagingType, options: MESSAGING_TYPES },
-                      target: { value: target, set: setTarget, options: TARGETS },
                       indication: { value: indication, set: setIndication, options: INDICATIONS },
-                      platform: { value: platform, set: setPlatform, options: t.options || platformOptions },
+                      messagingType: { value: messagingType, set: setMessagingType, options: MESSAGING_TYPES },
+                      audience: { value: audience, set: setAudience, options: AUDIENCES },
+                      campaignType: { value: campaignType, set: setCampaignType, options: CAMPAIGN_TYPES },
+                      objective: { value: objective, set: setObjective, options: OBJECTIVES, blank: true },
                     };
-                    const ctl = map[t.key];
+                    const text: Record<string, { value: string; set: (v: string) => void; placeholder: string }> = {
+                      segmentName: { value: segmentName, set: setSegmentName, placeholder: 'e.g. treater' },
+                      segmentValue: { value: segmentValue, set: setSegmentValue, placeholder: 'e.g. P1-CART-Treaters' },
+                    };
+                    const label = (
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        {t.label}
+                        {t.key === 'objective' ? (
+                          <span className="text-slate-400 font-normal"> (optional — left blank it stays in the string as na)</span>
+                        ) : (
+                          <span className="text-navy-500"> *</span>
+                        )}
+                        {t.key === 'indication' && <span className="text-slate-400 font-normal"> (Cancer — specific type)</span>}
+                      </label>
+                    );
+
+                    if (t.key === 'date') {
+                      return (
+                        <div key={t.key} className="sm:col-span-2">
+                          {label}
+                          {isAlwaysOn ? (
+                            <div className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-700">
+                              <span className="font-mono font-bold text-slate-900">{dateToken}</span>
+                              <span className="text-slate-400"> — an always-on campaign spans Jan–Dec of {yearToken}</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <input
+                                type="month"
+                                value={dateStart}
+                                max={dateEnd || undefined}
+                                onChange={e => setDateStart(e.target.value)}
+                                className={`${fieldCls} sm:w-44`}
+                              />
+                              <span className="text-xs text-slate-400">to</span>
+                              <input
+                                type="month"
+                                value={dateEnd}
+                                min={dateStart || undefined}
+                                onChange={e => setDateEnd(e.target.value)}
+                                className={`${fieldCls} sm:w-44`}
+                              />
+                              <span className="font-mono text-xs font-bold text-slate-700">{dateToken}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    if (text[t.key]) {
+                      const c = text[t.key];
+                      return (
+                        <div key={t.key}>
+                          {label}
+                          <input
+                            type="text"
+                            value={c.value}
+                            onChange={e => c.set(e.target.value)}
+                            placeholder={c.placeholder}
+                            className={fieldCls}
+                          />
+                        </div>
+                      );
+                    }
+                    const ctl = select[t.key];
                     if (!ctl) return null;
                     return (
                       <div key={t.key}>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          {t.label} <span className="text-navy-500">*</span>
-                          {t.key === 'indication' && <span className="text-slate-400 font-normal"> (Cancer — specific type)</span>}
-                        </label>
-                        <select
-                          value={ctl.value}
-                          onChange={e => ctl.set(e.target.value)}
-                          className="w-full bg-white border border-navy-200 ring-1 ring-navy-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium"
-                        >
+                        {label}
+                        <select value={ctl.value} onChange={e => ctl.set(e.target.value)} className={fieldCls}>
+                          {ctl.blank && <option value="">— none —</option>}
                           {ctl.options.map(o => (
                             <option key={o} value={o}>{o}</option>
                           ))}
@@ -586,7 +652,7 @@ export const AgencyDashboard: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-2">Auto-filled from your earlier choices</label>
                 <div className="flex flex-wrap gap-2">
-                  {CAMPAIGN_FORMULA[channelType]
+                  {CAMPAIGN_FORMULA
                     .filter(t => t.source !== 'input')
                     .map(t => (
                       <span key={t.key} className="text-[11px] bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 text-slate-700">
@@ -601,9 +667,9 @@ export const AgencyDashboard: React.FC = () => {
               <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 p-4 space-y-3">
                 <div className="flex items-center gap-2 text-navy-400 font-bold text-xs">
                   <Code className="w-4 h-4" />
-                  <span>Approved {channelType} Campaign Name formula</span>
+                  <span>Approved Campaign Name formula</span>
                 </div>
-                <div className="font-mono text-[11px] text-slate-300 break-words">{formulaTemplate(channelType)}</div>
+                <div className="font-mono text-[11px] text-slate-300 break-words">{formulaTemplate()}</div>
                 <div className="text-[10px] text-slate-500">
                   (c) controlled &nbsp;·&nbsp; (v) variable &nbsp;·&nbsp; (m) machine &nbsp;·&nbsp; (f) free text
                 </div>
@@ -707,7 +773,7 @@ export const AgencyDashboard: React.FC = () => {
 
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                    Campaign Name taxonomy string (approved {channelType} formula):
+                    Campaign Name taxonomy string (approved formula):
                   </span>
                   <div className="font-mono text-xs text-navy-300 font-bold break-all">
                     {built.string}

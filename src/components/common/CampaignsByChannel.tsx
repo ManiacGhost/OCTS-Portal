@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, Layers, Inbox, X, Copy, Check } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
+import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
 
 export type CampaignStatusFilter = 'all' | 'draft' | 'submitted' | 'approved' | 'rejected';
 
@@ -141,7 +142,7 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
           {c.formulaInputs && Object.keys(c.formulaInputs).length > 0 && (
             <Section title="Formula inputs">
               {Object.entries(c.formulaInputs).map(([k, v]) => (
-                <Row key={k} label={k} mono>{v}</Row>
+                <Row key={k} label={CAMPAIGN_FORMULA.find(t => t.key === k)?.label ?? k} mono>{v}</Row>
               ))}
             </Section>
           )}
