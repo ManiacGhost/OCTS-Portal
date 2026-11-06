@@ -52,7 +52,7 @@ export const OverviewPage: React.FC = () => {
     case 'agency':
       stats = [
         { label: 'All my campaigns', value: campaigns.length, hint: 'Everything I have created', filter: 'all' },
-        { label: 'Pending review', value: countFor('submitted'), hint: 'Waiting on the marketer', filter: 'submitted' },
+        { label: 'Pending review', value: countFor('submitted'), hint: "Waiting for Brand's action", filter: 'submitted' },
         { label: 'Approved', value: countFor('approved'), hint: 'Ready to run', filter: 'approved' },
         { label: 'Rejected', value: countFor('rejected'), hint: 'Sent back to me', filter: 'rejected' },
         { label: 'Drafts', value: countFor('draft'), hint: 'Not submitted yet', filter: 'draft' },
