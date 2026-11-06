@@ -124,6 +124,24 @@ export const TacticPage: React.FC = () => {
     );
   }
 
+  // tactics can only be created for an approved campaign (an existing tactic can still be edited)
+  if (!isApproved(campaign.status) && !hasTactic(campaign)) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center space-y-3">
+        <p className="text-sm text-slate-600">
+          This campaign is yet to be approved. Tactics can be added once the marketer approves it.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/overview')}
+          className="text-xs font-bold text-navy-700 underline underline-offset-2"
+        >
+          Back to the campaign listing
+        </button>
+      </div>
+    );
+  }
+
   const brand = brands.find(b => b.id === campaign.brandId);
   const tStatus = isNew && !newId.current ? undefined : tacticStatusOf(campaign);
 

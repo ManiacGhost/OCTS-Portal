@@ -155,6 +155,9 @@ export interface CampaignTaxonomy {
   /** Approval status of the tactic, tracked separately from the campaign's `status`. When absent on
    *  a campaign that already has channel details (older records) it follows `status`. */
   tacticStatus?: 'draft' | 'submitted' | 'approved' | 'rejected' | 'active';
+  /** Set on a record that exists only to hold an extra tactic: the id of the campaign it belongs to.
+   *  Such a record is a tactic, never listed as a campaign of its own. */
+  parentCampaignId?: string;
   /** The marketer's latest note on each part, so a rejected part can be read and fixed. */
   reviewNotes?: { campaign?: string; tactic?: string };
 }

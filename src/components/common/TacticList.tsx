@@ -25,7 +25,8 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
 
   const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(' ')[0] || id || '—';
   const withTactic = campaigns
-    .filter(hasTactic)
+    // only tactics of approved campaigns are listed
+    .filter(c => hasTactic(c) && isApproved(c.status))
     .sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || ''));
 
   const inChannel = channel === 'all' ? withTactic : withTactic.filter(c => c.channelId === channel);

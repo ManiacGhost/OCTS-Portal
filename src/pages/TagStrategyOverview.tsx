@@ -406,7 +406,7 @@ const PlainOverview: React.FC<Props> = ({ brandId }) => {
 
 /**
  * Overview as the client's "Tagging and Taxonomy - Current State Assessment" table: what is tagged
- * under each of the four components (GA Tagging, Content Tagging, Content MDM, Content Metadata),
+ * under each of the four components (GA Tagging, Content Tagging, Content MDM, Journey Metadata),
  * per channel, with the tags involved.
  * Static reference content (the client's own table, minus the Development team and Housed in
  * columns). Set LANDSCAPE_OVERVIEW to false to bring back the per-brand tagged-dimensions view.
@@ -446,10 +446,11 @@ const LANDSCAPE: { category: string; group: 'ga' | 'content'; rows: LandscapeRow
       { channel: 'Paid Media (Medscape/DeepIntent)', tags: UTM_TAGS },
       { channel: 'Paid Search', tags: UTM_TAGS },
       { channel: 'Social (Equals5)', tags: UTM_TAGS },
+      { channel: 'Website', tags: UTM_TAGS },
     ],
   },
   {
-    category: 'Content Tagging',
+    category: 'Content Tagging/ Mapping',
     group: 'content',
     rows: [
       {
@@ -484,7 +485,7 @@ const LANDSCAPE: { category: string; group: 'ga' | 'content'; rows: LandscapeRow
     ],
   },
   {
-    category: 'Content Metadata',
+    category: 'Journey Metadata',
     group: 'content',
     rows: [
       {
@@ -500,7 +501,7 @@ const TAG_ROWS: Record<string, number> = {};
 LANDSCAPE.forEach(g => g.rows.forEach(r => r.tags.forEach(tag => (TAG_ROWS[tag.label] = (TAG_ROWS[tag.label] || 0) + 1))));
 
 const rowKey = (category: string, channel: string) => `${category}|${channel}`;
-const STORE_KEY = 'tagging360.landscape.tags.v2';
+const STORE_KEY = 'tagging360.landscape.tags.v3';
 
 /** Every tag a row of this group could show (what the "+" picker offers). */
 function poolFor(group: 'ga' | 'content', category: string, channel: string): string[] {
@@ -513,14 +514,15 @@ function poolFor(group: 'ga' | 'content', category: string, channel: string): st
 }
 
 const loadTags = (): Record<string, string[]> => {
+  const out: Record<string, string[]> = {};
+  LANDSCAPE.forEach(g => g.rows.forEach(r => (out[rowKey(g.category, r.channel)] = r.tags.map(x => x.label))));
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
+    // saved edits win; rows added since (no saved entry) fall back to their defaults
+    if (raw) return { ...out, ...JSON.parse(raw) };
   } catch {
     /* ignore */
   }
-  const out: Record<string, string[]> = {};
-  LANDSCAPE.forEach(g => g.rows.forEach(r => (out[rowKey(g.category, r.channel)] = r.tags.map(x => x.label))));
   return out;
 };
 

@@ -70,7 +70,7 @@ export const AgencyDashboard: React.FC = () => {
   const [showErrors, setShowErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [created, setCreated] = useState<{ campaign: CampaignTaxonomy; cloned: boolean } | null>(null);
-  // the campaign being cloned (its tactic comes along)
+  // the campaign being cloned (its tactics do not come along: a tactic belongs to one campaign only)
   const [source, setSource] = useState<CampaignTaxonomy | null>(null);
   const clonedOnce = useRef(false);
 
@@ -157,37 +157,13 @@ export const AgencyDashboard: React.FC = () => {
     setIsSubmitting(true);
     try {
       const cloned = cloning;
-      // a clone of a campaign that already has a tactic carries it over and goes straight to approval
-      const withTactic = cloned && source && hasTactic(source);
-      const tactic = withTactic && source
-        ? source.tactic || {
-            publisher: '',
-            placement: '',
-            targetAudience: source.targetAudience,
-            landingPageUrl: source.contentAssetUrl || '',
-            startDate: '',
-            endDate: '',
-          }
-        : undefined;
       const res = await addCampaign({
         campaignName: derivedName,
         therapeuticAreaId: taId,
         brandId,
         keyMessageCategoryId: source?.keyMessageCategoryId || '',
         keyMessageSubcategoryId: source?.keyMessageSubcategoryId || '',
-        ...(withTactic && source
-          ? {
-              channelId: source.channelId,
-              channelType: source.channelType,
-              subChannel: source.subChannel,
-              assetId: source.assetId,
-              tacticId: source.tacticId,
-              format: source.format,
-              tactic,
-              tacticStatus: 'submitted' as const,
-            }
-          : {}),
-        formulaInputs: { ...formulaInputs, ...(withTactic && source?.assetId ? { aset_id: source.assetId } : {}) },
+        formulaInputs,
         campaignCode: built.string,
         taxonomyString: built.string,
         targetAudience: audience,
@@ -497,9 +473,7 @@ export const AgencyDashboard: React.FC = () => {
 
             {cloning && source && (
               <div className="text-xs bg-navy-50 border border-navy-200 text-navy-900 rounded-xl px-3.5 py-2.5">
-                {hasTactic(source)
-                  ? 'The tactic (channel, publisher, placement, asset, landing page, dates) is copied too — submitting sends both the campaign and the tactic for approval.'
-                  : 'The source campaign has no tactic yet — the campaign is submitted now and you can add a tactic next.'}
+                Only the campaign is copied. A tactic belongs to one campaign, so the clone starts with none — you can add its tactics once it is approved.
               </div>
             )}
 
@@ -562,24 +536,26 @@ export const AgencyDashboard: React.FC = () => {
                 {created.cloned ? 'Campaign cloned and submitted' : 'Campaign created successfully'}
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                {created.cloned && hasTactic(created.campaign)
-                  ? 'The campaign and its tactic have been sent to the marketer for approval.'
-                  : 'The campaign has been sent to the marketer for approval. Next, add its tactic — channel, publisher, placement and the rest — and send that for approval too.'}
+                {isApproved(created.campaign.status)
+                  ? 'The campaign is approved. Next, add its tactic — channel, publisher, placement and the rest — and send that for approval too.'
+                  : 'Your campaign has been created, but it is yet to be approved. Tactics can be added once the marketer approves it.'}
               </p>
               <code className="block mt-3 text-[11px] font-mono font-bold text-navy-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 break-all">
                 {created.campaign.taxonomyString}
               </code>
             </div>
-            <p className="text-xs text-slate-600">What would you like to do next?</p>
+            {isApproved(created.campaign.status) && <p className="text-xs text-slate-600">What would you like to do next?</p>}
             <div className="flex flex-col sm:flex-row gap-2">
-              <button
-                type="button"
-                onClick={() => navigate(`/campaigns/${created.campaign.id}/tactic`)}
-                className="flex-1 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Layers className="w-4 h-4" />
-                Go to Tactic creation
-              </button>
+              {isApproved(created.campaign.status) && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/campaigns/${created.campaign.id}/tactic`)}
+                  className="flex-1 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Layers className="w-4 h-4" />
+                  Go to Tactic creation
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => navigate('/overview')}

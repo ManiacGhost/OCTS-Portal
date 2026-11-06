@@ -519,6 +519,7 @@ export async function saveTactic(
     campaign = {
       ...campaign,
       id: `cmp-${Date.now()}`,
+      parentCampaignId: campaign.parentCampaignId ?? campaign.id,
       tactic: undefined,
       channelType: undefined,
       subChannel: undefined,
@@ -530,7 +531,6 @@ export async function saveTactic(
       updatedAt: now,
     };
     db.campaigns.unshift(campaign);
-    db.analytics.totalCampaigns += 1;
   }
   campaign.channelId = data.channelId;
   campaign.channelType = data.channelType;
@@ -579,7 +579,6 @@ export async function deleteTactic(id: string, removeRecord: boolean) {
   if ((campaign.tacticStatus ?? campaign.status) !== 'submitted') throw new Error('Only a tactic pending approval can be deleted');
   if (removeRecord) {
     db.campaigns.splice(i, 1);
-    db.analytics.totalCampaigns = Math.max(0, db.analytics.totalCampaigns - 1);
   } else {
     const { aset_id: _a, tact_id: _t, ...inputs } = campaign.formulaInputs || {};
     campaign.tactic = undefined;

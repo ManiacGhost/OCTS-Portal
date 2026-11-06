@@ -4,7 +4,7 @@ import { RefreshCw, Activity, Plus } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 import { TacticList } from '../components/common/TacticList';
-import { hasTactic } from '../data/approvalStatus';
+import { hasTactic, isApproved } from '../data/approvalStatus';
 import {
   CampaignList,
   CampaignStatusFilter,
@@ -45,13 +45,15 @@ export const OverviewPage: React.FC = () => {
     );
   }
 
-  const countFor = (f: CampaignStatusFilter) => campaigns.filter(c => matchesStatus(c, f)).length;
+  // extra-tactic records are tactics, not campaigns
+  const topLevel = campaigns.filter(c => !c.parentCampaignId);
+  const countFor = (f: CampaignStatusFilter) => topLevel.filter(c => matchesStatus(c, f)).length;
 
   let stats: Stat[] = [];
   switch (user.role) {
     case 'agency':
       stats = [
-        { label: 'All my campaigns', value: campaigns.length, hint: 'Everything I have created', filter: 'all' },
+        { label: 'All my campaigns', value: topLevel.length, hint: 'Everything I have created', filter: 'all' },
         { label: 'Pending review', value: countFor('submitted'), hint: "Waiting for Brand's action", filter: 'submitted' },
         { label: 'Approved', value: countFor('approved'), hint: 'Ready to run', filter: 'approved' },
         { label: 'Rejected', value: countFor('rejected'), hint: 'Sent back to me', filter: 'rejected' },
@@ -60,7 +62,7 @@ export const OverviewPage: React.FC = () => {
       break;
     case 'marketer':
       stats = [
-        { label: 'All campaigns', value: campaigns.length, hint: 'Across every agency', filter: 'all' },
+        { label: 'All campaigns', value: topLevel.length, hint: 'Across every agency', filter: 'all' },
         { label: 'Awaiting my approval', value: countFor('submitted'), hint: 'Action needed', filter: 'submitted' },
         { label: 'Approved', value: countFor('approved'), hint: 'Signed off', filter: 'approved' },
         { label: 'Rejected', value: countFor('rejected'), hint: 'Sent back to agency', filter: 'rejected' },
@@ -68,7 +70,7 @@ export const OverviewPage: React.FC = () => {
       break;
     case 'analytics':
       stats = [
-        { label: 'All campaigns', value: campaigns.length, hint: 'Across every agency', filter: 'all' },
+        { label: 'All campaigns', value: topLevel.length, hint: 'Across every agency', filter: 'all' },
         { label: 'Overall compliance', value: analytics ? `${analytics.overallComplianceRate}%` : '—', hint: 'Target > 95%' },
         { label: 'Open discrepancies', value: analytics ? analytics.recentDiscrepancies.filter(d => !d.resolved).length : 0, hint: 'Needs resolution' },
         { label: 'Active agencies', value: analytics?.activeAgencies ?? agencies.length, hint: 'Partner agencies' },
@@ -76,7 +78,7 @@ export const OverviewPage: React.FC = () => {
       break;
     case 'superadmin':
       stats = [
-        { label: 'All campaigns', value: campaigns.length, hint: 'Across every agency', filter: 'all' },
+        { label: 'All campaigns', value: topLevel.length, hint: 'Across every agency', filter: 'all' },
         { label: 'Partner agencies', value: agencies.length, hint: 'Onboarded' },
         { label: 'Marketers', value: personas.filter(p => p.role === 'marketer').length, hint: 'Brand approvers' },
         { label: 'Master topics', value: keyMessages.length, hint: 'Taxonomy categories' },
@@ -152,8 +154,8 @@ export const OverviewPage: React.FC = () => {
       <div className="space-y-3">
         <div className="inline-flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl border border-slate-200" role="tablist" aria-label="Listing">
           {([
-            ['campaigns', `Campaigns (${campaigns.length})`],
-            ['tactics', `Tactics (${campaigns.filter(hasTactic).length})`],
+            ['campaigns', `Campaigns (${topLevel.length})`],
+            ['tactics', `Tactics (${campaigns.filter(c => hasTactic(c) && isApproved(c.status)).length})`],
           ] as const).map(([key, label]) => (
             <button
               key={key}

@@ -240,10 +240,11 @@ export const CampaignDetailModal: React.FC<{
                 ))}
               </Section>
 
+              {isApproved(c.status) && (
               <Section
                 title={`Tactics (${tactics.length})`}
                 action={
-                  user?.role === 'agency' && (
+                  user?.role === 'agency' && isApproved(c.status) && (
                     <button
                       type="button"
                       onClick={() => navigate(`/campaigns/${c.id}/tactic${hasTactic(c) ? '?new=1' : ''}`)}
@@ -272,6 +273,7 @@ export const CampaignDetailModal: React.FC<{
                   </div>
                 )}
               </Section>
+              )}
             </>
           )}
 
@@ -439,7 +441,9 @@ interface Props {
  * flat list, newest first, with a fuzzy search box and status pills. Channel filtering lives in the
  * tactic listing.
  */
-export const CampaignList: React.FC<Props> = ({ campaigns, statusFilter, onStatusFilterChange }) => {
+export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFilter, onStatusFilterChange }) => {
+  // extra-tactic records are tactics, not campaigns
+  const campaigns = allRecords.filter(c => !c.parentCampaignId);
   const { brands } = usePersona();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -459,10 +463,11 @@ export const CampaignList: React.FC<Props> = ({ campaigns, statusFilter, onStatu
     [brandName(c.brandId), c.campaignName, c.taxonomyString, c.region, c.quarter, c.status, c.agencyOwner,
       ...Object.values(c.formulaInputs || {})].join(' ');
 
-  // tactics created for the same campaign (records sharing the campaign code that carry a tactic)
-  const tacticsByCode = new Map<string, number>();
-  campaigns.forEach(c => hasTactic(c) && tacticsByCode.set(c.campaignCode, (tacticsByCode.get(c.campaignCode) || 0) + 1));
-  const tacticCount = (c: CampaignTaxonomy) => tacticsByCode.get(c.campaignCode) || 0;
+  // A tactic belongs to exactly one campaign: the campaign's own tactic, plus any extra tactic records
+  // that point back to it. Campaigns that merely share a formula never share tactics.
+  const tacticsOf = (c: CampaignTaxonomy) =>
+    allRecords.filter(x => hasTactic(x) && (x.id === c.id || x.parentCampaignId === c.id));
+  const tacticCount = (c: CampaignTaxonomy) => tacticsOf(c).length;
 
   const byStatus = campaigns.filter(c => matchesStatus(c, statusFilter)).sort(byNewest);
   // with a query, best match first; without one, newest first
@@ -535,12 +540,12 @@ export const CampaignList: React.FC<Props> = ({ campaigns, statusFilter, onStatu
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <CampaignFlag status={c.status} plain />
-                  <span
+                  {isApproved(c.status) && <span
                     title="Tactics created for this campaign"
                     className="text-[9px] leading-4 font-bold px-1.5 py-px rounded-full border border-slate-200 bg-white text-slate-600 uppercase tracking-wide whitespace-nowrap"
                   >
                     {tacticCount(c)} {tacticCount(c) === 1 ? 'tactic' : 'tactics'}
-                  </span>
+                  </span>}
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </div>
               </button>
@@ -559,7 +564,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns, statusFilter, onStatu
                   <button
                     type="button"
                     onClick={() => navigate(`/campaigns/new?clone=${c.id}`)}
-                    title="Clone this campaign and its tactic"
+                    title="Clone this campaign (tactics are not copied)"
                     aria-label={`Clone ${c.campaignName}`}
                     className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-navy-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition"
                   >
@@ -575,9 +580,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns, statusFilter, onStatu
       {detail && <CampaignDetailModal
           campaign={detail}
           onClose={() => setDetail(null)}
-          tactics={campaigns
-            .filter(x => x.campaignCode === detail.campaignCode && hasTactic(x))
-            .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))}
+          tactics={tacticsOf(detail).sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))}
         />}
     </div>
   );
