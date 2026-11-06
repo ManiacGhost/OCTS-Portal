@@ -41,7 +41,7 @@ const DOCS: DocSection[] = [
             ? 'Tagging Strategy — decide which dimensions each brand tags on each channel, and see which business questions that answers.'
             : 'Tagging Strategy — decide which dimensions each brand tags on each channel, and see what is tagged where.',
           'Campaigns — build a campaign’s taxonomy string from the approved formula, starting from its Asset and Tactic.',
-          'UTM Generator — turn a campaign and a tagging strategy into a taxonomy string and a tracking URL.',
+          'UTM Generator — part of the campaign flow: after a campaign is created you can create its UTMs straight away, or later from the campaigns list (Open with UTM Generator).',
           'Dictionary — browse every approved value and abbreviation.',
           ...(AUTOTAG_ENABLED ? ['Auto Tagging — review the AI’s suggested tags for IVA slides and give feedback.'] : []),
         ],

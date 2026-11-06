@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, Layers, Inbox, X, Copy, Check } from 'lucide-react';
+import { ChevronRight, Inbox, X, Copy, Check, Link2, CopyPlus, Pencil, Search, Plus, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthContext';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
+import { fuzzyFilter } from './fuzzy';
+import { tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel } from '../../data/approvalStatus';
+import { ConfirmDialog } from './ConfirmDialog';
+import { CampaignFlag, TacticFlag, STATUS_BADGE } from './StatusFlags';
 
-export type CampaignStatusFilter = 'all' | 'draft' | 'submitted' | 'approved' | 'rejected';
+export type CampaignStatusFilter = 'all' | 'draft' | 'submitted' | 'approved' | 'rejected' | 'notactic';
 
 const FILTERS: { key: CampaignStatusFilter; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -12,19 +18,19 @@ const FILTERS: { key: CampaignStatusFilter; label: string }[] = [
   { key: 'submitted', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
+  { key: 'notactic', label: 'No tactic' },
 ];
 
-const STATUS_BADGE: Record<string, string> = {
-  draft: 'bg-slate-100 text-slate-700 border-slate-200',
-  submitted: 'bg-amber-100 text-amber-800 border-amber-200',
-  approved: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  active: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  rejected: 'bg-slate-700 text-white border-slate-700',
-};
 
+/**
+ * A campaign matches a status by its own approval status: an approved campaign is "Approved" even
+ * while one of its tactics is pending or rejected.
+ */
 export function matchesStatus(c: CampaignTaxonomy, f: CampaignStatusFilter): boolean {
   if (f === 'all') return true;
-  if (f === 'approved') return c.status === 'approved' || c.status === 'active';
+  // a rejected campaign belongs under Rejected, even if it never got a tactic
+  if (f === 'notactic') return !hasTactic(c) && c.status !== 'rejected';
+  if (f === 'approved') return isApproved(c.status);
   return c.status === f;
 }
 
@@ -41,15 +47,116 @@ const Row: React.FC<{ label: string; children: React.ReactNode; mono?: boolean }
   </div>
 );
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+const Section: React.FC<{ title: string; action?: React.ReactNode; children: React.ReactNode }> = ({ title, action, children }) => (
   <div className="space-y-0.5">
-    <h4 className="text-xs font-extrabold text-slate-900 pt-2">{title}</h4>
+    <div className="flex items-center gap-3 pt-2">
+      <h4 className="text-xs font-extrabold text-slate-900">{title}</h4>
+      {action}
+    </div>
     <div>{children}</div>
   </div>
 );
 
-const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () => void }> = ({ campaign: c, onClose }) => {
-  const { brands, therapeuticAreas, keyMessages, channels } = usePersona();
+const TacticItem: React.FC<{
+  t: CampaignTaxonomy;
+  isAgency: boolean;
+  canUtm: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  onUtm: () => void;
+}> = ({ t, isAgency, canUtm, onDelete, onEdit, onUtm }) => {
+  const [open, setOpen] = useState(false);
+  const status = tacticStatusOf(t);
+  return (
+    <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className="flex-1 min-w-0 flex items-center gap-2 text-left"
+        >
+          <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} />
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-slate-900 truncate">
+              <span className="text-navy-700">{t.channelType || '—'}</span>
+              {t.subChannel && <span className="text-slate-500 font-semibold"> · {t.subChannel}</span>}
+              <span className="text-slate-400 font-normal"> · </span>
+              {t.tactic?.publisher || 'Publisher not set'}
+              {t.tactic?.placement && <span className="text-slate-500 font-medium"> — {t.tactic.placement}</span>}
+            </div>
+            {t.assetId && <div className="text-[10px] font-mono text-slate-500 truncate">{t.assetId}</div>}
+          </div>
+        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {status && <TacticFlag status={status} />}
+          {isAgency && status === 'submitted' && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-white hover:bg-red-50 border border-red-200 rounded-lg px-2 py-1 transition"
+            >
+              <Trash2 className="w-3 h-3" /> Delete
+            </button>
+          )}
+          {isAgency && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 transition"
+            >
+              <Pencil className="w-3 h-3" /> Edit tactic
+            </button>
+          )}
+        </div>
+      </div>
+      {open && (
+        <div className="bg-white border-t border-slate-200 px-4 py-1">
+          <Row label="Channel">{t.channelType}</Row>
+          <Row label="Sub-channel">{t.subChannel}</Row>
+          <Row label="Publisher / Platform">{t.tactic?.publisher}</Row>
+          <Row label="Placement">{t.tactic?.placement}</Row>
+          <Row label="Creative / Asset ID" mono>{t.assetId}</Row>
+          <Row label="Target audience">{t.tactic?.targetAudience}</Row>
+          <Row label="Landing page URL" mono>{t.tactic?.landingPageUrl}</Row>
+          <Row label="Start – end">{t.tactic ? `${t.tactic.startDate} → ${t.tactic.endDate}` : undefined}</Row>
+          <Row label="Tactic status">{status ? statusLabel(status) : undefined}</Row>
+          {status === 'rejected' && (
+            <div className="my-2 bg-red-50 border border-red-200 rounded-xl p-3 space-y-1 text-xs text-red-900">
+              <div className="font-extrabold">Marketer feedback</div>
+              <p>{t.reviewNotes?.tactic || 'No comment was left.'}</p>
+            </div>
+          )}
+          {canUtm && isApproved(status) && (
+            <div className="flex justify-end py-2.5">
+              <button
+                type="button"
+                onClick={onUtm}
+                className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-navy-600 hover:bg-navy-700 rounded-lg px-3.5 py-1.5 transition shadow-sm"
+              >
+                <Link2 className="w-3.5 h-3.5" /> Open with UTM Generator
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const STATUS_BADGE_CLASS = STATUS_BADGE;
+
+export const CampaignDetailModal: React.FC<{
+  campaign: CampaignTaxonomy;
+  onClose: () => void;
+  /** Campaign mode: show only the creation fields and these tactics (one row per tactic). */
+  tactics?: CampaignTaxonomy[];
+}> = ({ campaign: c, onClose, tactics }) => {
+  const { brands, therapeuticAreas, keyMessages, channels, deleteCampaign, deleteTactic } = usePersona();
+  const [confirmDel, setConfirmDel] = useState<null | { kind: 'campaign' } | { kind: 'tactic'; t: CampaignTaxonomy }>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -77,7 +184,7 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
       onClick={onClose}
     >
       <div
-        className="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl"
+        className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -89,7 +196,7 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
                   STATUS_BADGE[c.status] || STATUS_BADGE.draft
                 }`}
               >
-                {c.status}
+                {statusLabel(c.status)}
               </span>
               <span className="text-[11px] font-mono text-slate-500">{c.complianceScore}% compliant</span>
             </div>
@@ -117,10 +224,64 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
             </div>
           </div>
 
+          {c.status === 'rejected' && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1.5 text-xs text-red-900">
+              <div className="font-extrabold">Marketer feedback</div>
+              <p>{c.reviewNotes?.campaign || c.notes || 'No comment was left.'}</p>
+            </div>
+          )}
+
+          {tactics && (
+            <>
+              <Section title="Campaign details">
+                <Row label="Product">{brand ? `${brand.name} (${brand.code})` : c.brandId}</Row>
+                {CAMPAIGN_FORMULA.filter(t => t.source !== 'brand').map(t => (
+                  <Row key={t.key} label={t.label} mono>{c.formulaInputs?.[t.key] || undefined}</Row>
+                ))}
+              </Section>
+
+              <Section
+                title={`Tactics (${tactics.length})`}
+                action={
+                  user?.role === 'agency' && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/campaigns/${c.id}/tactic${hasTactic(c) ? '?new=1' : ''}`)}
+                      className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 transition"
+                    >
+                      <Plus className="w-3 h-3" /> Add tactic
+                    </button>
+                  )
+                }
+              >
+                {tactics.length === 0 ? (
+                  <div className="py-2 text-xs text-slate-500">No tactics have been created for this campaign yet.</div>
+                ) : (
+                  <div className="space-y-2 pt-2">
+                    {tactics.map(t => (
+                      <TacticItem
+                        key={t.id}
+                        t={t}
+                        isAgency={user?.role === 'agency'}
+                        canUtm={!!user && user.role !== 'superadmin'}
+                        onUtm={() => navigate(`/utm?campaign=${t.id}`)}
+                        onDelete={() => setConfirmDel({ kind: 'tactic', t })}
+                        onEdit={() => navigate(`/campaigns/${t.id}/tactic`)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </Section>
+            </>
+          )}
+
+          {!tactics && (
+            <>
           <Section title="Identity">
             <Row label="Campaign ID" mono>{c.id}</Row>
             <Row label="Campaign code" mono>{c.campaignCode}</Row>
-            <Row label="Status">{c.status}</Row>
+            <Row label="Campaign status">{statusLabel(c.status)}</Row>
+            {visibleTacticStatus(c) && <Row label="Tactic status">{statusLabel(visibleTacticStatus(c))}</Row>}
             <Row label="Compliance">{c.complianceScore}%</Row>
           </Section>
 
@@ -138,6 +299,17 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
             <Row label="Sub-channel">{c.subChannel}</Row>
             <Row label="Format">{c.format}</Row>
           </Section>
+
+          {c.tactic && (
+            <Section title="Tactic">
+                            <Row label="Publisher / Platform">{c.tactic.publisher}</Row>
+              <Row label="Placement">{c.tactic.placement}</Row>
+              <Row label="Creative / Asset ID" mono>{c.assetId}</Row>
+              <Row label="Target audience">{c.tactic.targetAudience}</Row>
+              <Row label="Landing page URL" mono>{c.tactic.landingPageUrl}</Row>
+              <Row label="Start – end">{c.tactic.startDate} → {c.tactic.endDate}</Row>
+            </Section>
+          )}
 
           {c.formulaInputs && Object.keys(c.formulaInputs).length > 0 && (
             <Section title="Formula inputs">
@@ -172,8 +344,84 @@ const CampaignDetailModal: React.FC<{ campaign: CampaignTaxonomy; onClose: () =>
               <p className="text-xs text-slate-700 py-2">{c.notes}</p>
             </Section>
           )}
+            </>
+          )}
         </div>
+
+        {/* Actions */}
+        {user && user.role !== 'superadmin' && (
+          <div className="flex flex-wrap items-center justify-end gap-2 p-4 border-t border-slate-100">
+            {user.role === 'agency' && (
+              <>
+                {c.status === 'submitted' && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDel({ kind: 'campaign' })}
+                    className="flex items-center gap-1.5 text-[11px] font-bold text-red-700 bg-white hover:bg-red-50 border border-red-200 rounded-lg px-3 py-1.5 transition mr-auto"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete campaign
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/campaigns/${c.id}/edit`)}
+                  className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 transition"
+                >
+                  <Pencil className="w-3.5 h-3.5" /> Edit campaign
+                </button>
+                {!tactics && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/campaigns/${c.id}/tactic`)}
+                  className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 transition"
+                >
+                  <Pencil className="w-3.5 h-3.5" /> {hasTactic(c) ? 'Edit tactic' : 'Add tactic'}
+                </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/campaigns/new?clone=${c.id}`)}
+                  className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 transition"
+                >
+                  <CopyPlus className="w-3.5 h-3.5" /> Clone
+                </button>
+              </>
+            )}
+            {!tactics && (
+            <button
+              type="button"
+              onClick={() => navigate(`/utm?campaign=${c.id}`)}
+              className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-navy-600 hover:bg-navy-700 rounded-lg px-3.5 py-1.5 transition shadow-sm"
+            >
+              <Link2 className="w-3.5 h-3.5" /> Open with UTM Generator
+            </button>
+            )}
+          </div>
+        )}
       </div>
+      {confirmDel && (
+        <ConfirmDialog
+          title={confirmDel.kind === 'campaign' ? 'Delete this campaign?' : 'Delete this tactic?'}
+          message={
+            confirmDel.kind === 'campaign'
+              ? 'This campaign is pending approval. Deleting it also removes its tactic. This cannot be undone.'
+              : 'This tactic is pending approval. Deleting it cannot be undone.'
+          }
+          confirmLabel="Delete"
+          busy={deleting}
+          onCancel={() => setConfirmDel(null)}
+          onConfirm={async () => {
+            setDeleting(true);
+            const ok =
+              confirmDel.kind === 'campaign'
+                ? await deleteCampaign(c.id)
+                : await deleteTactic(confirmDel.t.id, confirmDel.t.id !== c.id);
+            setDeleting(false);
+            setConfirmDel(null);
+            if (ok && (confirmDel.kind === 'campaign' || tactics === undefined)) onClose();
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -186,64 +434,65 @@ interface Props {
   onStatusFilterChange: (f: CampaignStatusFilter) => void;
 }
 
-export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, onStatusFilterChange }) => {
-  const { channels, brands } = usePersona();
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+/**
+ * The campaign listing. Campaigns don't depend on a channel (the formula has none), so this is one
+ * flat list, newest first, with a fuzzy search box and status pills. Channel filtering lives in the
+ * tactic listing.
+ */
+export const CampaignList: React.FC<Props> = ({ campaigns, statusFilter, onStatusFilterChange }) => {
+  const { brands } = usePersona();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  // the UTM Generator is open to agencies, marketers and analytics
+  const canUtm = !!user && user.role !== 'superadmin';
+  // agencies build campaigns: they can add / edit a tactic and clone a campaign
+  const isAgency = user?.role === 'agency';
   const [detail, setDetail] = useState<CampaignTaxonomy | null>(null);
-  const [pickedChannel, setPickedChannel] = useState<string>(''); // '' = auto, 'all', or a channel id
+  const [query, setQuery] = useState('');
 
-  const visible = campaigns.filter(c => matchesStatus(c, statusFilter));
   const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(' ')[0] || id || '—';
+  // most recently created or changed first, so an edited campaign jumps to the top
+  const byNewest = (a: CampaignTaxonomy, b: CampaignTaxonomy) =>
+    (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '');
 
-  const known = new Set(channels.map(c => c.id));
-  const groups: { id: string; name: string; code: string; items: CampaignTaxonomy[] }[] = channels.map(ch => ({
-    id: ch.id,
-    name: ch.name,
-    code: ch.code,
-    items: visible.filter(c => c.channelId === ch.id),
-  }));
-  const orphans = visible.filter(c => !known.has(c.channelId));
-  if (orphans.length) groups.push({ id: '__other', name: 'Other / Unassigned Channel', code: '—', items: orphans });
-  const nonEmpty = groups.filter(g => g.items.length > 0);
+  const searchText = (c: CampaignTaxonomy) =>
+    [brandName(c.brandId), c.campaignName, c.taxonomyString, c.region, c.quarter, c.status, c.agencyOwner,
+      ...Object.values(c.formulaInputs || {})].join(' ');
 
-  // One channel at a time: default to the first channel that has campaigns.
-  const activeChannel = pickedChannel || nonEmpty[0]?.id || 'all';
-  const shown = activeChannel === 'all' ? nonEmpty : nonEmpty.filter(g => g.id === activeChannel);
+  // tactics created for the same campaign (records sharing the campaign code that carry a tactic)
+  const tacticsByCode = new Map<string, number>();
+  campaigns.forEach(c => hasTactic(c) && tacticsByCode.set(c.campaignCode, (tacticsByCode.get(c.campaignCode) || 0) + 1));
+  const tacticCount = (c: CampaignTaxonomy) => tacticsByCode.get(c.campaignCode) || 0;
 
-  // Status-pill counts are scoped to the selected channel.
-  const channelScoped = activeChannel === 'all' ? campaigns : campaigns.filter(c => c.channelId === activeChannel);
+  const byStatus = campaigns.filter(c => matchesStatus(c, statusFilter)).sort(byNewest);
+  // with a query, best match first; without one, newest first
+  const visible = query.trim()
+    ? fuzzyFilter(byStatus, query, searchText, true).map(r => r.item)
+    : byStatus;
 
   return (
     <div className="space-y-4">
-      {/* Channel + status pickers */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Channel</label>
-          <select
-            value={activeChannel}
-            onChange={e => setPickedChannel(e.target.value)}
-            className="bg-white border border-slate-300 text-slate-900 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-navy-500 shadow-sm"
-          >
-            <option value="all">All channels ({visible.length})</option>
-            {channels.map(ch => {
-              const n = visible.filter(c => c.channelId === ch.id).length;
-              return (
-                <option key={ch.id} value={ch.id}>
-                  {ch.name} ({n})
-                </option>
-              );
-            })}
-          </select>
+      <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="relative lg:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search campaigns…"
+            aria-label="Search campaigns"
+            className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-navy-500 shadow-sm"
+          />
         </div>
-
         <div className="flex flex-wrap items-center gap-2">
           {FILTERS.map(f => {
-            const count = channelScoped.filter(c => matchesStatus(c, f.key)).length;
+            const count = campaigns.filter(c => matchesStatus(c, f.key)).length;
             const active = statusFilter === f.key;
             return (
               <button
                 key={f.key}
                 onClick={() => onStatusFilterChange(f.key)}
+                aria-pressed={active}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
                   active
                     ? 'bg-navy-600 text-white border-navy-600'
@@ -258,91 +507,78 @@ export const CampaignsByChannel: React.FC<Props> = ({ campaigns, statusFilter, o
         </div>
       </div>
 
-      {shown.length === 0 ? (
+      {visible.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-sm text-slate-400">
           <Inbox className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-          No campaigns in this view.
+          {query.trim() ? `No campaigns match “${query.trim()}”.` : 'No campaigns in this view.'}
         </div>
       ) : (
-        <div className="space-y-3">
-          {shown.map(group => {
-            const isCollapsed = collapsed[group.id];
-            const formats = Array.from(new Set(group.items.map(c => c.subChannel || c.format || 'Unspecified')));
-            return (
-              <div key={group.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <button
-                  onClick={() => setCollapsed(p => ({ ...p, [group.id]: !p[group.id] }))}
-                  className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 transition text-left"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {isCollapsed ? (
-                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                    )}
-                    <Layers className="w-4 h-4 text-navy-600 shrink-0" />
-                    <span className="font-bold text-slate-900 text-sm truncate">{group.name}</span>
-                    <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                      {group.code}
-                    </span>
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 space-y-2">
+          {visible.map(c => (
+            <div
+              key={c.id}
+              className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl pr-2 hover:border-navy-300 hover:bg-white transition"
+            >
+              <button
+                type="button"
+                onClick={() => setDetail(c)}
+                title="View full campaign details"
+                className="flex-1 min-w-0 flex items-center justify-between gap-3 px-3 py-2 text-left"
+              >
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {brandName(c.brandId)} <span className="text-slate-400 font-normal">·</span> {c.campaignName}
                   </div>
-                  <span className="text-xs font-bold text-slate-500 shrink-0">
-                    {group.items.length} campaign{group.items.length === 1 ? '' : 's'}
+                  <div className="text-[10px] font-mono text-slate-500 truncate">
+                    {c.campaignCode} · {c.region} · {c.quarter}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <CampaignFlag status={c.status} plain />
+                  <span
+                    title="Tactics created for this campaign"
+                    className="text-[9px] leading-4 font-bold px-1.5 py-px rounded-full border border-slate-200 bg-white text-slate-600 uppercase tracking-wide whitespace-nowrap"
+                  >
+                    {tacticCount(c)} {tacticCount(c) === 1 ? 'tactic' : 'tactics'}
                   </span>
-                </button>
-
-                {!isCollapsed && (
-                  <div className="border-t border-slate-100 divide-y divide-slate-100">
-                    {formats.map(fmt => {
-                      const rows = group.items.filter(c => (c.subChannel || c.format || 'Unspecified') === fmt);
-                      return (
-                        <div key={fmt} className="p-3 space-y-2">
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 px-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-navy-400" />
-                            {fmt}
-                            <span className="text-slate-300">· {rows.length}</span>
-                          </div>
-                          {rows.map(c => (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onClick={() => setDetail(c)}
-                              title="View full campaign details"
-                              className="w-full flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-left hover:border-navy-300 hover:bg-white transition"
-                            >
-                              <div className="min-w-0">
-                                <div className="text-xs font-bold text-slate-900 truncate">
-                                  {brandName(c.brandId)} <span className="text-slate-400 font-normal">·</span> {c.campaignName}
-                                </div>
-                                <div className="text-[10px] font-mono text-slate-500 truncate">
-                                  {c.campaignCode} · {c.region} · {c.quarter}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[10px] font-mono text-slate-500">{c.complianceScore}%</span>
-                                <span
-                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${
-                                    STATUS_BADGE[c.status] || STATUS_BADGE.draft
-                                  }`}
-                                >
-                                  {c.status}
-                                </span>
-                                <ChevronRight className="w-4 h-4 text-slate-300" />
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </div>
+              </button>
+              {isAgency && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/campaigns/${c.id}/edit`)}
+                    title="Edit this campaign"
+                    aria-label={`Edit campaign ${c.campaignName}`}
+                    className="flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 transition"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    <span className="hidden md:inline">Edit campaign</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/campaigns/new?clone=${c.id}`)}
+                    title="Clone this campaign and its tactic"
+                    aria-label={`Clone ${c.campaignName}`}
+                    className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-navy-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+                  >
+                    <CopyPlus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
-      {detail && <CampaignDetailModal campaign={detail} onClose={() => setDetail(null)} />}
+      {detail && <CampaignDetailModal
+          campaign={detail}
+          onClose={() => setDetail(null)}
+          tactics={campaigns
+            .filter(x => x.campaignCode === detail.campaignCode && hasTactic(x))
+            .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))}
+        />}
     </div>
   );
 };

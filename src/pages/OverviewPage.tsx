@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Activity, Plus } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
+import { TacticList } from '../components/common/TacticList';
+import { hasTactic } from '../data/approvalStatus';
 import {
-  CampaignsByChannel,
+  CampaignList,
   CampaignStatusFilter,
   matchesStatus,
 } from '../components/common/CampaignsByChannel';
@@ -30,6 +32,7 @@ export const OverviewPage: React.FC = () => {
   const { isLoading, campaigns, analytics, agencies, personas, keyMessages, auditLogs } = usePersona();
 
   const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>('all');
+  const [listTab, setListTab] = useState<'campaigns' | 'tactics'>('campaigns');
 
   if (!user) return null;
 
@@ -51,6 +54,7 @@ export const OverviewPage: React.FC = () => {
         { label: 'All my campaigns', value: campaigns.length, hint: 'Everything I have created', filter: 'all' },
         { label: 'Pending review', value: countFor('submitted'), hint: 'Waiting on the marketer', filter: 'submitted' },
         { label: 'Approved', value: countFor('approved'), hint: 'Ready to run', filter: 'approved' },
+        { label: 'Rejected', value: countFor('rejected'), hint: 'Sent back to me', filter: 'rejected' },
         { label: 'Drafts', value: countFor('draft'), hint: 'Not submitted yet', filter: 'draft' },
       ];
       break;
@@ -108,7 +112,7 @@ export const OverviewPage: React.FC = () => {
       </div>
 
       {/* Headline stats — clickable ones filter the list below */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 gap-4 ${stats.length > 5 ? 'lg:grid-cols-6' : stats.length > 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
         {stats.map(s => {
           const clickable = !!s.filter;
           const active = clickable && statusFilter === s.filter;
@@ -117,7 +121,12 @@ export const OverviewPage: React.FC = () => {
               key={s.label}
               type="button"
               disabled={!clickable}
-              onClick={() => s.filter && setStatusFilter(s.filter)}
+              onClick={() => {
+                if (s.filter) {
+                  setStatusFilter(s.filter);
+                  setListTab('campaigns');
+                }
+              }}
               className={`text-left bg-white border rounded-2xl p-5 shadow-sm transition ${
                 active
                   ? 'border-navy-500 ring-2 ring-navy-500/30'
@@ -127,7 +136,7 @@ export const OverviewPage: React.FC = () => {
               }`}
             >
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{s.label}</div>
-              <div className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">{s.value}</div>
+              <div className={`text-3xl font-extrabold tracking-tight mt-1 ${s.filter === 'rejected' ? 'text-red-600' : 'text-slate-900'}`}>{s.value}</div>
               {s.hint && <div className="text-[11px] text-slate-400 font-medium mt-1">{s.hint}</div>}
               {clickable && (
                 <div className={`text-[10px] font-bold mt-2 ${active ? 'text-navy-600' : 'text-slate-300'}`}>
@@ -139,14 +148,32 @@ export const OverviewPage: React.FC = () => {
         })}
       </div>
 
-      {/* Campaigns grouped by promotional channel → sub-channel */}
+      {/* Campaign listing / tactic listing */}
       <div className="space-y-3">
-        <h2 className="text-sm font-bold text-slate-900">Campaigns by promotional channel</h2>
-        <CampaignsByChannel
-          campaigns={campaigns}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-        />
+        <div className="inline-flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl border border-slate-200" role="tablist" aria-label="Listing">
+          {([
+            ['campaigns', `Campaigns (${campaigns.length})`],
+            ['tactics', `Tactics (${campaigns.filter(hasTactic).length})`],
+          ] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={listTab === key}
+              onClick={() => setListTab(key)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                listTab === key ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {listTab === 'campaigns' ? (
+          <CampaignList campaigns={campaigns} statusFilter={statusFilter} onStatusFilterChange={setStatusFilter} />
+        ) : (
+          <TacticList campaigns={campaigns} />
+        )}
       </div>
 
       {/* Recent activity — superadmin only */}

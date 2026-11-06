@@ -115,6 +115,28 @@ export const INITIAL_PERSONAS: UserPersona[] = [
     permissions: ['campaign:create', 'campaign:edit_draft', 'autotag:run', 'taxonomy:view', 'export:agency_sheet'],
   },
   {
+    id: 'persona-agency-tecartus',
+    name: 'Priya Nair',
+    email: 'priya.nair@cmi-media.com',
+    role: 'agency',
+    roleTitle: 'Campaign & Tagging Specialist',
+    department: 'Campaign Ops',
+    organization: 'CMI Media',
+    avatarBg: 'bg-teal-600',
+    badgeColor: 'bg-teal-100 text-teal-800 border-teal-200',
+    description:
+      'Builds Tecartus campaign taxonomy and tactics for the agency and submits them for marketer approval. Has access to the Tecartus brand only.',
+    status: 'active',
+    assignedBrands: ['Tecartus®'],
+    assignedTherapeuticAreas: ['Hematologic Malignancies'],
+    primaryTasks: [
+      'Create Tecartus campaigns from the approved Campaign Name formula',
+      'Add tactics (channel, publisher, placement, asset) and generate UTMs',
+      'Resubmit campaigns and tactics after marketer feedback',
+    ],
+    permissions: ['campaign:create', 'campaign:edit_draft', 'taxonomy:view', 'export:agency_sheet'],
+  },
+  {
     id: 'persona-marketer',
     name: 'Dr. Marcus Vance',
     email: 'marcus.vance@biopharma-enterprise.com',

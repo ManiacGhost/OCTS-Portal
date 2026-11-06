@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserPersona } from '../types';
 import { loginRequest, pinSession } from '../services/api';
+import { clearActiveBrand } from '../data/activeBrandStore';
 
 const SESSION_KEY = 'omnia.session';
 
@@ -71,6 +72,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await loginRequest(email, password);
       if (res.success && res.user) {
+        // every sign-in starts by choosing a brand
+        clearActiveBrand();
         setUser(res.user);
         writeSession({ personaId: res.user.id });
         return { ok: true, user: res.user };
@@ -84,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    clearActiveBrand();
     writeSession(null);
     setUser(null);
   };

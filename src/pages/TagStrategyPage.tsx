@@ -156,7 +156,7 @@ export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ v
 
       {mode === 'view' && (
         <>
-          {/* the current-state table is brand-independent, so no brand picker there */}
+          {/* Summary: the app-wide brand filter (logos). The old per-brand screen keeps its own picker below. */}
           {isBrand && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Brand</span>

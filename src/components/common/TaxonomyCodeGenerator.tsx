@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Code, Copy, Check, CheckCircle2, Sparkles, ArrowRight, Link2 } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
@@ -39,11 +40,11 @@ const quarterToDate = (quarter: string): string => {
 };
 
 export const TaxonomyCodeGenerator: React.FC = () => {
-  const { brands, campaigns, keyMessages, showToast } = usePersona();
+  const { brands, activeBrand, campaigns, keyMessages, showToast } = usePersona();
   const bs = useBrandStrategy();
 
   const [linkedId, setLinkedId] = useState('');
-  const [brandId, setBrandId] = useState(brands[0]?.id || 'brand-yescarta');
+  const [brandId, setBrandId] = useState(activeBrand?.id || brands[0]?.id || 'brand-yescarta');
   const [channelType, setChannelType] = useState<string>('Digital');
   const [subChannel, setSubChannel] = useState<string>(kiteSubChannels('Digital')[0] || '');
   const [indication, setIndication] = useState(INDICATIONS[0]);
@@ -95,6 +96,14 @@ export const TaxonomyCodeGenerator: React.FC = () => {
     if (c.quarter) setLaunchDate(quarterToDate(c.quarter));
     if (c.utmCampaign) setCampaignSlug(c.utmCampaign);
   };
+
+  // Arrived from the campaign flow / a campaign listing (?campaign=<id>): link that campaign once.
+  const [searchParams] = useSearchParams();
+  const wantedId = searchParams.get('campaign') || '';
+  useEffect(() => {
+    if (wantedId && wantedId !== linkedId && campaigns.some(c => c.id === wantedId)) linkCampaign(wantedId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantedId, campaigns.length]);
 
   // Everything the generator already knows about this campaign — for auto-matching dimensions.
   const facts = useMemo(() => {
@@ -302,7 +311,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
               disabled={locked}
               className={locked ? lockedField : field}
             >
-              {brands.map(b => (
+              {(activeBrand ? [activeBrand] : brands).map(b => (
                 <option key={b.id} value={b.id}>
                   {b.name.split(/[ (]/)[0]} ({b.code})
                 </option>
@@ -419,7 +428,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
             Tagging-strategy dimensions &mdash; {scopeLabel}
           </div>
           <Link
-            to="/brand-strategy"
+            to="/tagging-strategy"
             className="flex items-center gap-1 text-[11px] font-bold text-navy-700 hover:text-navy-900"
           >
             Edit strategy
@@ -431,7 +440,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-900">
             No tagging strategy set for <b>{brandWord}</b> &middot; {scopeLabel}. Choose which dimensions this
             brand tags in{' '}
-            <Link to="/brand-strategy" className="font-bold underline">
+            <Link to="/tagging-strategy" className="font-bold underline">
               Tagging Strategy
             </Link>
             , then they appear here as editable UTM fields.

@@ -12,6 +12,8 @@ import {
   ProgramOverview,
 } from '../types';
 import * as api from '../services/api';
+import { useAuth } from '../auth/AuthContext';
+import { useActiveBrandId, setActiveBrandFor } from '../data/activeBrandStore';
 import { INITIAL_PROGRAMS } from '../data/mockData';
 
 interface NotificationToast {
@@ -44,7 +46,14 @@ interface PersonaContextType {
 
   // Taxonomy Master & Programs
   therapeuticAreas: TherapeuticArea[];
+  /** Brands this user may work in (all of them for an admin). */
   brands: Brand[];
+  allowedBrands: Brand[];
+  /** The brand the portal is currently scoped to; null until the user has picked one. */
+  activeBrand: Brand | null;
+  setActiveBrand: (brandId: string) => void;
+  brandPickerOpen: boolean;
+  setBrandPickerOpen: (open: boolean) => void;
   keyMessages: KeyMessageCategory[];
   channels: ChannelTaxonomy[];
   programs: ProgramOverview[];
@@ -55,6 +64,12 @@ interface PersonaContextType {
   refreshCampaigns: () => Promise<void>;
   addCampaign: (campaignData: Partial<CampaignTaxonomy>) => Promise<CampaignTaxonomy | null>;
   changeCampaignStatus: (id: string, status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'active', notes?: string) => Promise<boolean>;
+  saveTactic: (id: string, data: Parameters<typeof api.saveTactic>[1]) => Promise<CampaignTaxonomy | null>;
+  deleteCampaign: (id: string) => Promise<boolean>;
+  deleteTactic: (id: string, removeRecord: boolean) => Promise<boolean>;
+  submitForApproval: (id: string) => Promise<boolean>;
+  editCampaign: (id: string, patch: Parameters<typeof api.updateCampaign>[1]) => Promise<CampaignTaxonomy | null>;
+  reviewCampaign: (id: string, scope: ('campaign' | 'tactic')[], status: 'approved' | 'rejected', notes?: string) => Promise<boolean>;
 
   // Analytics
   analytics: AnalyticsSummary | null;
@@ -79,12 +94,14 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedMarket, setSelectedMarket] = useState<string>('US Commercial');
 
   const [therapeuticAreas, setTherapeuticAreas] = useState<TherapeuticArea[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const [allBrands, setBrands] = useState<Brand[]>([]);
   const [keyMessages, setKeyMessages] = useState<KeyMessageCategory[]>([]);
   const [channels, setChannels] = useState<ChannelTaxonomy[]>([]);
   const [programs] = useState<ProgramOverview[]>(INITIAL_PROGRAMS);
 
-  const [campaigns, setCampaigns] = useState<CampaignTaxonomy[]>([]);
+  const [allCampaigns, setCampaigns] = useState<CampaignTaxonomy[]>([]);
+  const [brandPickerOpen, setBrandPickerOpen] = useState(false);
+  const { user } = useAuth();
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [auditLogs, setAuditLogs] = useState<SystemAuditLog[]>([]);
 
@@ -218,6 +235,85 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const refreshAfterWrite = async () => {
+    await refreshCampaigns();
+    await refreshAnalytics();
+    await refreshAuditLogs();
+  };
+
+  const saveTactic = async (id: string, data: Parameters<typeof api.saveTactic>[1]): Promise<CampaignTaxonomy | null> => {
+    try {
+      const res = await api.saveTactic(id, data);
+      await refreshAfterWrite();
+      return res.campaign;
+    } catch {
+      showToast('Failed to save the tactic.', 'error');
+      return null;
+    }
+  };
+
+  const deleteCampaign = async (id: string): Promise<boolean> => {
+    try {
+      await api.deleteCampaign(id);
+      await refreshAfterWrite();
+      showToast('Campaign deleted.', 'success');
+      return true;
+    } catch {
+      showToast('Failed to delete the campaign.', 'error');
+      return false;
+    }
+  };
+
+  const deleteTactic = async (id: string, removeRecord: boolean): Promise<boolean> => {
+    try {
+      await api.deleteTactic(id, removeRecord);
+      await refreshAfterWrite();
+      showToast('Tactic deleted.', 'success');
+      return true;
+    } catch {
+      showToast('Failed to delete the tactic.', 'error');
+      return false;
+    }
+  };
+
+  const editCampaign = async (id: string, patch: Parameters<typeof api.updateCampaign>[1]): Promise<CampaignTaxonomy | null> => {
+    try {
+      const res = await api.updateCampaign(id, patch);
+      await refreshAfterWrite();
+      return res.campaign;
+    } catch {
+      showToast('Failed to save the campaign.', 'error');
+      return null;
+    }
+  };
+
+  const submitForApproval = async (id: string): Promise<boolean> => {
+    try {
+      await api.submitForApproval(id);
+      await refreshAfterWrite();
+      return true;
+    } catch {
+      showToast('Failed to submit for approval.', 'error');
+      return false;
+    }
+  };
+
+  const reviewCampaign = async (
+    id: string,
+    scope: ('campaign' | 'tactic')[],
+    status: 'approved' | 'rejected',
+    notes?: string
+  ): Promise<boolean> => {
+    try {
+      await api.reviewCampaign(id, scope, status, notes);
+      await refreshAfterWrite();
+      return true;
+    } catch {
+      showToast('Failed to record the decision.', 'error');
+      return false;
+    }
+  };
+
   const onboardAgency = async (data: Partial<AgencyPartner>): Promise<boolean> => {
     try {
       const res = await api.createAgency(data);
@@ -315,6 +411,34 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // ---- brand scope (role-based access) ----
+  // The admin allocates brands to each user (`assignedBrands`, by brand name). Everyone but an admin
+  // only ever sees those brands, and the portal runs for the one they have picked.
+  const isAdmin = user?.role === 'superadmin';
+  const assigned = (personas.find(p => p.id === user?.id) || user)?.assignedBrands || [];
+  const allowedBrands: Brand[] =
+    !user || isAdmin
+      ? allBrands
+      : assigned.some(n => /^all\b/i.test(n))
+      ? allBrands
+      : allBrands.filter(b =>
+          assigned.some(n => b.id === n || b.code === n || b.name.toLowerCase().startsWith(n.trim().toLowerCase()))
+        );
+  const storedBrandId = useActiveBrandId(user?.id);
+  const activeBrand = isAdmin ? null : allowedBrands.find(b => b.id === storedBrandId) || null;
+  const setActiveBrand = (brandId: string) => {
+    if (user) setActiveBrandFor(user.id, brandId);
+  };
+  // a user with just one brand has nothing to choose
+  useEffect(() => {
+    if (user && !isAdmin && !activeBrand && allowedBrands.length === 1) setActiveBrandFor(user.id, allowedBrands[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, isAdmin, activeBrand?.id, allowedBrands.length]);
+
+  const brands = allowedBrands;
+  // campaigns are scoped to the active brand (an admin sees everything)
+  const campaigns = isAdmin ? allCampaigns : activeBrand ? allCampaigns.filter(c => c.brandId === activeBrand.id) : [];
+
   return (
     <PersonaContext.Provider
       value={{
@@ -337,6 +461,11 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         therapeuticAreas,
         brands,
+        allowedBrands,
+        activeBrand,
+        setActiveBrand,
+        brandPickerOpen,
+        setBrandPickerOpen,
         keyMessages,
         channels,
         programs,
@@ -345,6 +474,12 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         campaigns,
         refreshCampaigns,
         addCampaign,
+        saveTactic,
+        deleteCampaign,
+        deleteTactic,
+        submitForApproval,
+        editCampaign,
+        reviewCampaign,
         changeCampaignStatus,
 
         analytics,

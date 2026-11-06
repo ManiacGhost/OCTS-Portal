@@ -25,6 +25,18 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     description: 'Builds Yescarta & Tecartus taxonomy strings from the approved Kite formulas and submits validated campaigns.'
   },
   {
+    email: 'priya.nair@cmi-media.com',
+    password: 'agency123',
+    personaId: 'persona-agency-tecartus',
+    role: 'agency',
+    name: 'Priya Nair',
+    roleTitle: 'Campaign & Tagging Specialist',
+    organization: 'CMI Media',
+    badgeColor: 'bg-teal-100 text-teal-800 border-teal-200',
+    avatarBg: 'bg-teal-600',
+    description: 'Agency user with access to the Tecartus brand only.'
+  },
+  {
     email: 'marcus.vance@biopharma-enterprise.com',
     password: 'marketer123',
     personaId: 'persona-marketer',

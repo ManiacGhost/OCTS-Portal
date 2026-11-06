@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, Globe } from 'lucide-react';
+import { ChevronDown, LogOut, Globe, ArrowLeftRight } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { homePathFor } from '../../auth/home';
 import { usePersona } from '../../context/PersonaContext';
 import { NotificationToastContainer } from '../common/NotificationToast';
 import { Sidebar } from './Sidebar';
+import { BrandLogo } from '../common/BrandLogo';
 
 export const AppShell: React.FC = () => {
   const { user, logout } = useAuth();
-  const { selectedMarket } = usePersona();
+  const { selectedMarket, activeBrand, allowedBrands, setBrandPickerOpen } = usePersona();
   const navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,10 +44,32 @@ export const AppShell: React.FC = () => {
               <img src="/logo-full.png" alt="Tagging360" className="h-11 w-auto" />
             </Link>
 
-            <div className="hidden md:flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <Globe className="w-3.5 h-3.5 text-slate-400" />
-              <span>Market scope:</span>
-              <span className="text-slate-800">{selectedMarket}</span>
+            {/* market scope, with the brand right beside it */}
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="hidden md:flex items-center gap-2 text-sm font-semibold text-slate-500">
+                <Globe className="w-3.5 h-3.5 text-slate-400" />
+                <span>Market scope:</span>
+                <span className="text-slate-800">{selectedMarket}</span>
+              </div>
+
+              {activeBrand && (
+                <div className="flex items-center gap-2.5 sm:pl-4 sm:border-l border-slate-200">
+                  <span className="hidden sm:inline text-sm font-semibold text-slate-500">Brand:</span>
+                  <span className="text-slate-900" title={activeBrand.name}>
+                    <BrandLogo brand={activeBrand} size="md" />
+                  </span>
+                  {allowedBrands.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setBrandPickerOpen(true)}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-navy-700 bg-white hover:bg-navy-50 border border-navy-200 rounded-lg px-2.5 py-1 transition"
+                    >
+                      <ArrowLeftRight className="w-3 h-3" />
+                      <span>Change brand</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="relative" ref={menuRef}>

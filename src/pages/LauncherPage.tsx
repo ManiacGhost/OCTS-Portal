@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/common/BrandLogo';
 import React from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Route, BookOpen, Link2, Tags, Database, FileText, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
@@ -14,11 +15,11 @@ interface Tile {
 
 /** The four components of Kite's content tagging & taxonomy model then Dictionary. */
 const TILES: Tile[] = [
-  { to: '/brand-strategy', label: 'Brand Tagging Strategy', icon: Route, desc: 'Review and Edit Channel-wise tagging strategy' },
-  { to: '/utm', label: 'GA Tagging', icon: Link2, desc: 'Identifiers attached to every link directing to the brand website — understand the source and measure channel-wise impact.' },
-  { to: '/autotag', label: 'Content Tagging', icon: Tags, desc: 'Tagging assets in VVPM using Content Metadata, so all content in flight has the right info for tracking.', soon: true },
+  { to: '/tagging-strategy', label: 'Brand Tagging Strategy', icon: Route, desc: 'Review and Edit Channel-wise tagging strategy' },
+  { to: '/overview', label: 'Campaign Management (GA)', icon: Link2, desc: 'Create campaigns with the approved taxonomy formula, then generate the UTMs that identify every link to the brand website.' },
+  { to: '/autotag', label: 'Content Tagging/Mapping', icon: Tags, desc: 'Tagging assets in VVPM using Content Metadata, so all content in flight has the right info for tracking.', soon: true },
   { to: '/content-mdm', label: 'Content MDM', icon: Database, desc: 'Establishes and governs the standardized business information and taxonomy that content metadata refers to.' },
-  { to: '/overview', label: 'Content Metadata', icon: FileText, desc: 'Attributes that help understand what type of content an audience is engaging with — Topic, Subtopic, Key Message and more.' },
+  { to: '/content-metadata', label: 'Journey Metadata', icon: FileText, desc: 'Attributes that help understand what type of content an audience is engaging with — Topic, Subtopic, Key Message and more.' },
   { to: '/dictionary', label: 'Dictionary', icon: BookOpen, desc: 'The Kite Digital Taxonomy — approved values and abbreviations, in one shared language.' },
 ];
 
@@ -108,7 +109,7 @@ const PharmaBackdrop: React.FC = () => (
 
 export const LauncherPage: React.FC = () => {
   const { user, logout } = useAuth();
-  const { selectedMarket } = usePersona();
+  const { selectedMarket, activeBrand, allowedBrands, setBrandPickerOpen } = usePersona();
   const navigate = useNavigate();
 
   if (!user) return null;
@@ -144,10 +145,25 @@ export const LauncherPage: React.FC = () => {
                 Your role-based workspace for building and governing omnichannel content taxonomy
                 across the Kite cell-therapy portfolio.
               </p>
-              <p className="text-xs text-navy-200 mt-2">
+              <p className="text-sm text-navy-200 mt-2">
                 Signed in for <span className="text-white font-semibold">{selectedMarket}</span>
                 <span className="text-navy-300"> · {user.roleTitle}</span>
               </p>
+              {activeBrand && (
+                <div className="mt-4 inline-flex items-center gap-3 bg-white rounded-xl pl-3 pr-2 py-2 shadow-md text-slate-900">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Brand</span>
+                  <BrandLogo brand={activeBrand} size="md" />
+                  {allowedBrands.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setBrandPickerOpen(true)}
+                      className="text-[11px] font-bold text-navy-700 bg-navy-50 hover:bg-navy-100 border border-navy-200 rounded-lg px-2.5 py-1 transition"
+                    >
+                      Change brand
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             <button

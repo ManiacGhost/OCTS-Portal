@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X } from 'lucide-react';
+import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X, Plus, Pencil, Check, Search } from 'lucide-react';
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
 import { byLabel, DimGroupKey, dimGroupOf, DIM_GROUP_STYLE, reachChipClass, reachCodeClass, REACH_STYLE } from '../data/dimensionGroups';
+import { fuzzyFilter } from '../components/common/fuzzy';
 import { ReachLegend } from '../components/common/ReachLegend';
 
 interface Scope {
@@ -424,15 +425,23 @@ interface LandscapeRow {
 
 const t = (label: string): LandscapeTag => ({ label });
 
-// GA Tagging carries just the three UTM tags: source, medium, campaign.
+// GA Tagging carries the UTM tags: source, medium, campaign (SFMC email also carries term).
 const UTM_TAGS = [t('Source'), t('Medium'), t('Campaign')];
+/** Extra tags that can be added to a GA Tagging row from the edit-mode picker. */
+const GA_EXTRA_TAGS: string[] = [];
+/** Tags that exist only on one channel row (never offered elsewhere). */
+const ONLY_ON: Record<string, string> = { Term: 'SFMC (email)' };
+/** Tags that must never be offered on a given channel row. */
+const NOT_ON: Record<string, string[]> = {
+  'Website - Pages & HVAs': ['Topic', 'Subtopic', 'Key Message'],
+};
 
 const LANDSCAPE: { category: string; group: 'ga' | 'content'; rows: LandscapeRow[] }[] = [
   {
     category: 'GA Tagging',
     group: 'ga',
     rows: [
-      { channel: 'SFMC (email)', tags: UTM_TAGS },
+      { channel: 'SFMC (email)', tags: [...UTM_TAGS, t('Term')] },
       { channel: 'RTE', tags: UTM_TAGS },
       { channel: 'Paid Media (Medscape/DeepIntent)', tags: UTM_TAGS },
       { channel: 'Paid Search', tags: UTM_TAGS },
@@ -490,69 +499,245 @@ const LANDSCAPE: { category: string; group: 'ga' | 'content'; rows: LandscapeRow
 const TAG_ROWS: Record<string, number> = {};
 LANDSCAPE.forEach(g => g.rows.forEach(r => r.tags.forEach(tag => (TAG_ROWS[tag.label] = (TAG_ROWS[tag.label] || 0) + 1))));
 
-const LandscapeOverview: React.FC = () => (
-  <div className="space-y-4">
-    <ReachLegend className="px-1" />
+const rowKey = (category: string, channel: string) => `${category}|${channel}`;
+const STORE_KEY = 'tagging360.landscape.tags.v2';
 
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
-      <table className="w-full min-w-[640px] table-fixed text-left text-xs border-collapse">
-        <colgroup>
-          <col className="w-36" />
-          <col className="w-60" />
-          <col />
-        </colgroup>
-        <thead className="bg-navy-700 text-white text-[11px] font-bold">
-          <tr>
-            <th className="px-4 py-3 text-center border border-slate-300">Category</th>
-            <th className="px-4 py-3 text-center border border-slate-300">Channel</th>
-            <th className="px-4 py-3 text-center border border-slate-300">Tags</th>
-          </tr>
-        </thead>
-        <tbody>
-          {LANDSCAPE.map(group =>
-            group.rows.map((r, i) => {
-              return (
-                <tr key={group.category + r.channel}>
-                  {i === 0 && (
-                    <td
-                      rowSpan={group.rows.length}
-                      className="bg-slate-50 font-bold text-slate-800 text-[11px] align-middle px-4 border border-slate-300"
-                    >
-                      {group.category}
-                    </td>
-                  )}
-                  <td className="px-4 py-3.5 bg-slate-50 font-bold text-slate-800 text-[11px] align-middle border border-slate-300">
-                    {r.channel}
-                  </td>
-                  <td className="px-4 py-3.5 align-middle border border-slate-300">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {r.tags.map(tag => {
-                        const rs = REACH_STYLE[TAG_ROWS[tag.label] > 1 ? 'common' : 'unique'];
-                        return (
-                          <span
-                            key={tag.label}
-                            className={`inline-flex items-center text-[11px] font-bold border rounded-lg px-2 py-0.5 ${rs.chip}`}
-                          >
-                            {tag.label}
-                          </span>
-                        );
-                      })}
-                      {r.note && (
-                        <span className={`text-[11px] ${r.tags.length ? 'text-slate-400 ml-1' : 'text-slate-500 italic'}`}>
-                          {r.note}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+/** Every tag a row of this group could show (what the "+" picker offers). */
+function poolFor(group: 'ga' | 'content', category: string, channel: string): string[] {
+  const set = new Set<string>();
+  LANDSCAPE.filter(g => g.category === category).forEach(g =>
+    g.rows.forEach(r => r.tags.forEach(x => set.add(x.label)))
+  );
+  if (group === 'ga') GA_EXTRA_TAGS.forEach(x => set.add(x));
+  return Array.from(set).filter(l => (!ONLY_ON[l] || ONLY_ON[l] === channel) && !(NOT_ON[channel] || []).includes(l));
+}
+
+const loadTags = (): Record<string, string[]> => {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    /* ignore */
+  }
+  const out: Record<string, string[]> = {};
+  LANDSCAPE.forEach(g => g.rows.forEach(r => (out[rowKey(g.category, r.channel)] = r.tags.map(x => x.label))));
+  return out;
+};
+
+const AddTagsPicker: React.FC<{
+  anchor: { top: number; left: number };
+  options: string[];
+  onAdd: (labels: string[]) => void;
+  onClose: () => void;
+}> = ({ anchor, options, onAdd, onClose }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [q, setQ] = useState('');
+  const [picked, setPicked] = useState<string[]>([]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onDown);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('mousedown', onDown);
+    };
+  }, [onClose]);
+  const results = fuzzyFilter<string>(options, q, o => o);
+  const toggle = (o: string) => setPicked(p => (p.includes(o) ? p.filter(x => x !== o) : [...p, o]));
+  return (
+    <div
+      ref={ref}
+      role="dialog"
+      aria-label="Add tags"
+      style={{ position: 'fixed', top: anchor.top, left: anchor.left, width: 260 }}
+      className="z-50 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden"
+    >
+      <div className="p-2 border-b border-slate-100 flex items-center gap-2">
+        <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <input
+          autoFocus
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          placeholder="Search tags…"
+          className="w-full text-xs focus:outline-none"
+        />
+      </div>
+      <div className="max-h-52 overflow-y-auto py-1">
+        {options.length === 0 && <p className="px-3 py-2 text-[11px] text-slate-400">All tags are already added.</p>}
+        {options.length > 0 && results.length === 0 && <p className="px-3 py-2 text-[11px] text-slate-400">No match.</p>}
+        {results.map(({ item }) => (
+          <label key={item} className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" checked={picked.includes(item)} onChange={() => toggle(item)} className="accent-navy-600" />
+            {item}
+          </label>
+        ))}
+      </div>
+      <div className="p-2 border-t border-slate-100 flex justify-end gap-2">
+        <button type="button" onClick={onClose} className="px-2.5 py-1 text-[11px] font-bold text-slate-500 rounded-lg hover:bg-slate-50">
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={picked.length === 0}
+          onClick={() => {
+            onAdd(picked);
+            onClose();
+          }}
+          className="px-2.5 py-1 text-[11px] font-bold text-white bg-navy-600 rounded-lg disabled:opacity-40"
+        >
+          Add{picked.length ? ` (${picked.length})` : ''}
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const LandscapeOverview: React.FC = () => {
+  const [editing, setEditing] = useState(false);
+  const [tagsByRow, setTagsByRow] = useState<Record<string, string[]>>(loadTags);
+  const [picker, setPicker] = useState<{ key: string; group: 'ga' | 'content'; category: string; channel: string; top: number; left: number } | null>(null);
+
+  const update = (next: Record<string, string[]>) => {
+    setTagsByRow(next);
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  };
+  const remove = (key: string, label: string) => update({ ...tagsByRow, [key]: (tagsByRow[key] || []).filter(x => x !== label) });
+  const add = (key: string, labels: string[]) => {
+    const cur = tagsByRow[key] || [];
+    update({ ...tagsByRow, [key]: [...cur, ...labels.filter(l => !cur.includes(l))] });
+  };
+
+  // a tag on more than one channel row is multi channel; on exactly one row, single channel (live)
+  const reach: Record<string, number> = {};
+  (Object.values(tagsByRow) as string[][]).forEach(list => list.forEach(l => (reach[l] = (reach[l] || 0) + 1)));
+
+  const pickerOptions = picker
+    ? poolFor(picker.group, picker.category, picker.channel).filter(o => !(tagsByRow[picker.key] || []).includes(o))
+    : [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <ReachLegend className="px-1" />
+        <button
+          type="button"
+          onClick={() => {
+            setEditing(e => !e);
+            setPicker(null);
+          }}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm transition ${
+            editing ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-navy-600 text-white hover:bg-navy-700'
+          }`}
+        >
+          {editing ? <Check className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
+          {editing ? 'Done' : 'Edit strategy'}
+        </button>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[640px] table-fixed text-left text-xs border-collapse">
+          <colgroup>
+            <col className="w-36" />
+            <col className="w-60" />
+            <col />
+          </colgroup>
+          <thead className="bg-navy-700 text-white text-[11px] font-bold">
+            <tr>
+              <th className="px-4 py-3 text-center border border-slate-300">Category</th>
+              <th className="px-4 py-3 text-center border border-slate-300">Channel</th>
+              <th className="px-4 py-3 text-center border border-slate-300">Tags</th>
+            </tr>
+          </thead>
+          <tbody>
+            {LANDSCAPE.map(group =>
+              group.rows.map((r, i) => {
+                const key = rowKey(group.category, r.channel);
+                const tags = tagsByRow[key] || [];
+                return (
+                  <tr key={key}>
+                    {i === 0 && (
+                      <td
+                        rowSpan={group.rows.length}
+                        className="bg-slate-50 font-bold text-slate-800 text-[11px] align-middle px-4 border border-slate-300"
+                      >
+                        {group.category}
+                      </td>
+                    )}
+                    <td className="px-4 py-3.5 bg-slate-50 font-bold text-slate-800 text-[11px] align-middle border border-slate-300">
+                      {r.channel}
+                    </td>
+                    <td className="px-4 py-3.5 align-middle border border-slate-300">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {tags.map(label => {
+                          const rs = REACH_STYLE[reach[label] > 1 ? 'common' : 'unique'];
+                          return (
+                            <span
+                              key={label}
+                              className={`inline-flex items-center gap-1 text-[11px] font-bold border rounded-lg px-2 py-0.5 ${rs.chip}`}
+                            >
+                              {label}
+                              {editing && (
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${label}`}
+                                  onClick={() => remove(key, label)}
+                                  className="rounded hover:bg-black/10 p-0.5 -mr-1"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </span>
+                          );
+                        })}
+                        {editing && (
+                          <button
+                            type="button"
+                            aria-label={`Add tags to ${r.channel}`}
+                            onClick={e => {
+                              const b = e.currentTarget.getBoundingClientRect();
+                              const left = Math.max(8, Math.min(b.left, window.innerWidth - 268));
+                              const top = b.bottom + 6 + 300 > window.innerHeight ? Math.max(8, b.top - 306) : b.bottom + 6;
+                              setPicker(
+                                picker?.key === key ? null : { key, group: group.group, category: group.category, channel: r.channel, top, left }
+                              );
+                            }}
+                            className="inline-flex items-center justify-center w-6 h-6 border border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-navy-500 hover:text-navy-600 transition"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {r.note && tags.length === 0 && !editing && (
+                          <span className="text-[11px] text-slate-500 italic">{r.note}</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {picker && (
+        <AddTagsPicker
+          key={picker.key}
+          anchor={picker}
+          options={pickerOptions}
+          onAdd={labels => add(picker.key, labels)}
+          onClose={() => setPicker(null)}
+        />
+      )}
+    </div>
+  );
+};
 
 /** 'summary' = the brand-independent current-state table; 'brand' = the per-brand tagged-tags view. */
 export const TagStrategyOverview: React.FC<Props & { variant?: 'summary' | 'brand' }> = ({ variant = 'summary', ...props }) =>

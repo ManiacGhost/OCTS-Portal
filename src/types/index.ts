@@ -149,6 +149,24 @@ export interface CampaignTaxonomy {
   createdAt: string;
   updatedAt: string;
   notes?: string;
+  /** Tactic details (step 2 of the creation flow). The channel / sub-channel / creative-asset live
+   *  in `channelId`, `channelType`, `subChannel` and `assetId` above; the rest is here. */
+  tactic?: TacticDetails;
+  /** Approval status of the tactic, tracked separately from the campaign's `status`. When absent on
+   *  a campaign that already has channel details (older records) it follows `status`. */
+  tacticStatus?: 'draft' | 'submitted' | 'approved' | 'rejected' | 'active';
+  /** The marketer's latest note on each part, so a rejected part can be read and fixed. */
+  reviewNotes?: { campaign?: string; tactic?: string };
+}
+
+export interface TacticDetails {
+  publisher: string;
+  placement: string;
+  targetAudience: string;
+  landingPageUrl: string;
+  /** YYYY-MM-DD */
+  startDate: string;
+  endDate: string;
 }
 
 export interface AnalyticsSummary {

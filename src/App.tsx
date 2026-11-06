@@ -16,6 +16,8 @@ import { TagStrategyPage } from './pages/TagStrategyPage';
 import { ContentMdmPage } from './pages/ContentMdmPage';
 import { UtmGeneratorPage } from './pages/UtmGeneratorPage';
 import { HelpPage } from './pages/HelpPage';
+import { TacticPage } from './pages/TacticPage';
+import { BrandGate } from './components/common/BrandGate';
 import { AgencyDashboard } from './components/dashboards/AgencyDashboard';
 import { MarketerDashboard } from './components/dashboards/MarketerDashboard';
 import { AnalyticsDashboard } from './components/dashboards/AnalyticsDashboard';
@@ -41,6 +43,7 @@ export default function App() {
           <ProtectedRoute>
             <PersonaProvider>
               <Outlet />
+              <BrandGate />
             </PersonaProvider>
           </ProtectedRoute>
         }
@@ -56,7 +59,7 @@ export default function App() {
             path="/autotag"
             element={
               <RoleRoute roles={['agency', 'marketer', 'analytics']}>
-                {AUTOTAG_ENABLED ? <AutoTaggingPage /> : <ComingSoonPage title="Content Tagging" />}
+                {AUTOTAG_ENABLED ? <AutoTaggingPage /> : <ComingSoonPage title="Content Tagging/Mapping" />}
               </RoleRoute>
             }
           />
@@ -67,6 +70,10 @@ export default function App() {
           <Route
             path="/brand-strategy"
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><TagStrategyPage variant="brand" /></RoleRoute>}
+          />
+          <Route
+            path="/content-metadata"
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><ComingSoonPage title="Journey Metadata" /></RoleRoute>}
           />
           <Route
             path="/content-mdm"
@@ -81,6 +88,8 @@ export default function App() {
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><HelpPage /></RoleRoute>}
           />
           <Route path="/campaigns/new" element={<RoleRoute roles={['agency']}><AgencyDashboard /></RoleRoute>} />
+          <Route path="/campaigns/:id/edit" element={<RoleRoute roles={['agency']}><AgencyDashboard /></RoleRoute>} />
+          <Route path="/campaigns/:id/tactic" element={<RoleRoute roles={['agency']}><TacticPage /></RoleRoute>} />
           <Route path="/campaigns" element={<Navigate to="/overview" replace />} />
           <Route path="/approvals" element={<RoleRoute roles={['marketer']}><MarketerDashboard /></RoleRoute>} />
           <Route path="/compliance" element={<RoleRoute roles={['analytics']}><AnalyticsDashboard /></RoleRoute>} />
