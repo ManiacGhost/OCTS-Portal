@@ -90,7 +90,7 @@ const TacticItem: React.FC<{
         </button>
         <div className="flex items-center gap-2 shrink-0">
           {status && <TacticFlag status={status} />}
-          {isAgency && status === 'submitted' && (
+          {isAgency && (status === 'submitted' || status === 'draft') && (
             <button
               type="button"
               onClick={onDelete}
@@ -355,7 +355,7 @@ export const CampaignDetailModal: React.FC<{
           <div className="flex flex-wrap items-center justify-end gap-2 p-4 border-t border-slate-100">
             {user.role === 'agency' && (
               <>
-                {c.status === 'submitted' && (
+                {(c.status === 'submitted' || c.status === 'draft') && (
                   <button
                     type="button"
                     onClick={() => setConfirmDel({ kind: 'campaign' })}
@@ -406,8 +406,10 @@ export const CampaignDetailModal: React.FC<{
           title={confirmDel.kind === 'campaign' ? 'Delete this campaign?' : 'Delete this tactic?'}
           message={
             confirmDel.kind === 'campaign'
-              ? 'This campaign is pending approval. Deleting it also removes its tactic. This cannot be undone.'
-              : 'This tactic is pending approval. Deleting it cannot be undone.'
+              ? c.status === 'draft'
+                ? 'This draft will be removed, along with any tactic on it. This cannot be undone.'
+                : 'This campaign is pending approval. Deleting it also removes its tactic. This cannot be undone.'
+              : 'This tactic has not been approved yet. Deleting it cannot be undone.'
           }
           confirmLabel="Delete"
           busy={deleting}

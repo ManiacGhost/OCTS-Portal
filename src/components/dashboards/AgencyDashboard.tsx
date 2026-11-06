@@ -15,7 +15,7 @@ import {
   buildCampaignTaxonomy,
   formulaTemplate,
 } from '../../data/taxonomyFormulas';
-import { FilePlus, CheckCircle2, Send, Code, ArrowRight, ArrowLeft, Pencil, Layers, LayoutDashboard, Copy } from 'lucide-react';
+import { Save, FilePlus, CheckCircle2, Send, Code, ArrowRight, ArrowLeft, Pencil, Layers, LayoutDashboard, Copy } from 'lucide-react';
 import { CampaignTaxonomy } from '../../types';
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
@@ -180,6 +180,49 @@ export const AgencyDashboard: React.FC = () => {
     }
   };
 
+  // A draft is saved as it is (no fields are required) and is not sent to the marketer.
+  const handleSaveDraft = async () => {
+    setIsSubmitting(true);
+    try {
+      const name = derivedName.trim() || 'Untitled draft';
+      const quarter = `${year}-Q${Math.min(4, Math.ceil(Number((isAlwaysOn ? '01' : dateStart.slice(5, 7)) || '1') / 3))}`;
+      if (isEdit && source) {
+        const saved = await editCampaign(source.id, {
+          campaignName: name,
+          therapeuticAreaId: taId,
+          brandId,
+          formulaInputs,
+          taxonomyString: built.string,
+          quarter,
+          asDraft: source.status === 'draft',
+        });
+        if (!saved) return;
+      } else {
+        const res = await addCampaign({
+          campaignName: name,
+          therapeuticAreaId: taId,
+          brandId,
+          keyMessageCategoryId: source?.keyMessageCategoryId || '',
+          keyMessageSubcategoryId: source?.keyMessageSubcategoryId || '',
+          formulaInputs,
+          campaignCode: built.string,
+          taxonomyString: built.string,
+          targetAudience: audience,
+          region: selectedMarket || 'US Commercial',
+          quarter,
+          agencyOwner: user?.organization || 'Klick Health',
+          status: 'draft',
+          notes: 'Saved as a draft',
+        });
+        if (!res) return;
+      }
+      showToast('Draft saved. Submit it for approval when it is ready.', 'success');
+      navigate('/overview');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // ---- editing an existing campaign ----
   const [confirmEdit, setConfirmEdit] = useState(false);
   const editChanged = isEdit && !!source && built.string !== source.taxonomyString;
@@ -206,7 +249,7 @@ export const AgencyDashboard: React.FC = () => {
   };
   const handleSaveEdit = () => {
     if (!source) return;
-    if (!editChanged) {
+    if (!editChanged && source.status !== 'draft') {
       showToast('No changes to save.', 'info');
       return;
     }
@@ -418,7 +461,16 @@ export const AgencyDashboard: React.FC = () => {
               <div className="font-mono text-[11px] text-slate-700 break-all">{built.string}</div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={isSubmitting}
+                className="bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl border border-slate-200 transition flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save as draft</span>
+              </button>
               <button
                 type="button"
                 onClick={goReview}
@@ -494,15 +546,26 @@ export const AgencyDashboard: React.FC = () => {
                 <span>Edit details</span>
               </button>
 
-              <button
-                type="button"
-                onClick={isEdit ? handleSaveEdit : handleCreate}
-                disabled={isSubmitting || missing.length > 0}
-                className="bg-navy-600 hover:bg-navy-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs px-8 py-3 rounded-xl transition flex items-center gap-2 shadow-md"
-              >
-                <Send className="w-4 h-4" />
-                <span>{isEdit ? 'Save changes' : 'Submit for approval'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting}
+                  className="bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl border border-slate-200 transition flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save as draft</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={isEdit ? handleSaveEdit : handleCreate}
+                  disabled={isSubmitting || missing.length > 0}
+                  className="bg-navy-600 hover:bg-navy-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs px-8 py-3 rounded-xl transition flex items-center gap-2 shadow-md"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{isEdit && source?.status !== 'draft' ? 'Save changes' : 'Submit for approval'}</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

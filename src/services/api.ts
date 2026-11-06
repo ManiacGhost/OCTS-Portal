@@ -474,6 +474,8 @@ export async function updateCampaign(
     formulaInputs: Record<string, string>;
     taxonomyString: string;
     quarter: string;
+    /** keep it a draft instead of sending it for approval */
+    asDraft?: boolean;
   }
 ) {
   const cur = currentPersona();
@@ -487,9 +489,9 @@ export async function updateCampaign(
   campaign.taxonomyString = patch.taxonomyString;
   campaign.campaignCode = patch.taxonomyString;
   campaign.quarter = patch.quarter;
-  campaign.status = 'submitted';
+  campaign.status = patch.asDraft ? 'draft' : 'submitted';
   campaign.updatedAt = new Date().toISOString();
-  addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_EDITED', campaign.campaignCode, `Edited campaign ${campaign.campaignName} and re-submitted it for approval`);
+  addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_EDITED', campaign.campaignCode, patch.asDraft ? `Saved draft ${campaign.campaignName}` : `Edited campaign ${campaign.campaignName} and re-submitted it for approval`);
   persist();
   return { success: true, campaign };
 }
@@ -552,16 +554,16 @@ export async function saveTactic(
   return { success: true, campaign };
 }
 
-/** Delete a campaign (and its tactic) that is still waiting for approval. */
+/** Delete a campaign (and its tactic) that is still a draft or waiting for approval. */
 export async function deleteCampaign(id: string) {
   const cur = currentPersona();
   const i = db.campaigns.findIndex(c => c.id === id);
   if (i === -1) throw new Error('Campaign not found');
   const campaign = db.campaigns[i];
-  if (campaign.status !== 'submitted') throw new Error('Only a campaign pending approval can be deleted');
+  if (campaign.status !== 'submitted' && campaign.status !== 'draft') throw new Error('Only a draft or pending campaign can be deleted');
   db.campaigns.splice(i, 1);
   db.analytics.totalCampaigns = Math.max(0, db.analytics.totalCampaigns - 1);
-  addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_DELETED', campaign.campaignCode, `Deleted pending campaign ${campaign.campaignName}`);
+  addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_DELETED', campaign.campaignCode, `Deleted ${campaign.status} campaign ${campaign.campaignName}`);
   persist();
   return { success: true };
 }
@@ -576,7 +578,8 @@ export async function deleteTactic(id: string, removeRecord: boolean) {
   const i = db.campaigns.findIndex(c => c.id === id);
   if (i === -1) throw new Error('Tactic not found');
   const campaign = db.campaigns[i];
-  if ((campaign.tacticStatus ?? campaign.status) !== 'submitted') throw new Error('Only a tactic pending approval can be deleted');
+  const ts = campaign.tacticStatus ?? campaign.status;
+  if (ts !== 'submitted' && ts !== 'draft') throw new Error('Only a draft or pending tactic can be deleted');
   if (removeRecord) {
     db.campaigns.splice(i, 1);
   } else {
