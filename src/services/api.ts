@@ -98,6 +98,21 @@ function loadStore(): LocalStore {
 
 const db: LocalStore = loadStore();
 
+/** Next tactic ID, e.g. TACT-2026-0201: one more than the highest number already issued. */
+function nextTacticId(): string {
+  const nums = db.campaigns.map(c => /^TACT-\d{4}-(\d+)$/.exec(c.tacticId || '')?.[1]).filter(Boolean).map(Number);
+  const next = Math.max(200, ...nums) + 1;
+  return `TACT-${new Date().getFullYear()}-${String(next).padStart(4, '0')}`;
+}
+
+// every tactic carries its own ID — give one to any that were created without
+db.campaigns.forEach(c => {
+  if ((c.tactic || c.channelType) && !c.tacticId) {
+    c.tacticId = nextTacticId();
+    c.formulaInputs = { ...(c.formulaInputs || {}), tact_id: c.tacticId };
+  }
+});
+
 function persist() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(db));
@@ -541,7 +556,8 @@ export async function saveTactic(
   campaign.assetId = data.assetId;
   campaign.tactic = data.tactic;
   campaign.targetAudience = data.tactic.targetAudience || campaign.targetAudience;
-  campaign.formulaInputs = { ...(campaign.formulaInputs || {}), ...(data.formulaInputs || {}), aset_id: data.assetId };
+  if (!campaign.tacticId) campaign.tacticId = nextTacticId();
+  campaign.formulaInputs = { ...(campaign.formulaInputs || {}), ...(data.formulaInputs || {}), aset_id: data.assetId, tact_id: campaign.tacticId };
   freezeTacticStatus(campaign);
   if (!campaign.tacticStatus || campaign.tacticStatus === 'rejected') campaign.tacticStatus = 'draft';
   if (data.resubmit) campaign.tacticStatus = 'submitted';

@@ -10,6 +10,8 @@ interface Props {
   placeholder: string;
   /** accessible name for the field */
   ariaLabel: string;
+  /** how an item is written in the list and the box (defaults to "id — name (detail)") */
+  labelOf?: (item: VaultItem) => string;
 }
 
 /** Text with the fuzzy-matched characters picked out in bold. */
@@ -35,7 +37,7 @@ const Highlighted: React.FC<{ text: string; indexes: number[] }> = ({ text, inde
  * A dropdown you can also type into: opening it lists every item, typing narrows the list with a
  * fuzzy match (see fuzzy.ts) on the ID and the name. Picking an item stores its `id`.
  */
-export const VaultCombobox: React.FC<Props> = ({ value, onChange, items, placeholder, ariaLabel }) => {
+export const VaultCombobox: React.FC<Props> = ({ value, onChange, items, placeholder, ariaLabel, labelOf = vaultLabel }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -43,7 +45,7 @@ export const VaultCombobox: React.FC<Props> = ({ value, onChange, items, placeho
   const listRef = useRef<HTMLUListElement>(null);
 
   const selected = items.find(i => i.id === value);
-  const results = useMemo(() => fuzzyFilter(items, query, vaultLabel), [items, query]);
+  const results = useMemo(() => fuzzyFilter(items, query, labelOf), [items, query, labelOf]);
 
   // close on an outside click
   useEffect(() => {
@@ -99,8 +101,8 @@ export const VaultCombobox: React.FC<Props> = ({ value, onChange, items, placeho
           aria-autocomplete="list"
           autoComplete="off"
           // while open the box shows what's being typed; closed, the chosen item
-          value={open ? query : selected ? vaultLabel(selected) : value}
-          placeholder={open && selected ? vaultLabel(selected) : placeholder}
+          value={open ? query : selected ? labelOf(selected) : value}
+          placeholder={open && selected ? labelOf(selected) : placeholder}
           onFocus={() => setOpen(true)}
           onClick={() => setOpen(true)}
           onChange={e => {
@@ -144,7 +146,7 @@ export const VaultCombobox: React.FC<Props> = ({ value, onChange, items, placeho
             <li className="px-3.5 py-3 text-xs text-slate-400">No match for &ldquo;{query}&rdquo;</li>
           ) : (
             results.map(({ item, hit }, i) => {
-              const label = vaultLabel(item);
+              const label = labelOf(item);
               return (
                 <li
                   key={item.id}

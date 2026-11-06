@@ -4,7 +4,7 @@ import { ChevronRight, Inbox, Link2, Pencil, Search } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
-import { hasTactic, tacticStatusOf, isApproved } from '../../data/approvalStatus';
+import { hasTactic, tacticStatusOf, isApproved, tacticCode } from '../../data/approvalStatus';
 import { TacticFlag, CampaignFlag } from './StatusFlags';
 import { fuzzyFilter } from './fuzzy';
 import { CampaignDetailModal } from './CampaignsByChannel';
@@ -32,7 +32,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
   const inChannel = channel === 'all' ? withTactic : withTactic.filter(c => c.channelId === channel);
   const searchText = (c: CampaignTaxonomy) =>
     [brandName(c.brandId), c.campaignName, c.channelType, c.subChannel, c.tactic?.publisher, c.tactic?.placement,
-      c.assetId, c.tactic?.landingPageUrl, tacticStatusOf(c)].join(' ');
+      c.assetId, tacticCode(c), c.tactic?.landingPageUrl, tacticStatusOf(c)].join(' ');
   const visible = query.trim() ? fuzzyFilter(inChannel, query, searchText, true).map(r => r.item) : inChannel;
 
   return (
@@ -100,8 +100,9 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
                       <CampaignFlag status={c.status} />
                     </div>
                     <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                      {c.assetId && <span className="font-mono">{c.assetId}</span>}
-                      {c.tactic?.startDate && <span>{c.assetId ? ' · ' : ''}{c.tactic.startDate} → {c.tactic.endDate}</span>}
+                      <span className="font-mono font-bold text-navy-700">{tacticCode(c)}</span>
+                      {c.assetId && <span className="font-mono"> · {c.assetId}</span>}
+                      {c.tactic?.startDate && <span>{' · '}{c.tactic.startDate} → {c.tactic.endDate}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -128,7 +129,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
                 {canUtm && (
                   <button
                     type="button"
-                    onClick={() => navigate(`/utm?campaign=${c.id}`)}
+                    onClick={() => navigate(`/utm?tactic=${c.id}`)}
                     title="Open in the UTM Generator"
                     className="shrink-0 flex items-center gap-1.5 text-[11px] font-bold text-navy-700 bg-white hover:bg-navy-50 border border-navy-200 rounded-xl px-3 transition"
                   >

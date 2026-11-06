@@ -6,7 +6,7 @@ import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
 import { fuzzyFilter } from './fuzzy';
-import { tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel } from '../../data/approvalStatus';
+import { tacticCode, tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel } from '../../data/approvalStatus';
 import { ConfirmDialog } from './ConfirmDialog';
 import { CampaignFlag, TacticFlag, STATUS_BADGE } from './StatusFlags';
 
@@ -85,7 +85,10 @@ const TacticItem: React.FC<{
               {t.tactic?.publisher || 'Publisher not set'}
               {t.tactic?.placement && <span className="text-slate-500 font-medium"> — {t.tactic.placement}</span>}
             </div>
-            {t.assetId && <div className="text-[10px] font-mono text-slate-500 truncate">{t.assetId}</div>}
+            <div className="text-[10px] font-mono text-slate-500 truncate">
+              <span className="font-bold text-navy-700">{tacticCode(t)}</span>
+              {t.assetId && <span> · {t.assetId}</span>}
+            </div>
           </div>
         </button>
         <div className="flex items-center gap-2 shrink-0">
@@ -112,6 +115,7 @@ const TacticItem: React.FC<{
       </div>
       {open && (
         <div className="bg-white border-t border-slate-200 px-4 py-1">
+          <Row label="Tactic ID" mono>{tacticCode(t)}</Row>
           <Row label="Channel">{t.channelType}</Row>
           <Row label="Sub-channel">{t.subChannel}</Row>
           <Row label="Publisher / Platform">{t.tactic?.publisher}</Row>
@@ -265,7 +269,7 @@ export const CampaignDetailModal: React.FC<{
                         t={t}
                         isAgency={user?.role === 'agency'}
                         canUtm={!!user && user.role !== 'superadmin'}
-                        onUtm={() => navigate(`/utm?campaign=${t.id}`)}
+                        onUtm={() => navigate(`/utm?tactic=${t.id}`)}
                         onDelete={() => setConfirmDel({ kind: 'tactic', t })}
                         onEdit={() => navigate(`/campaigns/${t.id}/tactic`)}
                       />
@@ -304,7 +308,8 @@ export const CampaignDetailModal: React.FC<{
 
           {c.tactic && (
             <Section title="Tactic">
-                            <Row label="Publisher / Platform">{c.tactic.publisher}</Row>
+              <Row label="Tactic ID" mono>{tacticCode(c)}</Row>
+              <Row label="Publisher / Platform">{c.tactic.publisher}</Row>
               <Row label="Placement">{c.tactic.placement}</Row>
               <Row label="Creative / Asset ID" mono>{c.assetId}</Row>
               <Row label="Target audience">{c.tactic.targetAudience}</Row>
@@ -392,7 +397,7 @@ export const CampaignDetailModal: React.FC<{
             {!tactics && (
             <button
               type="button"
-              onClick={() => navigate(`/utm?campaign=${c.id}`)}
+              onClick={() => navigate(`/utm?tactic=${c.id}`)}
               className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-navy-600 hover:bg-navy-700 rounded-lg px-3.5 py-1.5 transition shadow-sm"
             >
               <Link2 className="w-3.5 h-3.5" /> Open with UTM Generator
@@ -543,7 +548,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
                 <div className="flex items-center gap-2 shrink-0">
                   <CampaignFlag status={c.status} plain />
                   {isApproved(c.status) && <span
-                    title="Tactics created for this campaign"
+                    title={tacticsOf(c).map(tacticCode).join(', ') || 'Tactics created for this campaign'}
                     className="text-[9px] leading-4 font-bold px-1.5 py-px rounded-full border border-slate-200 bg-white text-slate-600 uppercase tracking-wide whitespace-nowrap"
                   >
                     {tacticCount(c)} {tacticCount(c) === 1 ? 'tactic' : 'tactics'}

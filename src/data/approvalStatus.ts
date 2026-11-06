@@ -15,6 +15,9 @@ export function hasTactic(c: CampaignTaxonomy): boolean {
   return !!(c.tactic || c.channelType);
 }
 
+/** The tactic's own ID (falls back to the record id when none was assigned). */
+export const tacticCode = (c: CampaignTaxonomy): string => c.tacticId || c.id;
+
 /** The tactic's own approval status, or undefined when the campaign has no tactic yet. */
 export function tacticStatusOf(c: CampaignTaxonomy): Status | undefined {
   if (!hasTactic(c)) return undefined;

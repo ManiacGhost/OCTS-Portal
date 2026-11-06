@@ -17,7 +17,7 @@ export const CreationStepper: React.FC<{ current: 1 | 2 | 3; campaignId?: string
   const go = (n: number) => {
     if (!campaignId) return;
     if (n === 2) navigate(`/campaigns/${campaignId}/tactic`);
-    if (n === 3) navigate(`/utm?campaign=${campaignId}`);
+    if (n === 3) navigate(`/utm?tactic=${campaignId}`);
   };
   return (
     <ol className="grid grid-cols-3 gap-2 text-xs" aria-label="Creation steps">

@@ -5,7 +5,7 @@ import { usePersona } from '../context/PersonaContext';
 import { CreationStepper } from '../components/common/CreationStepper';
 import { VaultCombobox } from '../components/common/VaultCombobox';
 import { ASSET_VAULT } from '../data/assetVault';
-import { hasTactic, isApproved, tacticStatusOf } from '../data/approvalStatus';
+import { hasTactic, isApproved, tacticStatusOf, tacticCode } from '../data/approvalStatus';
 import { StatusFlags } from '../components/common/StatusFlags';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import {
@@ -191,7 +191,7 @@ export const TacticPage: React.FC = () => {
     return !!result;
   };
 
-  const goUtm = () => navigate(`/utm?campaign=${targetId()}`);
+  const goUtm = () => navigate(`/utm?tactic=${targetId()}`);
 
   /** Run an action, asking first when it would change an approved tactic. */
   const guard = (action: 'utm' | 'submit') => {
@@ -250,6 +250,9 @@ export const TacticPage: React.FC = () => {
           <p className="text-sm text-slate-500 mt-0.5 truncate">
             {brand?.name.split(/[ (]/)[0]} &middot; {campaign.campaignName}
           </p>
+          {hasTactic(campaign) && !isNew && (
+            <p className="text-[11px] font-mono font-bold text-navy-700 mt-0.5">Tactic ID: {tacticCode(campaign)}</p>
+          )}
         </div>
         <button
           type="button"
