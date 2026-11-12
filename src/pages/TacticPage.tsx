@@ -5,7 +5,7 @@ import { usePersona } from '../context/PersonaContext';
 import { CreationStepper } from '../components/common/CreationStepper';
 import { VaultCombobox } from '../components/common/VaultCombobox';
 import { ASSET_VAULT } from '../data/assetVault';
-import { hasTactic, isApproved, tacticStatusOf, tacticCode } from '../data/approvalStatus';
+import { hasTactic, isApproved, tacticStatusOf, tacticCode, campaignIdOf, campaignDates } from '../data/approvalStatus';
 import { StatusFlags } from '../components/common/StatusFlags';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import {
@@ -91,7 +91,7 @@ export const TacticPage: React.FC = () => {
     setPublisher(t?.publisher || '');
     setPlacement(t?.placement || '');
     setLandingPageUrl(t?.landingPageUrl || campaign.contentAssetUrl || '');
-    const d = defaultsFromCampaignDate(campaign.formulaInputs?.date);
+    const d = campaignDates(campaign);
     setStartDate(t?.startDate || d.start);
     setEndDate(t?.endDate || d.end);
   }, [campaign, loaded]);
@@ -251,7 +251,7 @@ export const TacticPage: React.FC = () => {
             {brand?.name.split(/[ (]/)[0]} &middot; {campaign.campaignName}
           </p>
           {hasTactic(campaign) && !isNew && (
-            <p className="text-[11px] font-mono font-bold text-navy-700 mt-0.5">Tactic ID: {tacticCode(campaign)}</p>
+            <p className="text-[11px] font-mono font-bold text-navy-700 mt-0.5">Campaign ID: {campaignIdOf(campaign)} · Tactic ID: {tacticCode(campaign)}</p>
           )}
         </div>
         <button

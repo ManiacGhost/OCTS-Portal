@@ -38,6 +38,7 @@ import {
   INITIAL_AUDIT_LOGS,
 } from '../data/mockData';
 import { DUMMY_CREDENTIALS } from '../data/credentials';
+import { buildCampaignTaxonomy } from '../data/taxonomyFormulas';
 
 const STORE_KEY = 'tagging360.localdb.v1';
 
@@ -110,6 +111,35 @@ db.campaigns.forEach(c => {
   if ((c.tactic || c.channelType) && !c.tacticId) {
     c.tacticId = nextTacticId();
     c.formulaInputs = { ...(c.formulaInputs || {}), tact_id: c.tacticId };
+  }
+});
+
+/** Next campaign ID, e.g. CMP-2026-0102: one more than the highest number already issued. */
+function nextCampaignId(): string {
+  const nums = db.campaigns.map(c => /^CMP-\d{4}-(\d+)$/.exec(c.campaignId || '')?.[1]).filter(Boolean).map(Number);
+  const next = Math.max(100, ...nums) + 1;
+  return `CMP-${new Date().getFullYear()}-${String(next).padStart(4, '0')}`;
+}
+
+// every campaign carries a system-generated ID — give one (oldest first) to any that were created without;
+// extra-tactic records share their campaign's ID
+[...db.campaigns]
+  .filter(c => !c.parentCampaignId && !c.campaignId)
+  .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+  .forEach(c => {
+    c.campaignId = nextCampaignId();
+  });
+db.campaigns.forEach(c => {
+  if (c.parentCampaignId) {
+    const parent = db.campaigns.find(x => x.id === c.parentCampaignId);
+    if (parent?.campaignId) c.campaignId = parent.campaignId;
+  }
+  if (c.campaignId) c.formulaInputs = { ...(c.formulaInputs || {}), cpgn_id: c.campaignId };
+  // the Campaign Name no longer carries the date, whatever an older snapshot saved
+  if (c.formulaInputs?.segmentName) {
+    const s = buildCampaignTaxonomy(c.formulaInputs).string;
+    c.taxonomyString = s;
+    c.campaignCode = s;
   }
 });
 
@@ -419,8 +449,12 @@ export async function createCampaign(body: Partial<CampaignTaxonomy> & Record<st
   const fallbackTaxonomyString = `COMM_${regionCode}_${taCode}_${brandCode}_${qtr}_${audCode}_${chanCode}_${kmCode}_${randNum}`;
   const taxonomyString = body.taxonomyString || fallbackTaxonomyString;
 
+  const campaignId = nextCampaignId();
   const newCampaign: CampaignTaxonomy = {
     id: `cmp-${Date.now()}`,
+    campaignId,
+    startDate: body.startDate,
+    endDate: body.endDate,
     campaignName: body.campaignName || 'Untitled Commercial Campaign',
     campaignCode: body.campaignCode || taxonomyString,
     therapeuticAreaId: body.therapeuticAreaId || '',
@@ -432,7 +466,7 @@ export async function createCampaign(body: Partial<CampaignTaxonomy> & Record<st
     subChannel: body.subChannel,
     assetId: body.assetId,
     tacticId: body.tacticId,
-    formulaInputs: body.formulaInputs,
+    formulaInputs: { ...(body.formulaInputs || {}), cpgn_id: campaignId },
     tactic: body.tactic,
     tacticStatus: body.tacticStatus,
     format: body.format || body.subChannel || 'Digital Asset',
@@ -489,6 +523,8 @@ export async function updateCampaign(
     formulaInputs: Record<string, string>;
     taxonomyString: string;
     quarter: string;
+    startDate?: string;
+    endDate?: string;
     /** keep it a draft instead of sending it for approval */
     asDraft?: boolean;
   }
@@ -504,6 +540,12 @@ export async function updateCampaign(
   campaign.taxonomyString = patch.taxonomyString;
   campaign.campaignCode = patch.taxonomyString;
   campaign.quarter = patch.quarter;
+  if (patch.startDate !== undefined) {
+    campaign.startDate = patch.startDate;
+    campaign.endDate = patch.endDate;
+    // the date is not part of the formula any more
+    if (campaign.formulaInputs) delete campaign.formulaInputs.date;
+  }
   campaign.status = patch.asDraft ? 'draft' : 'submitted';
   campaign.updatedAt = new Date().toISOString();
   addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_EDITED', campaign.campaignCode, patch.asDraft ? `Saved draft ${campaign.campaignName}` : `Edited campaign ${campaign.campaignName} and re-submitted it for approval`);

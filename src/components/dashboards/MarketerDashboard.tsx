@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
-import { pendingParts, ApprovalPart } from '../../data/approvalStatus';
+import { pendingParts, campaignIdOf, ApprovalPart } from '../../data/approvalStatus';
 import { CampaignFlag } from '../common/StatusFlags';
 import { CampaignTaxonomy } from '../../types';
 import {
@@ -238,7 +238,7 @@ export const MarketerDashboard: React.FC = () => {
                               <div className="text-xs font-bold text-slate-900 truncate">
                                 {brandName(cmp.brandId)} <span className="text-slate-400 font-normal">·</span> {cmp.campaignName}
                               </div>
-                              <div className="text-[10px] font-mono text-slate-500 truncate">{cmp.taxonomyString}</div>
+                              <div className="text-[10px] font-mono text-slate-500 truncate"><span className="font-bold text-navy-700">{campaignIdOf(cmp)}</span></div>
                             </>
                           ) : (
                             <>

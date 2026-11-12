@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
 import { CreationStepper } from '../common/CreationStepper';
-import { hasTactic, isApproved } from '../../data/approvalStatus';
+import { hasTactic, isApproved, campaignDates } from '../../data/approvalStatus';
 import { StatusFlags } from '../common/StatusFlags';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import {
@@ -31,11 +31,7 @@ const TAS = [
 const FIELD_CLS =
   'w-full bg-white border border-navy-200 ring-1 ring-navy-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium';
 
-/** 'YYYYMM-YYYYMM' → ['YYYY-MM', 'YYYY-MM'] for the month pickers. */
-function parseDateRange(token: string | undefined): [string, string] | null {
-  const m = /^(\d{4})(\d{2})-(\d{4})(\d{2})$/.exec(token || '');
-  return m ? [`${m[1]}-${m[2]}`, `${m[3]}-${m[4]}`] : null;
-}
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export const AgencyDashboard: React.FC = () => {
   const { brands, activeBrand, campaigns, addCampaign, editCampaign, showToast, selectedMarket } = usePersona();
@@ -62,10 +58,14 @@ export const AgencyDashboard: React.FC = () => {
   const [segmentValue, setSegmentValue] = useState('');
   const [campaignType, setCampaignType] = useState(CAMPAIGN_TYPES[0]);
   const [objective, setObjective] = useState('');
-  // always-on → Jan–Dec of this year; specific → the month pickers (YYYY-MM)
+  // free-text name for the campaign; not part of the formula
+  const [marketingName, setMarketingName] = useState('');
+  // Dates are campaign details, not part of the formula.
+  // always on → a year and the month it starts in (it runs through December); specific → a start and end date
   const [year, setYear] = useState('2026');
-  const [dateStart, setDateStart] = useState('2026-07');
-  const [dateEnd, setDateEnd] = useState('2026-09');
+  const [startMonth, setStartMonth] = useState('01');
+  const [dateStart, setDateStart] = useState('2026-07-01');
+  const [dateEnd, setDateEnd] = useState('2026-09-30');
 
   const [showErrors, setShowErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,11 +99,13 @@ export const AgencyDashboard: React.FC = () => {
     setSegmentValue(f.segmentValue || '');
     if (f.campaignType) setCampaignType(f.campaignType);
     setObjective(f.objective || '');
-    const range = parseDateRange(f.date);
-    if (range) {
-      setYear(range[0].slice(0, 4));
-      setDateStart(range[0]);
-      setDateEnd(range[1]);
+    setMarketingName(isEdit ? c.campaignName : `${c.campaignName} (copy)`);
+    const d = campaignDates(c);
+    if (d.start) {
+      setYear(d.start.slice(0, 4));
+      setStartMonth(d.start.slice(5, 7));
+      setDateStart(d.start);
+      setDateEnd(d.end || d.start);
     }
     setStep(isEdit ? 1 : 2);
   }, [cloneId, editId, campaigns]);
@@ -111,10 +113,9 @@ export const AgencyDashboard: React.FC = () => {
   const cloning = !!source && !isEdit;
   const selectedBrand = brands.find(b => b.id === brandId);
   const isAlwaysOn = campaignType === CAMPAIGN_TYPES[0];
-  // `date` is always a range, YYYYMM-YYYYMM
-  const dateToken = isAlwaysOn
-    ? `${year}01-${year}12`
-    : `${dateStart.replace('-', '')}-${dateEnd.replace('-', '')}`;
+  const campaignStart = isAlwaysOn ? `${year}-${startMonth}-01` : dateStart;
+  const campaignEnd = isAlwaysOn ? `${year}-12-31` : dateEnd;
+  const quarterToken = `${campaignStart.slice(0, 4)}-Q${Math.ceil(Number(campaignStart.slice(5, 7) || '1') / 3)}`;
 
   const formulaInputs: Record<string, string> = {
     country,
@@ -127,7 +128,6 @@ export const AgencyDashboard: React.FC = () => {
     segmentValue,
     campaignType,
     objective,
-    date: dateToken,
   };
   const built = buildCampaignTaxonomy(formulaInputs);
 
@@ -135,6 +135,8 @@ export const AgencyDashboard: React.FC = () => {
   if (!brandId) missing.push('Product');
   if (!segmentName.trim()) missing.push('Segment name');
   if (!segmentValue.trim()) missing.push('Segment value');
+  if (!objective) missing.push('Objective');
+  if (!marketingName.trim()) missing.push('Campaign name');
   if (!isAlwaysOn && (!dateStart || !dateEnd || dateStart > dateEnd)) missing.push('Date range');
 
   const duplicate = campaigns.find(c => c.taxonomyString === built.string && c.id !== editId);
@@ -158,7 +160,9 @@ export const AgencyDashboard: React.FC = () => {
     try {
       const cloned = cloning;
       const res = await addCampaign({
-        campaignName: derivedName,
+        campaignName: marketingName.trim(),
+        startDate: campaignStart,
+        endDate: campaignEnd,
         therapeuticAreaId: taId,
         brandId,
         keyMessageCategoryId: source?.keyMessageCategoryId || '',
@@ -168,7 +172,7 @@ export const AgencyDashboard: React.FC = () => {
         taxonomyString: built.string,
         targetAudience: audience,
         region: selectedMarket || 'US Commercial',
-        quarter: `${year}-Q${Math.min(4, Math.ceil(Number((isAlwaysOn ? '01' : dateStart.slice(5, 7))) / 3))}`,
+        quarter: quarterToken,
         agencyOwner: user?.organization || 'Klick Health',
         // every campaign goes to the marketer as soon as it is created, tactic or not
         status: 'submitted',
@@ -184,8 +188,8 @@ export const AgencyDashboard: React.FC = () => {
   const handleSaveDraft = async () => {
     setIsSubmitting(true);
     try {
-      const name = derivedName.trim() || 'Untitled draft';
-      const quarter = `${year}-Q${Math.min(4, Math.ceil(Number((isAlwaysOn ? '01' : dateStart.slice(5, 7)) || '1') / 3))}`;
+      const name = marketingName.trim() || derivedName.trim() || 'Untitled draft';
+      const quarter = quarterToken;
       if (isEdit && source) {
         const saved = await editCampaign(source.id, {
           campaignName: name,
@@ -194,6 +198,8 @@ export const AgencyDashboard: React.FC = () => {
           formulaInputs,
           taxonomyString: built.string,
           quarter,
+          startDate: campaignStart,
+          endDate: campaignEnd,
           asDraft: source.status === 'draft',
         });
         if (!saved) return;
@@ -210,6 +216,8 @@ export const AgencyDashboard: React.FC = () => {
           targetAudience: audience,
           region: selectedMarket || 'US Commercial',
           quarter,
+          startDate: campaignStart,
+          endDate: campaignEnd,
           agencyOwner: user?.organization || 'Klick Health',
           status: 'draft',
           notes: 'Saved as a draft',
@@ -231,12 +239,14 @@ export const AgencyDashboard: React.FC = () => {
     setIsSubmitting(true);
     try {
       const saved = await editCampaign(source.id, {
-        campaignName: derivedName,
+        campaignName: marketingName.trim(),
+        startDate: campaignStart,
+        endDate: campaignEnd,
         therapeuticAreaId: taId,
         brandId,
         formulaInputs,
         taxonomyString: built.string,
-        quarter: `${year}-Q${Math.min(4, Math.ceil(Number(isAlwaysOn ? '01' : dateStart.slice(5, 7)) / 3))}`,
+        quarter: quarterToken,
       });
       if (saved) {
         showToast('Campaign changes submitted for approval.', 'success');
@@ -342,7 +352,7 @@ export const AgencyDashboard: React.FC = () => {
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {step === 1
-                ? 'Only the fields of the Campaign Name formula — channel and asset details come next, with the tactic.'
+                ? 'The campaign name, the formula fields and the campaign dates — channel and asset details come next, with the tactic.'
                 : 'This is the Campaign Name taxonomy built from your fields.'}
             </p>
           </div>
@@ -353,6 +363,16 @@ export const AgencyDashboard: React.FC = () => {
         {step === 1 && (
           <div className="space-y-5 animate-fade-in">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                {label('Campaign name')}
+                <input
+                  type="text"
+                  value={marketingName}
+                  onChange={e => setMarketingName(e.target.value)}
+                  placeholder="e.g. Yescarta 2L LBCL — ORR awareness push"
+                  className={`${FIELD_CLS} ${err(!marketingName.trim())}`}
+                />
+              </div>
               <div>
                 {label('Country')}
                 {select(country, setCountry, plain(CREATION_COUNTRIES))}
@@ -410,14 +430,34 @@ export const AgencyDashboard: React.FC = () => {
                 {select(campaignType, setCampaignType, plain(CAMPAIGN_TYPES))}
               </div>
               <div>
-                {label('Objective', { optional: 'optional — left blank it stays in the string as na' })}
-                {select(objective, setObjective, plain(OBJECTIVES), '— none —')}
+                {label('Objective')}
+                <select
+                  value={objective}
+                  onChange={e => setObjective(e.target.value)}
+                  className={`${FIELD_CLS} ${err(!objective)}`}
+                >
+                  <option value="">— select —</option>
+                  {OBJECTIVES.map(o => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="sm:col-span-2">
-                {label('Date')}
+                {label('Campaign dates', { hint: 'not part of the formula' })}
                 {isAlwaysOn ? (
-                  <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-700">
+                  <div className="flex flex-wrap items-center gap-2 text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-700">
+                    <span className="font-semibold text-slate-500">Starts</span>
+                    <select
+                      value={startMonth}
+                      onChange={e => setStartMonth(e.target.value)}
+                      aria-label="Start month"
+                      className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold"
+                    >
+                      {MONTHS.map((m, i) => (
+                        <option key={m} value={String(i + 1).padStart(2, '0')}>{m}</option>
+                      ))}
+                    </select>
                     <select
                       value={year}
                       onChange={e => setYear(e.target.value)}
@@ -428,29 +468,27 @@ export const AgencyDashboard: React.FC = () => {
                         <option key={y} value={y}>{y}</option>
                       ))}
                     </select>
-                    <span className="font-mono font-bold text-slate-900">{dateToken}</span>
-                    <span className="text-slate-400">— an always-on campaign spans Jan–Dec</span>
+                    <span className="text-slate-400">— an always-on campaign runs through December {year}</span>
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-2">
                     <input
-                      type="month"
+                      type="date"
                       value={dateStart}
                       max={dateEnd || undefined}
                       onChange={e => setDateStart(e.target.value)}
-                      aria-label="Start month"
-                      className={`${FIELD_CLS} sm:w-44`}
+                      aria-label="Start date"
+                      className={`${FIELD_CLS} sm:w-48 ${err(!dateStart || dateStart > dateEnd)}`}
                     />
                     <span className="text-xs text-slate-400">to</span>
                     <input
-                      type="month"
+                      type="date"
                       value={dateEnd}
                       min={dateStart || undefined}
                       onChange={e => setDateEnd(e.target.value)}
-                      aria-label="End month"
-                      className={`${FIELD_CLS} sm:w-44`}
+                      aria-label="End date"
+                      className={`${FIELD_CLS} sm:w-48 ${err(!dateEnd || dateStart > dateEnd)}`}
                     />
-                    <span className="font-mono text-xs font-bold text-slate-700">{dateToken}</span>
                   </div>
                 )}
               </div>
@@ -521,6 +559,18 @@ export const AgencyDashboard: React.FC = () => {
                 </span>
                 <div className="font-mono text-xs text-navy-300 font-bold break-all">{built.string}</div>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs">
+              <div>
+                <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campaign name</span>
+                <span className="font-bold text-slate-900">{marketingName || '—'}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campaign dates</span>
+                <span className="font-bold text-slate-900">{campaignStart || '—'} → {campaignEnd || '—'}</span>
+              </div>
+              <p className="sm:col-span-2 text-[11px] text-slate-400">The campaign name and the dates are campaign details — they are not part of the formula above. A system-generated Campaign ID is assigned when you submit.</p>
             </div>
 
             {cloning && source && (
@@ -603,7 +653,10 @@ export const AgencyDashboard: React.FC = () => {
                   ? 'The campaign is approved. Next, add its tactic — channel, publisher, placement and the rest — and send that for approval too.'
                   : 'Your campaign has been created, but it is yet to be approved. Tactics can be added once the marketer approves it.'}
               </p>
-              <code className="block mt-3 text-[11px] font-mono font-bold text-navy-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 break-all">
+              {created.campaign.campaignId && (
+                <p className="mt-3 text-xs text-slate-600">Campaign ID: <span className="font-mono font-bold text-navy-700">{created.campaign.campaignId}</span></p>
+              )}
+              <code className="block mt-2 text-[11px] font-mono font-bold text-navy-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 break-all">
                 {created.campaign.taxonomyString}
               </code>
             </div>

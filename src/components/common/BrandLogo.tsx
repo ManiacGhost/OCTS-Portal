@@ -6,7 +6,7 @@ import { Brand } from '../../types';
  * (yes.svg / yes.png / yes.webp, tec.svg …). The first one that exists is used. Until the artwork is
  * dropped in, a monogram + wordmark stands in — the brands' trademarked logos are not bundled.
  */
-const EXTENSIONS = ['svg', 'png', 'webp', 'jpg'];
+const EXTENSIONS = ['png', 'svg', 'webp', 'jpg'];
 
 const ACCENT: Record<string, string> = {
   YES: 'bg-navy-600',
@@ -22,14 +22,15 @@ export const BrandLogo: React.FC<{ brand: Brand; size?: 'sm' | 'md' | 'lg'; clas
 }) => {
   const [attempt, setAttempt] = useState(0);
   const name = brandShortName(brand);
-  const h = size === 'lg' ? 'h-12' : 'h-6';
+  // the real logos are wide wordmarks with a generic-name line, so they get more height than the letter badge
+  const h = size === 'lg' ? 'h-16' : size === 'md' ? 'h-9' : 'h-6';
 
   if (attempt < EXTENSIONS.length) {
     return (
       <img
         src={`/brand-logos/${brand.code.toLowerCase()}.${EXTENSIONS[attempt]}`}
         alt={name}
-        className={`${h} w-auto max-w-[10rem] object-contain ${className}`}
+        className={`${h} w-auto max-w-[14rem] object-contain ${className}`}
         onError={() => setAttempt(a => a + 1)}
       />
     );

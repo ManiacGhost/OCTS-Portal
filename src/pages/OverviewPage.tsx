@@ -19,6 +19,14 @@ interface Stat {
   filter?: CampaignStatusFilter;
 }
 
+// the number takes the colour of its status flag in the listing
+const STAT_COLOR: Record<string, string> = {
+  submitted: 'text-amber-600',
+  approved: 'text-emerald-600',
+  rejected: 'text-red-600',
+  draft: 'text-slate-500',
+};
+
 function greeting(): string {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
@@ -138,7 +146,7 @@ export const OverviewPage: React.FC = () => {
               }`}
             >
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{s.label}</div>
-              <div className={`text-3xl font-extrabold tracking-tight mt-1 ${s.filter === 'rejected' ? 'text-red-600' : 'text-slate-900'}`}>{s.value}</div>
+              <div className={`text-3xl font-extrabold tracking-tight mt-1 ${s.filter ? STAT_COLOR[s.filter] || 'text-slate-900' : 'text-slate-900'}`}>{s.value}</div>
               {s.hint && <div className="text-[11px] text-slate-400 font-medium mt-1">{s.hint}</div>}
               {clickable && (
                 <div className={`text-[10px] font-bold mt-2 ${active ? 'text-navy-600' : 'text-slate-300'}`}>

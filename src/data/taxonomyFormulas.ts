@@ -50,12 +50,12 @@ export const OBJECTIVES = ['Awareness', 'Referral'];
 
 // ---- Campaign Name formula (same for every channel) ----------------------------
 //
-//   country_TA_productcode_indication_messagingtype_audience_segmentname_segmentvalue_campaigntype_objective_date
+//   country_TA_productcode_indication_messagingtype_audience_segmentname_segmentvalue_campaigntype_objective
 //
 // Channel is deliberately NOT part of it, and neither is a machine code (client: "Channel removed —
 // same campaign formula across channels … Code excluded"). Segment is split into name + value so a
-// delimiter inside the value can't break the string. `date` is always a range, YYYYMM-YYYYMM
-// (always_on = Jan–Dec; specific = its own window).
+// delimiter inside the value can't break the string. The campaign dates are captured on the campaign
+// itself and are deliberately NOT part of the formula.
 
 export const CAMPAIGN_FORMULA: FormulaToken[] = [
   { key: 'country', name: 'country', label: 'Country', kind: 'c', source: 'input', options: COUNTRIES },
@@ -68,10 +68,9 @@ export const CAMPAIGN_FORMULA: FormulaToken[] = [
   { key: 'segmentValue', name: 'segmentvalue', label: 'Segment value', kind: 'f', source: 'input' },
   { key: 'campaignType', name: 'campaigntype', label: 'Campaign type', kind: 'c', source: 'input', options: CAMPAIGN_TYPES },
   { key: 'objective', name: 'objective', label: 'Objective', kind: 'c', source: 'input', options: OBJECTIVES },
-  { key: 'date', name: 'date', label: 'Date', kind: 'v', source: 'input' },
 ];
 
-/** The formula as the client writes it: country_TA_productcode_…_date */
+/** The formula as the client writes it: country_TA_productcode_…_objective (no date — dates are campaign details) */
 export const FORMULA_TEMPLATE = CAMPAIGN_FORMULA.map(t => t.name).join('_');
 
 /** Human-readable formula template shown in the breakdown panel. */

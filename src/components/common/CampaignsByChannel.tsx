@@ -6,7 +6,7 @@ import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
 import { fuzzyFilter } from './fuzzy';
-import { tacticCode, tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel } from '../../data/approvalStatus';
+import { campaignIdOf, campaignDates, tacticCode, tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel } from '../../data/approvalStatus';
 import { ConfirmDialog } from './ConfirmDialog';
 import { CampaignFlag, TacticFlag, STATUS_BADGE } from './StatusFlags';
 
@@ -284,7 +284,7 @@ export const CampaignDetailModal: React.FC<{
           {!tactics && (
             <>
           <Section title="Identity">
-            <Row label="Campaign ID" mono>{c.id}</Row>
+            <Row label="Campaign ID" mono>{campaignIdOf(c)}</Row>
             <Row label="Campaign code" mono>{c.campaignCode}</Row>
             <Row label="Campaign status">{statusLabel(c.status)}</Row>
             {visibleTacticStatus(c) && <Row label="Tactic status">{statusLabel(visibleTacticStatus(c))}</Row>}
@@ -327,6 +327,7 @@ export const CampaignDetailModal: React.FC<{
           )}
 
           <Section title="Targeting & scope">
+            <Row label="Campaign dates">{campaignDates(c).start ? `${campaignDates(c).start} → ${campaignDates(c).end}` : undefined}</Row>
             <Row label="Target audience">{c.targetAudience}</Row>
             <Row label="Region">{c.region}</Row>
             <Row label="Quarter">{c.quarter}</Row>
@@ -467,7 +468,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
     (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '');
 
   const searchText = (c: CampaignTaxonomy) =>
-    [brandName(c.brandId), c.campaignName, c.taxonomyString, c.region, c.quarter, c.status, c.agencyOwner,
+    [brandName(c.brandId), campaignIdOf(c), c.campaignName, c.taxonomyString, c.region, c.quarter, c.status, c.agencyOwner,
       ...Object.values(c.formulaInputs || {})].join(' ');
 
   // A tactic belongs to exactly one campaign: the campaign's own tactic, plus any extra tactic records
@@ -542,7 +543,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
                     {brandName(c.brandId)} <span className="text-slate-400 font-normal">·</span> {c.campaignName}
                   </div>
                   <div className="text-[10px] font-mono text-slate-500 truncate">
-                    {c.campaignCode} · {c.region} · {c.quarter}
+                    <span className="font-bold text-navy-700">{campaignIdOf(c)}</span> · {c.quarter}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

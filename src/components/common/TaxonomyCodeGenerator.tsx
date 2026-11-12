@@ -4,7 +4,7 @@ import { Code, Copy, Check, Link2, Layers } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
 import { KITE_MEDIUM, KiteChannel } from '../../data/kiteTaxonomy';
-import { hasTactic, isApproved, tacticStatusOf, statusLabel, tacticCode } from '../../data/approvalStatus';
+import { hasTactic, isApproved, tacticStatusOf, statusLabel, tacticCode, campaignIdOf } from '../../data/approvalStatus';
 import { VaultCombobox } from './VaultCombobox';
 import { VaultItem } from '../../data/assetVault';
 import { CampaignTaxonomy } from '../../types';
@@ -87,9 +87,9 @@ export const TaxonomyCodeGenerator: React.FC = () => {
     const params: [string, string][] = [
       ['utm_source', slug(tactic.tactic?.publisher || tactic.channelType)],
       ['utm_medium', slug(tactic.subChannel || medium)],
-      ['utm_campaign', slug(campaign.utmCampaign || campaign.campaignName)],
+      ['utm_campaign', slug(campaignIdOf(campaign))],
       ['utm_content', slug(tactic.assetId || tactic.tactic?.targetAudience)],
-      ['campaign_id', campaign.id],
+      ['campaign_id', campaignIdOf(campaign)],
       ['tactic_id', tacticCode(tactic)],
     ];
     const landing = tactic.tactic?.landingPageUrl?.trim();
@@ -127,7 +127,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs bg-white border border-navy-200 rounded-lg px-3 py-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Campaign</span>
             <span className="font-bold text-slate-900">{campaign.campaignName}</span>
-            <span className="font-mono text-[11px] text-navy-700 break-all">{campaign.campaignCode}</span>
+            <span className="font-mono text-[11px] font-bold text-navy-700">{campaignIdOf(campaign)}</span>
           </div>
         )}
         <label className="flex items-center gap-1.5 text-[11px] font-bold text-navy-800 uppercase tracking-wider">

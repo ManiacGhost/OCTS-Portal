@@ -4,7 +4,7 @@ import { ChevronRight, Inbox, Link2, Pencil, Search } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
-import { hasTactic, tacticStatusOf, isApproved, tacticCode } from '../../data/approvalStatus';
+import { hasTactic, tacticStatusOf, isApproved, tacticCode, campaignIdOf } from '../../data/approvalStatus';
 import { TacticFlag, CampaignFlag } from './StatusFlags';
 import { fuzzyFilter } from './fuzzy';
 import { CampaignDetailModal } from './CampaignsByChannel';
@@ -95,7 +95,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
                     <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Campaign</span>
                       <span className="text-[11px] font-semibold text-slate-700 truncate">
-                        {brandName(c.brandId)} · {c.campaignName}
+                        {brandName(c.brandId)} · {c.campaignName} <span className="font-mono text-slate-400">({campaignIdOf(c)})</span>
                       </span>
                       <CampaignFlag status={c.status} />
                     </div>

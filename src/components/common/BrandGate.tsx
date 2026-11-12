@@ -92,19 +92,18 @@ export const BrandGate: React.FC = () => {
                       : 'border-slate-200 hover:border-navy-300 hover:shadow-md bg-white'
                   }`}
                 >
-                  <div className="h-14 flex items-center justify-center text-slate-800">
+                  <div className="h-20 flex items-center justify-center text-slate-800">
                     <BrandLogo brand={b} size="lg" />
                   </div>
-                  <div className="text-center">
-                    <div className="text-[11px] text-slate-500 leading-snug">{b.name.replace(/^[^ ]+ ?/, '')}</div>
-                    {b.indication && <div className="text-[10px] text-slate-400 mt-1 line-clamp-2">{b.indication}</div>}
-                  </div>
+                  {b.indication && (
+                    <div className="text-center text-[10px] text-slate-400 line-clamp-2">{b.indication}</div>
+                  )}
                   <span
                     className={`text-[11px] font-bold px-3 py-1 rounded-full ${
                       current ? 'bg-navy-600 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-navy-600 group-hover:text-white'
                     }`}
                   >
-                    {current ? 'Current brand' : 'Work in this brand'}
+                    {current ? 'Current brand' : 'Select this brand'}
                   </span>
                 </button>
               );

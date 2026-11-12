@@ -65,3 +65,15 @@ export function canSubmit(c: CampaignTaxonomy): boolean {
   const open = (s?: Status) => s === 'draft' || s === 'rejected';
   return open(c.status) || open(ts);
 }
+
+/** The system-generated campaign ID (falls back to the record id for anything created before IDs existed). */
+export const campaignIdOf = (c: CampaignTaxonomy): string => c.campaignId || c.id;
+
+/** The campaign's dates as YYYY-MM-DD. Older records only have them inside the formula's date token. */
+export function campaignDates(c: CampaignTaxonomy): { start: string; end: string } {
+  if (c.startDate) return { start: c.startDate, end: c.endDate || c.startDate };
+  const m = /^(\d{4})(\d{2})-(\d{4})(\d{2})$/.exec(c.formulaInputs?.date || '');
+  if (!m) return { start: '', end: '' };
+  const last = new Date(Number(m[3]), Number(m[4]), 0).getDate();
+  return { start: `${m[1]}-${m[2]}-01`, end: `${m[3]}-${m[4]}-${String(last).padStart(2, '0')}` };
+}
