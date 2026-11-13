@@ -1,3 +1,4 @@
+import { firstName } from '../../utils/names';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, X } from 'lucide-react';
@@ -56,12 +57,12 @@ export const BrandGate: React.FC = () => {
 
         <div className="text-center space-y-1.5">
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            {mustChoose ? `Welcome ${user.name.split(' ')[0]} — choose your brand` : 'Change brand'}
+            {mustChoose ? `Welcome ${firstName(user.name)}: choose your brand` : 'Change brand'}
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed">
             {allowedBrands.length === 0
               ? 'No brands have been allocated to your account yet.'
-              : 'The whole portal — campaigns, tactics, approvals and tagging — will show this brand only. You can switch any time from the top bar.'}
+              : 'The whole portal (campaigns, tactics, approvals and tagging) will show this brand only. You can switch any time from the top bar.'}
           </p>
         </div>
 

@@ -21,6 +21,8 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   roles: UserRole[];
+  /** a short line shown under the label when the item sits inside a group */
+  description?: string;
   /** sub-items: when present the item is a dropdown group (its own `to` is only the fallback link) */
   children?: NavItem[];
 }
@@ -33,13 +35,13 @@ export const NAV_ITEMS: NavItem[] = [
   // dropdown: the campaign listing, the creation flow (agencies) and the UTM Generator
   {
     to: '/overview',
-    label: 'Campaign Management (GA)',
+    label: 'Campaign Management (GA/UTM)',
     icon: Link2,
     roles: ['agency', 'marketer', 'analytics', 'superadmin'],
     children: [
-      { to: '/overview', label: 'Campaign Listing', icon: ListChecks, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
-      { to: '/campaigns/new', label: 'Campaign Creation', icon: FilePlus, roles: ['agency'] },
-      { to: '/utm', label: 'UTM Generator', icon: Link, roles: LAUNCHER_ROLES },
+      { to: '/overview', label: 'Campaign Listing', icon: ListChecks, roles: ['agency', 'marketer', 'analytics', 'superadmin'], description: 'Campaigns and tactics, with their status' },
+      { to: '/campaigns/new', label: 'Campaign Creation', icon: FilePlus, roles: ['agency'], description: 'Create a campaign from the formula' },
+      { to: '/utm', label: 'UTM Generator', icon: Link, roles: LAUNCHER_ROLES, description: 'Tracking link for an approved tactic' },
     ],
   },
   { to: '/autotag', label: 'Content Tagging/Mapping', icon: Tags, roles: LAUNCHER_ROLES },
@@ -48,7 +50,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/approvals', label: 'Approvals', icon: CheckSquare, roles: ['marketer'] },
   { to: '/compliance', label: 'Compliance', icon: BarChart3, roles: ['analytics'] },
   { to: '/admin', label: 'Administration', icon: ShieldAlert, roles: ['superadmin'] },
-  { to: '/dictionary', label: 'Dictionary', icon: BookOpen, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
+  { to: '/dictionary', label: 'Dictionary and Templates', icon: BookOpen, roles: ['agency', 'marketer', 'analytics', 'superadmin'] },
   { to: '/help', label: 'Help', icon: LifeBuoy, roles: LAUNCHER_ROLES },
 ];
 

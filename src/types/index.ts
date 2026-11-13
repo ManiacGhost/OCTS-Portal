@@ -168,6 +168,8 @@ export interface CampaignTaxonomy {
 }
 
 export interface TacticDetails {
+  /** The dictionary channel (chnl) value chosen for this tactic, e.g. 3P EMAIL. */
+  channel?: string;
   publisher: string;
   placement: string;
   targetAudience: string;

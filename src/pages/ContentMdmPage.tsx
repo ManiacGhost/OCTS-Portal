@@ -14,7 +14,7 @@ export const ContentMdmPage: React.FC = () => (
       </div>
       <h2 className="text-base font-extrabold text-slate-900 mt-4">Development in progress</h2>
       <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-        Content MDM &mdash; the governed business information and taxonomy that content metadata refers to &mdash; is
+        Content MDM (the governed business information and taxonomy that content metadata refers to) is
         being built and will appear here.
       </p>
     </div>

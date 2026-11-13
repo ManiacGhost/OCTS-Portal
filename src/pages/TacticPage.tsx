@@ -4,17 +4,11 @@ import { ArrowLeft, Layers, Link2, Send } from 'lucide-react';
 import { usePersona } from '../context/PersonaContext';
 import { CreationStepper } from '../components/common/CreationStepper';
 import { VaultCombobox } from '../components/common/VaultCombobox';
-import { ASSET_VAULT } from '../data/assetVault';
+import { useDictValues, channelTypeOf, channelFromType } from '../data/kiteDictionary';
 import { hasTactic, isApproved, tacticStatusOf, tacticCode, campaignIdOf, campaignDates } from '../data/approvalStatus';
 import { StatusFlags } from '../components/common/StatusFlags';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
-import {
-  CHANNEL_TYPES,
-  SUB_CHANNELS,
-  SUB_CHANNEL_FIELDS,
-  TARGETS,
-  MediaChannelType,
-} from '../data/taxonomyFormulas';
+import type { MediaChannelType } from '../types';
 
 const CHANNEL_ID: Record<MediaChannelType, string> = {
   Digital: 'chan-digital',
@@ -28,27 +22,8 @@ const CHANNEL_ID: Record<MediaChannelType, string> = {
 const FIELD_CLS =
   'w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium';
 
-/** Publishers / platforms offered as suggestions (typing something else is fine). */
-const PUBLISHERS = Array.from(
-  new Set([
-    ...Object.values(SUB_CHANNEL_FIELDS.Digital).flatMap(fs => fs.find(f => f.key === 'vendor')?.options || []),
-    'Meta',
-    'LinkedIn',
-    'X (Twitter)',
-    'Google Ads',
-    'Bing Ads',
-    'Salesforce Marketing Cloud',
-    'Veeva Approved Email',
-  ])
-);
-
-/** 'YYYYMM-YYYYMM' (the campaign's date token) → first / last day for the date pickers. */
-function defaultsFromCampaignDate(token: string | undefined): { start: string; end: string } {
-  const m = /^(\d{4})(\d{2})-(\d{4})(\d{2})$/.exec(token || '');
-  if (!m) return { start: '', end: '' };
-  const lastDay = new Date(Number(m[3]), Number(m[4]), 0).getDate();
-  return { start: `${m[1]}-${m[2]}-01`, end: `${m[3]}-${m[4]}-${String(lastDay).padStart(2, '0')}` };
-}
+/** Dropdown options: the dictionary's values, plus a value an older tactic already holds so it isn't lost. */
+const withCurrent = (list: string[], current: string) => (current && !list.includes(current) ? [...list, current] : list);
 
 export const TacticPage: React.FC = () => {
   const { id = '' } = useParams();
@@ -62,12 +37,22 @@ export const TacticPage: React.FC = () => {
   const newId = useRef<string | null>(null);
   const targetId = () => newId.current ?? campaign!.id;
 
-  const [channelType, setChannelType] = useState<MediaChannelType>('Digital');
-  const [subChannel, setSubChannel] = useState<string>(SUB_CHANNELS.Digital[0] || '');
+  // every field here except placement, landing page and dates is a dropdown fed by the dictionary
+  const channels = useDictValues('chnl');
+  const subChannels = useDictValues('sub_chnl');
+  const publishers = useDictValues('src');
+  const audiences = useDictValues('target');
+  const assetValues = useDictValues('aset_id');
+  const assetItems = useMemo(() => assetValues.map(v => ({ id: v, name: v })), [assetValues]);
+
+  const [channel, setChannel] = useState('');
+  // the portal's own channel category follows the dictionary channel
+  const channelType: MediaChannelType = channelTypeOf(channel);
+  const [subChannel, setSubChannel] = useState('');
   const [publisher, setPublisher] = useState('');
   const [placement, setPlacement] = useState('');
   const [assetId, setAssetId] = useState('');
-  const [targetAudience, setTargetAudience] = useState('HCP');
+  const [targetAudience, setTargetAudience] = useState('');
   const [landingPageUrl, setLandingPageUrl] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -82,12 +67,12 @@ export const TacticPage: React.FC = () => {
     if (!campaign || loaded) return;
     setLoaded(true);
     const t = isNew ? undefined : campaign.tactic;
-    if (!isNew && campaign.channelType) {
-      setChannelType(campaign.channelType);
-      setSubChannel(campaign.subChannel || SUB_CHANNELS[campaign.channelType][0] || '');
+    if (!isNew) {
+      setChannel(campaign.tactic?.channel || channelFromType(campaign.channelType));
+      setSubChannel(campaign.subChannel || '');
     }
     setAssetId(isNew ? '' : campaign.assetId || '');
-    setTargetAudience(t?.targetAudience || campaign.formulaInputs?.audience || campaign.targetAudience || 'HCP');
+    setTargetAudience(t?.targetAudience || campaign.formulaInputs?.audience || campaign.targetAudience || '');
     setPublisher(t?.publisher || '');
     setPlacement(t?.placement || '');
     setLandingPageUrl(t?.landingPageUrl || campaign.contentAssetUrl || '');
@@ -98,15 +83,18 @@ export const TacticPage: React.FC = () => {
 
   const problems = useMemo(() => {
     const p: Record<string, string> = {};
-    if (!publisher.trim()) p.publisher = 'Enter the publisher or platform.';
+    if (!channel) p.channel = 'Choose the channel.';
+    if (!subChannel) p.subChannel = 'Choose the sub-channel.';
+    if (!publisher.trim()) p.publisher = 'Choose the publisher or platform.';
+    if (!targetAudience) p.targetAudience = 'Choose the target audience.';
     if (!placement.trim()) p.placement = 'Enter the placement.';
-    if (!assetId.trim()) p.assetId = 'Choose the creative / asset.';
+    if (!assetId.trim()) p.assetId = 'Choose the creative / asset ID.';
     if (!/^https?:\/\/\S+\.\S+/i.test(landingPageUrl.trim())) p.landingPageUrl = 'Enter a full URL, starting with https://';
     if (!startDate) p.startDate = 'Pick a start date.';
     if (!endDate) p.endDate = 'Pick an end date.';
     else if (startDate && endDate < startDate) p.endDate = 'The end date is before the start date.';
     return p;
-  }, [publisher, placement, assetId, landingPageUrl, startDate, endDate]);
+  }, [channel, subChannel, publisher, placement, targetAudience, assetId, landingPageUrl, startDate, endDate]);
 
   if (isLoading) return <div className="p-10 text-center text-sm text-slate-400">Loading…</div>;
   if (!campaign) {
@@ -145,16 +133,11 @@ export const TacticPage: React.FC = () => {
   const brand = brands.find(b => b.id === campaign.brandId);
   const tStatus = isNew && !newId.current ? undefined : tacticStatusOf(campaign);
 
-  const chooseChannel = (ch: MediaChannelType) => {
-    setChannelType(ch);
-    setSubChannel(SUB_CHANNELS[ch][0] || '');
-  };
-
   // Has anything in the tactic changed since it was last saved?
   const saved = isNew && !newId.current ? undefined : campaign.tactic;
   const changed =
     !saved ||
-    channelType !== campaign.channelType ||
+    channel !== (saved.channel ?? channelFromType(campaign.channelType)) ||
     subChannel !== (campaign.subChannel || '') ||
     assetId !== (campaign.assetId || '') ||
     publisher.trim() !== saved.publisher ||
@@ -179,6 +162,7 @@ export const TacticPage: React.FC = () => {
       subChannel,
       assetId,
       tactic: {
+        channel,
         publisher: publisher.trim(),
         placement: placement.trim(),
         targetAudience,
@@ -202,7 +186,7 @@ export const TacticPage: React.FC = () => {
     }
     if (tacticApproved && !changed) {
       // nothing changed: the tactic stays approved, no re-approval needed
-      showToast('No changes to the tactic — it stays approved.', 'info');
+      showToast('No changes to the tactic: it stays approved.', 'info');
       if (action === 'utm') goUtm();
       else navigate('/overview');
       return;
@@ -246,7 +230,10 @@ export const TacticPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Tactic Creation</h1>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            <Layers />
+            Tactic Creation
+          </h1>
           <p className="text-sm text-slate-500 mt-0.5 truncate">
             {brand?.name.split(/[ (]/)[0]} &middot; {campaign.campaignName}
           </p>
@@ -277,7 +264,7 @@ export const TacticPage: React.FC = () => {
         <StatusFlags campaign={campaign} />
         {hasTactic(campaign) && tacticApproved && (
           <span className="text-[11px] text-slate-500">
-            This tactic is approved — only changes to it go back for approval.
+            This tactic is approved: only changes to it go back for approval.
           </span>
         )}
       </div>
@@ -294,67 +281,37 @@ export const TacticPage: React.FC = () => {
           <CreationStepper current={2} campaignId={campaign.id} />
         </div>
 
-        {/* Channel */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-2">Channel{req}</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            {CHANNEL_TYPES.map(ch => (
-              <button
-                key={ch}
-                type="button"
-                onClick={() => chooseChannel(ch)}
-                aria-pressed={channelType === ch}
-                className={`p-3 rounded-xl border text-sm font-bold transition ${
-                  channelType === ch
-                    ? 'bg-navy-600 text-white border-navy-600 shadow-sm'
-                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                {ch}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {SUB_CHANNELS[channelType].length > 0 && (
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-2">Sub-channel</label>
-            <div className="flex flex-wrap gap-2">
-              {SUB_CHANNELS[channelType].map(sc => (
-                <button
-                  key={sc}
-                  type="button"
-                  onClick={() => setSubChannel(sc)}
-                  aria-pressed={subChannel === sc}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
-                    subChannel === sc
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  {sc}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="t-publisher" className="block text-xs font-bold text-slate-700 mb-1">Publisher / Platform{req}</label>
-            <input
-              id="t-publisher"
-              list="t-publishers"
-              value={publisher}
-              onChange={e => setPublisher(e.target.value)}
-              placeholder="e.g. Medscape"
-              className={`${FIELD_CLS} ${fieldErr('publisher')}`}
-            />
-            <datalist id="t-publishers">
-              {PUBLISHERS.map(p => (
-                <option key={p} value={p} />
+            <label htmlFor="t-channel" className="block text-xs font-bold text-slate-700 mb-1">Channel{req}</label>
+            <select id="t-channel" value={channel} onChange={e => setChannel(e.target.value)} className={`${FIELD_CLS} ${fieldErr('channel')}`}>
+              <option value="">Select…</option>
+              {withCurrent(channels, channel).map(v => (
+                <option key={v} value={v}>{v}</option>
               ))}
-            </datalist>
+            </select>
+            {errMsg('channel')}
+          </div>
+
+          <div>
+            <label htmlFor="t-subchannel" className="block text-xs font-bold text-slate-700 mb-1">Sub-channel{req}</label>
+            <select id="t-subchannel" value={subChannel} onChange={e => setSubChannel(e.target.value)} className={`${FIELD_CLS} ${fieldErr('subChannel')}`}>
+              <option value="">Select…</option>
+              {withCurrent(subChannels, subChannel).map(v => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+            {errMsg('subChannel')}
+          </div>
+
+          <div>
+            <label htmlFor="t-publisher" className="block text-xs font-bold text-slate-700 mb-1">Publisher / Platform{req}</label>
+            <select id="t-publisher" value={publisher} onChange={e => setPublisher(e.target.value)} className={`${FIELD_CLS} ${fieldErr('publisher')}`}>
+              <option value="">Select…</option>
+              {withCurrent(publishers, publisher).map(v => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
             {errMsg('publisher')}
           </div>
 
@@ -364,7 +321,7 @@ export const TacticPage: React.FC = () => {
               id="t-placement"
               value={placement}
               onChange={e => setPlacement(e.target.value)}
-              placeholder="e.g. Homepage banner — 728x90"
+              placeholder="e.g. Homepage banner - 728x90"
               className={`${FIELD_CLS} ${fieldErr('placement')}`}
             />
             {errMsg('placement')}
@@ -375,9 +332,9 @@ export const TacticPage: React.FC = () => {
             <VaultCombobox
               value={assetId}
               onChange={setAssetId}
-              items={ASSET_VAULT}
+              items={assetItems}
               ariaLabel="Creative / Asset ID"
-              placeholder="Search or select an asset…"
+              placeholder="Search or select an asset ID…"
             />
             {errMsg('assetId')}
           </div>
@@ -388,12 +345,14 @@ export const TacticPage: React.FC = () => {
               id="t-audience"
               value={targetAudience}
               onChange={e => setTargetAudience(e.target.value)}
-              className={FIELD_CLS}
+              className={`${FIELD_CLS} ${fieldErr('targetAudience')}`}
             >
-              {TARGETS.map(t => (
+              <option value="">Select…</option>
+              {withCurrent(audiences, targetAudience).map(t => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
+            {errMsg('targetAudience')}
           </div>
 
           <div className="sm:col-span-2">
@@ -437,13 +396,13 @@ export const TacticPage: React.FC = () => {
 
         {alreadySent && (
           <div className="text-xs bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3.5 py-2.5">
-            Campaign is <strong>{campaign.status}</strong> and tactic is <strong>{tStatus}</strong> — there is nothing left to send for approval.
+            Campaign is <strong>{campaign.status}</strong> and tactic is <strong>{tStatus}</strong>: there is nothing left to send for approval.
           </div>
         )}
 
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-slate-100">
           <p className="text-[11px] text-slate-400 max-w-sm">
-            The campaign is already with the marketer; the tactic is approved separately &mdash; UTMs need no approval.
+            The campaign is already with the marketer; the tactic is approved separately, and UTMs need no approval.
             You can generate UTMs before or after sending the tactic.
           </p>
           <div className="flex flex-col sm:flex-row gap-2">

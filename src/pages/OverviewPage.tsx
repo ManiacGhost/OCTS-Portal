@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Activity, Plus } from 'lucide-react';
+import { RefreshCw, Activity, Plus, ListChecks } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 import { TacticList } from '../components/common/TacticList';
@@ -26,13 +26,6 @@ const STAT_COLOR: Record<string, string> = {
   rejected: 'text-red-600',
   draft: 'text-slate-500',
 };
-
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export const OverviewPage: React.FC = () => {
   const { user } = useAuth();
@@ -79,7 +72,7 @@ export const OverviewPage: React.FC = () => {
     case 'analytics':
       stats = [
         { label: 'All campaigns', value: topLevel.length, hint: 'Across every agency', filter: 'all' },
-        { label: 'Overall compliance', value: analytics ? `${analytics.overallComplianceRate}%` : '—', hint: 'Target > 95%' },
+        { label: 'Overall compliance', value: analytics ? `${analytics.overallComplianceRate}%` : '-', hint: 'Target > 95%' },
         { label: 'Open discrepancies', value: analytics ? analytics.recentDiscrepancies.filter(d => !d.resolved).length : 0, hint: 'Needs resolution' },
         { label: 'Active agencies', value: analytics?.activeAgencies ?? agencies.length, hint: 'Partner agencies' },
       ];
@@ -97,17 +90,14 @@ export const OverviewPage: React.FC = () => {
   const activity = auditLogs.slice(0, 4);
 
   return (
-    <div className="space-y-8">
-      {/* Greeting */}
+    <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            {greeting()}, {user.name.split(' ')[0]}
+            <ListChecks />
+            Campaigns
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            <span className="capitalize font-semibold text-slate-700">{user.roleTitle}</span>
-            <span className="text-slate-400"> · {user.organization}</span>
-          </p>
+          <p className="text-sm text-slate-500 mt-1">Campaigns and tactics, with their approval status.</p>
         </div>
         {user.role === 'agency' && (
           <button
@@ -137,7 +127,7 @@ export const OverviewPage: React.FC = () => {
                   setListTab('campaigns');
                 }
               }}
-              className={`text-left bg-white border rounded-2xl p-5 shadow-sm transition ${
+              className={`text-left bg-white border rounded-2xl px-5 py-3.5 shadow-sm transition ${
                 active
                   ? 'border-navy-500 ring-2 ring-navy-500/30'
                   : clickable
@@ -146,10 +136,10 @@ export const OverviewPage: React.FC = () => {
               }`}
             >
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{s.label}</div>
-              <div className={`text-3xl font-extrabold tracking-tight mt-1 ${s.filter ? STAT_COLOR[s.filter] || 'text-slate-900' : 'text-slate-900'}`}>{s.value}</div>
+              <div className={`text-2xl font-extrabold tracking-tight mt-0.5 ${s.filter ? STAT_COLOR[s.filter] || 'text-slate-900' : 'text-slate-900'}`}>{s.value}</div>
               {s.hint && <div className="text-[11px] text-slate-400 font-medium mt-1">{s.hint}</div>}
               {clickable && (
-                <div className={`text-[10px] font-bold mt-2 ${active ? 'text-navy-600' : 'text-slate-300'}`}>
+                <div className={`text-[10px] font-bold mt-1 ${active ? 'text-navy-600' : 'text-slate-300'}`}>
                   {active ? 'Showing below' : 'Click to view'}
                 </div>
               )}

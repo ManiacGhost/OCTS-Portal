@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChevronRight, Inbox, X, Copy, Check, Link2, CopyPlus, Pencil, Search, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
@@ -6,8 +6,9 @@ import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
 import { fuzzyFilter } from './fuzzy';
-import { campaignIdOf, campaignDates, tacticCode, tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel } from '../../data/approvalStatus';
+import { campaignIdOf, campaignDates, tacticCode, tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel, channelLabel } from '../../data/approvalStatus';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Pagination, usePaged, useFitRows } from './Pagination';
 import { CampaignFlag, TacticFlag, STATUS_BADGE } from './StatusFlags';
 
 export type CampaignStatusFilter = 'all' | 'draft' | 'submitted' | 'approved' | 'rejected' | 'notactic';
@@ -42,7 +43,7 @@ const Row: React.FC<{ label: string; children: React.ReactNode; mono?: boolean }
   <div className="grid grid-cols-3 gap-3 py-2 border-b border-slate-100 last:border-0">
     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</div>
     <div className={`col-span-2 text-xs text-slate-900 break-words ${mono ? 'font-mono' : 'font-medium'}`}>
-      {children ?? <span className="text-slate-300">—</span>}
+      {children ?? <span className="text-slate-300">-</span>}
     </div>
   </div>
 );
@@ -79,11 +80,11 @@ const TacticItem: React.FC<{
           <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} />
           <div className="min-w-0">
             <div className="text-xs font-bold text-slate-900 truncate">
-              <span className="text-navy-700">{t.channelType || '—'}</span>
+              <span className="text-navy-700">{channelLabel(t) || '-'}</span>
               {t.subChannel && <span className="text-slate-500 font-semibold"> · {t.subChannel}</span>}
               <span className="text-slate-400 font-normal"> · </span>
               {t.tactic?.publisher || 'Publisher not set'}
-              {t.tactic?.placement && <span className="text-slate-500 font-medium"> — {t.tactic.placement}</span>}
+              {t.tactic?.placement && <span className="text-slate-500 font-medium"> · {t.tactic.placement}</span>}
             </div>
             <div className="text-[10px] font-mono text-slate-500 truncate">
               <span className="font-bold text-navy-700">{tacticCode(t)}</span>
@@ -116,7 +117,7 @@ const TacticItem: React.FC<{
       {open && (
         <div className="bg-white border-t border-slate-200 px-4 py-1">
           <Row label="Tactic ID" mono>{tacticCode(t)}</Row>
-          <Row label="Channel">{t.channelType}</Row>
+          <Row label="Channel">{channelLabel(t)}</Row>
           <Row label="Sub-channel">{t.subChannel}</Row>
           <Row label="Publisher / Platform">{t.tactic?.publisher}</Row>
           <Row label="Placement">{t.tactic?.placement}</Row>
@@ -301,7 +302,7 @@ export const CampaignDetailModal: React.FC<{
 
           <Section title="Channel">
             <Row label="Channel">{channel ? `${channel.name} (${channel.code})` : c.channelId}</Row>
-            <Row label="Channel type">{c.channelType}</Row>
+            <Row label="Channel type">{channelLabel(c)}</Row>
             <Row label="Sub-channel">{c.subChannel}</Row>
             <Row label="Format">{c.format}</Row>
           </Section>
@@ -462,7 +463,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
   const [detail, setDetail] = useState<CampaignTaxonomy | null>(null);
   const [query, setQuery] = useState('');
 
-  const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(' ')[0] || id || '—';
+  const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(' ')[0] || id || '-';
   // most recently created or changed first, so an edited campaign jumps to the top
   const byNewest = (a: CampaignTaxonomy, b: CampaignTaxonomy) =>
     (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '');
@@ -482,6 +483,10 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
   const visible = query.trim()
     ? fuzzyFilter(byStatus, query, searchText, true).map(r => r.item)
     : byStatus;
+  // as many campaigns a page as fit on the screen, so the page itself never scrolls
+  const listRef = useRef<HTMLDivElement>(null);
+  const pageSize = useFitRows(listRef, 6);
+  const paged = usePaged<CampaignTaxonomy>(visible, pageSize, `${statusFilter}|${query}`);
 
   return (
     <div className="space-y-4">
@@ -526,10 +531,11 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
           {query.trim() ? `No campaigns match “${query.trim()}”.` : 'No campaigns in this view.'}
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 space-y-2">
-          {visible.map(c => (
+        <div ref={listRef} className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 space-y-2">
+          {paged.items.map(c => (
             <div
               key={c.id}
+              data-row
               className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl pr-2 hover:border-navy-300 hover:bg-white transition"
             >
               <button
@@ -582,6 +588,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
               )}
             </div>
           ))}
+          <Pagination {...paged} noun="campaigns" onPage={paged.setPage} />
         </div>
       )}
 

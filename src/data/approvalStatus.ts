@@ -77,3 +77,6 @@ export function campaignDates(c: CampaignTaxonomy): { start: string; end: string
   const last = new Date(Number(m[3]), Number(m[4]), 0).getDate();
   return { start: `${m[1]}-${m[2]}-01`, end: `${m[3]}-${m[4]}-${String(last).padStart(2, '0')}` };
 }
+
+/** The channel to show for a tactic: the dictionary channel, or the portal category on older records. */
+export const channelLabel = (c: CampaignTaxonomy): string => c.tactic?.channel || c.channelType || '';

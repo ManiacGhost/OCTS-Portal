@@ -2,11 +2,14 @@
 
 /*
  * Portal theme.
- *  - Typography: Inter for the UI, Fraunces (serif) for the Tagging360 wordmark.
+ *  - Typography: Plus Jakarta Sans for the UI (Inter as fallback), JetBrains Mono for codes, Fraunces (serif) for the Tagging360 wordmark.
  *  - Accent: navy blue — every `navy-*` utility is generated from these tokens.
  */
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --color-navy-50: #eef2fa;
   --color-navy-100: #dae3f4;
@@ -27,7 +30,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern', 'liga';
+  letter-spacing: -0.003em;
 }
+
+/* a crisper, tighter rhythm for headings; figures line up in tables */
+h1, h2, h3, h4 { letter-spacing: -0.02em; }
+table, .tabular { font-variant-numeric: tabular-nums; }
+.font-mono, code, kbd { letter-spacing: 0; font-variant-ligatures: none; }
 
 /* Brand wordmark — refined serif */
 .font-wordmark {
@@ -47,7 +57,113 @@ body {
 .tile-float { animation: omnia-float 6s ease-in-out infinite; }
 .tile-rise { animation: omnia-rise 0.5s ease-out both; }
 
+/* ---- landing page: moving molecular backdrop ------------------------------------------------ */
+.svg-box { transform-box: fill-box; transform-origin: center; }
+
+@keyframes helix-dot { 0%, 100% { transform: translateX(var(--a)); } 50% { transform: translateX(calc(var(--a) * -1)); } }
+@keyframes helix-rung { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.04); } }
+@keyframes helix-depth { 0%, 100% { opacity: 0.55; } 25% { opacity: 1; } 75% { opacity: 0.2; } }
+.helix-dot { animation: helix-dot 4s ease-in-out infinite; }
+.helix-rung { animation: helix-rung 2s ease-in-out infinite; }
+.helix-depth { animation: helix-depth 4s linear infinite; }
+
+@keyframes drift-a { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(14px, -18px) rotate(6deg); } }
+@keyframes drift-b { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-16px, 12px) rotate(-8deg); } }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes pulse-node { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.9); } }
+@keyframes ecg-run { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }
+@keyframes glow-move { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-40px, 30px); } }
+@keyframes hero-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shine { from { transform: translateX(-120%) skewX(-18deg); } to { transform: translateX(300%) skewX(-18deg); } }
+
+.drift-a { animation: drift-a 11s ease-in-out infinite; }
+.drift-b { animation: drift-b 14s ease-in-out infinite; }
+.spin-slow { animation: spin-slow 40s linear infinite; }
+.pulse-node { animation: pulse-node 3.2s ease-in-out infinite; }
+.ecg-line { stroke-dasharray: 260 1140; animation: ecg-run 5s linear infinite; }
+.glow-move { animation: glow-move 16s ease-in-out infinite; }
+.hero-in { animation: hero-in 0.7s ease-out both; }
+
+/* a soft light sweep across a tile on hover */
+.tile-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+.group:hover .tile-shine::after { animation: shine 0.9s ease; }
+
+@keyframes flow-dash { to { stroke-dashoffset: -28; } }
+@keyframes aurora { 0%, 100% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } }
+.flow-line { stroke-dasharray: 6 8; animation: flow-dash 2.4s linear infinite; }
+/* a slow-moving colour wash over the sign-in brand panel */
+.login-aurora {
+  background-image: radial-gradient(ellipse at 20% 10%, rgba(90, 124, 180, 0.35), transparent 55%), radial-gradient(ellipse at 90% 90%, rgba(56, 189, 248, 0.18), transparent 50%);
+  background-size: 160% 160%;
+  animation: aurora 18s ease-in-out infinite;
+}
+
+/* ---- page titles: every page's main heading, with its icon in a tile and the line under it as the subtitle ---- */
+[data-shell="content"] h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-navy-900);
+}
+[data-shell="content"] h1 > svg {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0.7rem;
+  border-radius: 0.9rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-navy-700), var(--color-navy-500));
+  box-shadow: 0 6px 16px -6px rgb(29 51 88 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+/* the line straight after the title reads as its subtitle */
+[data-shell="content"] h1 + p {
+  margin-top: 0.4rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-slate-500);
+}
+/* a title with an icon: line the subtitle up with the words, not the tile */
+[data-shell="content"] h1:has(> svg) + p {
+  padding-left: 3.6rem;
+}
+@media (max-width: 640px) {
+  [data-shell="content"] h1 { font-size: 1.4rem; }
+  [data-shell="content"] h1 > svg { width: 2.25rem; height: 2.25rem; padding: 0.55rem; }
+  [data-shell="content"] h1:has(> svg) + p { padding-left: 0; }
+}
+
+/* the sign-in logo: comes into focus on load, then a band of light sweeps across it every few seconds */
+@keyframes logo-reveal {
+  from { opacity: 0; transform: scale(0.88); filter: blur(8px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes logo-sheen { 0% { background-position: 160% 0; } 35%, 100% { background-position: -60% 0; } }
+.logo-reveal { animation: logo-reveal 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.logo-sheen {
+  background: linear-gradient(105deg, transparent 35%, rgb(125 211 252 / 0.95) 50%, transparent 65%) no-repeat;
+  background-size: 250% 100%;
+  -webkit-mask: url('/logo-full.png') center / contain no-repeat;
+  mask: url('/logo-full.png') center / contain no-repeat;
+  animation: logo-sheen 4.5s ease-in-out 1s infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .logo-reveal, .logo-sheen { animation: none; }
+  .flow-line, .login-aurora { animation: none; }
   .tile-float,
-  .tile-rise { animation: none; }
+  .tile-rise,
+  .helix-dot, .helix-rung, .helix-depth, .drift-a, .drift-b, .spin-slow, .pulse-node, .ecg-line, .glow-move, .hero-in { animation: none; }
+  .ecg-line { stroke-dasharray: none; }
 }

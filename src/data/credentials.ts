@@ -41,7 +41,7 @@ export const DUMMY_CREDENTIALS: UserCredentials[] = [
     password: 'marketer123',
     personaId: 'persona-marketer',
     role: 'marketer',
-    name: 'Dr. Marcus Vance',
+    name: 'Marcus Vance',
     roleTitle: 'Senior Brand Director, Cell Therapy',
     organization: 'Kite Pharma, a Gilead Company',
     badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',

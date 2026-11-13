@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X, Plus, Pencil, Check, Search } from 'lucide-react';
+import { Target, CheckCircle2, CircleDot, Circle, Layers, LayoutGrid, Tag, X, Plus, Pencil, Check, Search, Link2, Tags, Database, FileText, LucideIcon } from 'lucide-react';
 import { useBrandStrategy } from '../data/brandStrategyStore';
 import { KITE_CHANNELS, kiteSubChannels, kiteDimensionsFor, kiteDimensionByCode } from '../data/kiteTaxonomy';
 import { kbqsForScope, KbqStatus, ScopedKbq, KBQ_ENABLED } from '../data/kbqKpiMap';
@@ -597,6 +597,15 @@ const AddTagsPicker: React.FC<{
   );
 };
 
+/** Each category of the landscape with the icon its tile uses on the landing page. */
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  'GA Tagging': Link2,
+  'Content Tagging/ Mapping': Tags,
+  'Content MDM': Database,
+  'Journey Metadata': FileText,
+};
+const LTH = 'px-4 py-2.5 text-left text-[10px] font-semibold text-navy-800 uppercase tracking-wider';
+
 const LandscapeOverview: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [tagsByRow, setTagsByRow] = useState<Record<string, string[]>>(loadTags);
@@ -643,89 +652,91 @@ const LandscapeOverview: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
-        <table className="w-full min-w-[640px] table-fixed text-left text-xs border-collapse">
-          <colgroup>
-            <col className="w-36" />
-            <col className="w-60" />
-            <col />
-          </colgroup>
-          <thead className="bg-navy-700 text-white text-[11px] font-bold">
-            <tr>
-              <th className="px-4 py-3 text-center border border-slate-300">Category</th>
-              <th className="px-4 py-3 text-center border border-slate-300">Channel</th>
-              <th className="px-4 py-3 text-center border border-slate-300">Tags</th>
-            </tr>
-          </thead>
-          <tbody>
-            {LANDSCAPE.map(group =>
-              group.rows.map((r, i) => {
-                const key = rowKey(group.category, r.channel);
-                const tags = tagsByRow[key] || [];
-                return (
-                  <tr key={key}>
-                    {i === 0 && (
-                      <td
-                        rowSpan={group.rows.length}
-                        className="bg-slate-50 font-bold text-slate-800 text-[11px] align-middle px-4 border border-slate-300"
-                      >
-                        {group.category}
-                      </td>
-                    )}
-                    <td className="px-4 py-3.5 bg-slate-50 font-bold text-slate-800 text-[11px] align-middle border border-slate-300">
-                      {r.channel}
-                    </td>
-                    <td className="px-4 py-3.5 align-middle border border-slate-300">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {tags.map(label => {
-                          const rs = REACH_STYLE[reach[label] > 1 ? 'common' : 'unique'];
-                          return (
-                            <span
-                              key={label}
-                              className={`inline-flex items-center gap-1 text-[11px] font-bold border rounded-lg px-2 py-0.5 ${rs.chip}`}
-                            >
-                              {label}
-                              {editing && (
-                                <button
-                                  type="button"
-                                  aria-label={`Remove ${label}`}
-                                  onClick={() => remove(key, label)}
-                                  className="rounded hover:bg-black/10 p-0.5 -mr-1"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] table-fixed text-left border-collapse">
+            <colgroup>
+              <col className="w-56" />
+              <col className="w-64" />
+              <col />
+            </colgroup>
+            <thead className="bg-navy-100 border-b border-navy-200">
+              <tr>
+                <th className={LTH}>Category</th>
+                <th className={LTH}>Channel</th>
+                <th className={LTH}>Tags</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LANDSCAPE.map((group, gi) => {
+                const Icon = CATEGORY_ICON[group.category] || Tag;
+                return group.rows.map((r, i) => {
+                  const key = rowKey(group.category, r.channel);
+                  const tags = tagsByRow[key] || [];
+                  // a stronger line between categories, a light one between their channels
+                  const line = i === 0 && gi > 0 ? 'border-t-2 border-slate-200' : i > 0 ? 'border-t border-slate-100' : '';
+                  return (
+                    <tr key={key} className="group/row">
+                      {i === 0 && (
+                        <td rowSpan={group.rows.length} className={`align-top px-4 py-3.5 bg-slate-50/70 border-r border-slate-100 ${gi > 0 ? 'border-t-2 border-slate-200' : ''}`}>
+                          <div className="flex items-start gap-2.5">
+                            <span className="w-8 h-8 rounded-lg bg-white border border-navy-100 text-navy-600 flex items-center justify-center shrink-0 shadow-sm">
+                              <Icon className="w-4 h-4" />
+                            </span>
+                            <span className="min-w-0 pt-0.5">
+                              <span className="block text-[13px] font-bold text-slate-900 leading-tight">{group.category.replace('/ ', '/')}</span>
+                              {group.rows.some(x => x.channel !== '-') && (
+                                <span className="block text-[11px] text-slate-400 mt-0.5">
+                                  {group.rows.length} channel{group.rows.length === 1 ? '' : 's'}
+                                </span>
                               )}
                             </span>
-                          );
-                        })}
-                        {editing && (
-                          <button
-                            type="button"
-                            aria-label={`Add tags to ${r.channel}`}
-                            onClick={e => {
-                              const b = e.currentTarget.getBoundingClientRect();
-                              const left = Math.max(8, Math.min(b.left, window.innerWidth - 268));
-                              const top = b.bottom + 6 + 300 > window.innerHeight ? Math.max(8, b.top - 306) : b.bottom + 6;
-                              setPicker(
-                                picker?.key === key ? null : { key, group: group.group, category: group.category, channel: r.channel, top, left }
-                              );
-                            }}
-                            className="inline-flex items-center justify-center w-6 h-6 border border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-navy-500 hover:text-navy-600 transition"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {r.note && tags.length === 0 && !editing && (
-                          <span className="text-[11px] text-slate-500 italic">{r.note}</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                          </div>
+                        </td>
+                      )}
+                      <td className={`px-4 py-3 align-middle text-[13px] font-semibold text-slate-700 group-hover/row:bg-navy-50/30 ${line}`}>
+                        {r.channel === '-' ? <span className="text-slate-300 font-normal">-</span> : r.channel}
+                      </td>
+                      <td className={`px-4 py-3 align-middle group-hover/row:bg-navy-50/30 ${line}`}>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {tags.map(label => {
+                            const rs = REACH_STYLE[reach[label] > 1 ? 'common' : 'unique'];
+                            return (
+                              <span key={label} className={`inline-flex items-center gap-1 text-[11px] font-semibold border rounded-md px-2 py-0.5 ${rs.chip}`}>
+                                {label}
+                                {editing && (
+                                  <button type="button" aria-label={`Remove ${label}`} onClick={() => remove(key, label)} className="rounded hover:bg-black/10 p-0.5 -mr-1">
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </span>
+                            );
+                          })}
+                          {editing && (
+                            <button
+                              type="button"
+                              aria-label={`Add tags to ${r.channel}`}
+                              onClick={e => {
+                                const b = e.currentTarget.getBoundingClientRect();
+                                const left = Math.max(8, Math.min(b.left, window.innerWidth - 268));
+                                const top = b.bottom + 6 + 300 > window.innerHeight ? Math.max(8, b.top - 306) : b.bottom + 6;
+                                setPicker(picker?.key === key ? null : { key, group: group.group, category: group.category, channel: r.channel, top, left });
+                              }}
+                              className="inline-flex items-center justify-center w-6 h-6 border border-dashed border-slate-300 rounded-md text-slate-500 hover:border-navy-500 hover:text-navy-600 transition"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {r.note && tags.length === 0 && !editing && <span className="text-[11px] text-slate-400 italic">{r.note}</span>}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                });
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {picker && (

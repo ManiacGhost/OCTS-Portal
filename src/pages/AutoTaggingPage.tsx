@@ -44,7 +44,7 @@ export const AutoTaggingPage: React.FC = () => {
   const [commentOpen, setCommentOpen] = useState<string | null>(null); // slideId
 
   const brandOf = (id: string) => brands.find(b => b.id === id);
-  const topicOf = (id: string) => keyMessages.find(k => k.id === id)?.name || '—';
+  const topicOf = (id: string) => keyMessages.find(k => k.id === id)?.name || '-';
 
   const rows = useMemo(() => {
     return campaigns
@@ -71,7 +71,7 @@ export const AutoTaggingPage: React.FC = () => {
     setFeedback(prev => {
       const had = prev[id]?.vote || prev[id]?.comment;
       const next = { ...prev, [id]: { ...prev[id], ...patch } };
-      if (!had) showToast('Thanks — feedback recorded for the model.', 'success');
+      if (!had) showToast('Thanks, feedback recorded for the model.', 'success');
       return next;
     });
   };
@@ -84,7 +84,7 @@ export const AutoTaggingPage: React.FC = () => {
           Auto Tagging
         </h1>
         <p className="text-sm text-slate-500 mt-0.5 max-w-3xl">
-          Expand an IVA deck to see the AI model&rsquo;s <b>slide-level tags</b> &mdash; brand, indication,
+          Expand an IVA deck to see the AI model&rsquo;s <b>slide-level tags</b>: brand, indication,
           Topic and Subtopic per slide, each with its own confidence. Other channels are tagged manually in
           the Campaign Builder. Leave feedback per slide to help improve the model.
         </p>

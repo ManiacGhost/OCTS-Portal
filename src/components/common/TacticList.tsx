@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Inbox, Link2, Pencil, Search } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
-import { hasTactic, tacticStatusOf, isApproved, tacticCode, campaignIdOf } from '../../data/approvalStatus';
+import { hasTactic, tacticStatusOf, isApproved, tacticCode, campaignIdOf, channelLabel } from '../../data/approvalStatus';
 import { TacticFlag, CampaignFlag } from './StatusFlags';
 import { fuzzyFilter } from './fuzzy';
 import { CampaignDetailModal } from './CampaignsByChannel';
+import { Pagination, usePaged, useFitRows } from './Pagination';
 
 /**
  * The tactic listing — every campaign that has a tactic, one row per tactic. Tactics are where a
@@ -23,7 +24,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<CampaignTaxonomy | null>(null);
 
-  const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(' ')[0] || id || '—';
+  const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(' ')[0] || id || '-';
   const withTactic = campaigns
     // only tactics of approved campaigns are listed
     .filter(c => hasTactic(c) && isApproved(c.status))
@@ -31,9 +32,12 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
 
   const inChannel = channel === 'all' ? withTactic : withTactic.filter(c => c.channelId === channel);
   const searchText = (c: CampaignTaxonomy) =>
-    [brandName(c.brandId), c.campaignName, c.channelType, c.subChannel, c.tactic?.publisher, c.tactic?.placement,
+    [brandName(c.brandId), c.campaignName, channelLabel(c), c.subChannel, c.tactic?.publisher, c.tactic?.placement,
       c.assetId, tacticCode(c), c.tactic?.landingPageUrl, tacticStatusOf(c)].join(' ');
   const visible = query.trim() ? fuzzyFilter(inChannel, query, searchText, true).map(r => r.item) : inChannel;
+  const listRef = useRef<HTMLDivElement>(null);
+  const pageSize = useFitRows(listRef, 6);
+  const paged = usePaged<CampaignTaxonomy>(visible, pageSize, `${channel}|${query}`);
 
   return (
     <div className="space-y-4">
@@ -73,11 +77,11 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
           {query.trim() ? `No tactics match “${query.trim()}”.` : 'No tactics in this view.'}
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 space-y-2">
-          {visible.map(c => {
+        <div ref={listRef} className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 space-y-2">
+          {paged.items.map(c => {
             const ts = tacticStatusOf(c)!;
             return (
-              <div key={c.id} className="flex items-stretch gap-2">
+              <div key={c.id} data-row className="flex items-stretch gap-2">
                 <button
                   type="button"
                   onClick={() => setDetail(c)}
@@ -86,11 +90,11 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
                 >
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-slate-900 truncate">
-                      <span className="text-navy-700">{c.channelType || '—'}</span>
+                      <span className="text-navy-700">{channelLabel(c) || '-'}</span>
                       {c.subChannel && <span className="text-slate-500 font-semibold"> · {c.subChannel}</span>}
                       <span className="text-slate-400 font-normal"> · </span>
                       {c.tactic?.publisher || 'Publisher not set'}
-                      {c.tactic?.placement && <span className="text-slate-500 font-medium"> — {c.tactic.placement}</span>}
+                      {c.tactic?.placement && <span className="text-slate-500 font-medium"> · {c.tactic.placement}</span>}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Campaign</span>
@@ -140,6 +144,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
               </div>
             );
           })}
+          <Pagination {...paged} noun="tactics" onPage={paged.setPage} />
         </div>
       )}
 

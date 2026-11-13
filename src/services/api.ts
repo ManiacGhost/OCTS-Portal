@@ -39,6 +39,7 @@ import {
 } from '../data/mockData';
 import { DUMMY_CREDENTIALS } from '../data/credentials';
 import { buildCampaignTaxonomy } from '../data/taxonomyFormulas';
+import { canonicalizeFormulaInputs } from '../data/kiteDictionary';
 
 const STORE_KEY = 'tagging360.localdb.v1';
 
@@ -74,7 +75,8 @@ function loadStore(): LocalStore {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return seedStore();
-    const parsed = JSON.parse(raw);
+    // people are named without titles now ("Dr. Marcus Vance" signed up as "Marcus Vance")
+    const parsed = JSON.parse(raw.replace(/Dr\. Marcus Vance/g, 'Marcus Vance'));
     // Merge onto a fresh seed so a field added later (e.g. a new mock campaign) isn't lost
     // just because an older snapshot is sitting in someone's browser.
     const seed = seedStore();
@@ -137,6 +139,8 @@ db.campaigns.forEach(c => {
   if (c.campaignId) c.formulaInputs = { ...(c.formulaInputs || {}), cpgn_id: c.campaignId };
   // the Campaign Name no longer carries the date, whatever an older snapshot saved
   if (c.formulaInputs?.segmentName) {
+    // saved values are matched to the dictionary's spelling (e.g. LBCL → DLBCL, Always on → Always On)
+    c.formulaInputs = canonicalizeFormulaInputs(c.formulaInputs);
     const s = buildCampaignTaxonomy(c.formulaInputs).string;
     c.taxonomyString = s;
     c.campaignCode = s;
@@ -188,7 +192,7 @@ function downloadText(filename: string, mimeType: string, text: string) {
 export async function fetchHealth() {
   return {
     status: 'ok',
-    system: 'Tagging360 — Digital Content Taxonomy & Metadata (DCTM)',
+    system: 'Tagging360 · Digital Content Taxonomy & Metadata (DCTM)',
     client: 'Global Commercial Operations',
     version: '2.4.0',
     timestamp: new Date().toISOString(),
@@ -474,7 +478,7 @@ export async function createCampaign(body: Partial<CampaignTaxonomy> & Record<st
     region: body.region || 'US Commercial',
     quarter: body.quarter || '2026-Q3',
     agencyOwner: cur?.role === 'agency' ? cur.organization : (body.agencyOwner || 'Klick Health'),
-    marketerOwner: body.marketerOwner || 'Dr. Marcus Vance',
+    marketerOwner: body.marketerOwner || 'Marcus Vance',
     status: body.status || 'submitted',
     complianceScore: Math.floor(95 + Math.random() * 5),
     taxonomyString,

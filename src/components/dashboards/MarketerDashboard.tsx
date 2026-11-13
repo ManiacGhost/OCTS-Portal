@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
-import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
-import { pendingParts, campaignIdOf, ApprovalPart } from '../../data/approvalStatus';
+import { DictionaryView } from '../common/DictionaryView';
+import { usePendingChangeCount } from '../../data/kiteDictionary';
+import { pendingParts, campaignIdOf, ApprovalPart, channelLabel } from '../../data/approvalStatus';
 import { CampaignFlag } from '../common/StatusFlags';
 import { CampaignTaxonomy } from '../../types';
 import {
@@ -15,8 +16,7 @@ import {
   Megaphone,
   ChevronDown,
   ChevronRight,
-  Inbox,
-} from 'lucide-react';
+  Inbox, CheckSquare } from 'lucide-react';
 
 type Tab = 'approvals' | 'matrix' | 'dictionary';
 
@@ -24,13 +24,14 @@ const Detail: React.FC<{ label: string; children: React.ReactNode; mono?: boolea
   <div className="min-w-0">
     <span className="text-slate-500 block text-[10px] uppercase tracking-wider font-bold">{label}</span>
     <span className={`font-bold text-slate-800 break-words ${mono ? 'font-mono text-[11px]' : ''}`}>
-      {children || <span className="text-slate-300">—</span>}
+      {children || <span className="text-slate-300">-</span>}
     </span>
   </div>
 );
 
 export const MarketerDashboard: React.FC = () => {
   const { campaigns, brands, reviewCampaign, showToast } = usePersona();
+  const dictPending = usePendingChangeCount();
 
   // one note per item AND part, so a campaign's note never bleeds into its tactic's
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
@@ -48,7 +49,7 @@ export const MarketerDashboard: React.FC = () => {
   const items = queue === 'campaign' ? campaignQueue : tacticQueue;
 
   const keyOf = (id: string, part: ApprovalPart) => `${id}:${part}`;
-  const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(/[ (]/)[0] || '—';
+  const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(/[ (]/)[0] || '-';
 
   const handleApprove = async (id: string, part: ApprovalPart) => {
     const notes = reviewNotes[keyOf(id, part)] || 'Approved for enterprise commercial deployment.';
@@ -133,7 +134,7 @@ export const MarketerDashboard: React.FC = () => {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <Detail label="Channel">{`${cmp.channelType || ''}${cmp.subChannel ? ' · ' + cmp.subChannel : ''}`}</Detail>
+              <Detail label="Channel">{`${channelLabel(cmp)}${cmp.subChannel ? ' · ' + cmp.subChannel : ''}`}</Detail>
               <Detail label="Publisher / Platform">{t?.publisher}</Detail>
               <Detail label="Placement">{t?.placement}</Detail>
               <Detail label="Creative / Asset ID" mono>{cmp.assetId}</Detail>
@@ -166,7 +167,7 @@ export const MarketerDashboard: React.FC = () => {
           />
           {needsComment[k] && (
             <p className="text-[11px] font-bold text-red-600 mt-1">
-              A comment is required to reject &mdash; tell the agency what to fix.
+              A comment is required to reject: tell the agency what to fix.
             </p>
           )}
         </div>
@@ -179,9 +180,12 @@ export const MarketerDashboard: React.FC = () => {
 
       {/* Page header */}
       <div>
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Approvals</h1>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <CheckSquare />
+          Approvals
+        </h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Campaigns and tactics are approved separately — pick a queue, open a row to review it.
+          Campaigns and tactics are approved separately: pick a queue, open a row to review it.
         </p>
       </div>
 
@@ -189,7 +193,7 @@ export const MarketerDashboard: React.FC = () => {
       <div className="flex items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto">
         {tabBtn('approvals', <ShieldCheck className="w-4 h-4" />, `Approvals (${campaignQueue.length + tacticQueue.length})`)}
         {tabBtn('matrix', <BarChart2 className="w-4 h-4" />, 'Topic Strategy Matrix')}
-        {tabBtn('dictionary', <Layers className="w-4 h-4" />, 'Taxonomy Master Browse')}
+        {tabBtn('dictionary', <Layers className="w-4 h-4" />, `Dictionary changes (${dictPending})`)}
       </div>
 
       {activeTab === 'approvals' && (
@@ -243,9 +247,9 @@ export const MarketerDashboard: React.FC = () => {
                           ) : (
                             <>
                               <div className="text-xs font-bold text-slate-900 truncate">
-                                <span className="text-navy-700">{cmp.channelType}</span>
+                                <span className="text-navy-700">{channelLabel(cmp)}</span>
                                 {cmp.subChannel && <span className="text-slate-500 font-semibold"> · {cmp.subChannel}</span>}
-                                {cmp.tactic?.publisher && <span> — {cmp.tactic.publisher}</span>}
+                                {cmp.tactic?.publisher && <span> · {cmp.tactic.publisher}</span>}
                                 {cmp.tactic?.placement && <span className="text-slate-500 font-medium"> · {cmp.tactic.placement}</span>}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
@@ -289,7 +293,7 @@ export const MarketerDashboard: React.FC = () => {
       {activeTab === 'matrix' && <TopicMatrix />}
 
       {/* Dictionary Browse */}
-      {activeTab === 'dictionary' && <TaxonomyDictionaryView />}
+      {activeTab === 'dictionary' && <DictionaryView embedded initialTab="pending" />}
 
     </div>
   );

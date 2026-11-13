@@ -6,27 +6,21 @@ import { CreationStepper } from '../common/CreationStepper';
 import { hasTactic, isApproved, campaignDates } from '../../data/approvalStatus';
 import { StatusFlags } from '../common/StatusFlags';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { buildCampaignTaxonomy, formulaTemplate } from '../../data/taxonomyFormulas';
 import {
-  MESSAGING_TYPES,
-  AUDIENCES,
-  INDICATIONS,
-  CAMPAIGN_TYPES,
-  OBJECTIVES,
-  buildCampaignTaxonomy,
-  formulaTemplate,
-} from '../../data/taxonomyFormulas';
+  useDictValues,
+  dictValues,
+  canonicalizeFormulaInputs,
+  dictBrandValue,
+  isAlwaysOnType,
+} from '../../data/kiteDictionary';
 import { Save, FilePlus, CheckCircle2, Send, Code, ArrowRight, ArrowLeft, Pencil, Layers, LayoutDashboard, Copy } from 'lucide-react';
 import { CampaignTaxonomy } from '../../types';
 
 const KIND_LABEL: Record<string, string> = { c: 'controlled', v: 'variable', m: 'machine', f: 'free text' };
 
-// the creation flow only ever uses US
-const CREATION_COUNTRIES = ['US'];
-
-const TAS = [
-  { id: 'ta-cart', label: 'Oncology', token: 'oncology' },
-  { id: 'ta-hem', label: 'Hematology', token: 'hematology' },
-];
+/** Dropdown options: the dictionary's values, plus a value an older record already holds so it isn't lost. */
+const withCurrent = (list: string[], current: string) => (current && !list.includes(current) ? [...list, current] : list);
 
 const FIELD_CLS =
   'w-full bg-white border border-navy-200 ring-1 ring-navy-100 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-navy-500 font-medium';
@@ -47,16 +41,27 @@ export const AgencyDashboard: React.FC = () => {
   const [step, setStep] = useState<1 | 2>(1);
 
   // The campaign formula fields (nothing else is asked at this stage)
-  const [country, setCountry] = useState(CREATION_COUNTRIES[0]);
-  const [taId, setTaId] = useState('ta-cart');
+  // every field below except the free-text ones is a dropdown fed by the dictionary (field → attributes)
+  const countries = useDictValues('country');
+  const tas = useDictValues('ta');
+  const indications = useDictValues('indc');
+  const messagingTypes = useDictValues('messaging_type');
+  const audiences = useDictValues('target');
+  const campaignTypes = useDictValues('alrt_typ');
+  const objectives = useDictValues('objective');
+
+  const [country, setCountry] = useState(() => dictValues('country').find(v => v === 'US') || dictValues('country')[0] || '');
+  const [taValue, setTaValue] = useState(() => dictValues('ta')[0] || '');
+  // the internal therapeutic-area record follows the dictionary value
+  const taId = /hem/i.test(taValue) ? 'ta-hem' : 'ta-cart';
   const [brandId, setBrandId] = useState('');
-  const [indication, setIndication] = useState(INDICATIONS[0]);
-  const [messagingType, setMessagingType] = useState(MESSAGING_TYPES[0]);
-  const [audience, setAudience] = useState(AUDIENCES[0]);
+  const [indication, setIndication] = useState(() => dictValues('indc')[0] || '');
+  const [messagingType, setMessagingType] = useState(() => dictValues('messaging_type').find(v => v === 'Branded') || dictValues('messaging_type')[0] || '');
+  const [audience, setAudience] = useState(() => dictValues('target').find(v => v === 'HCP') || dictValues('target')[0] || '');
   // segment is split into name + value (free text) so a delimiter in the value can't break the string
   const [segmentName, setSegmentName] = useState('');
   const [segmentValue, setSegmentValue] = useState('');
-  const [campaignType, setCampaignType] = useState(CAMPAIGN_TYPES[0]);
+  const [campaignType, setCampaignType] = useState(() => dictValues('alrt_typ').find(v => isAlwaysOnType(v)) || dictValues('alrt_typ')[0] || '');
   const [objective, setObjective] = useState('');
   // free-text name for the campaign; not part of the formula
   const [marketingName, setMarketingName] = useState('');
@@ -87,10 +92,10 @@ export const AgencyDashboard: React.FC = () => {
     const c = campaigns.find(x => x.id === srcId);
     if (!c) return;
     clonedOnce.current = true;
-    const f = c.formulaInputs || {};
+    const f = canonicalizeFormulaInputs(c.formulaInputs || {});
     setSource(c);
-    setCountry(CREATION_COUNTRIES[0]);
-    setTaId(c.therapeuticAreaId === 'ta-hem' ? 'ta-hem' : 'ta-cart');
+    if (f.country) setCountry(f.country);
+    if (f.ta) setTaValue(f.ta);
     if (c.brandId) setBrandId(c.brandId);
     if (f.indication) setIndication(f.indication);
     if (f.messagingType) setMessagingType(f.messagingType);
@@ -112,15 +117,15 @@ export const AgencyDashboard: React.FC = () => {
 
   const cloning = !!source && !isEdit;
   const selectedBrand = brands.find(b => b.id === brandId);
-  const isAlwaysOn = campaignType === CAMPAIGN_TYPES[0];
+  const isAlwaysOn = isAlwaysOnType(campaignType);
   const campaignStart = isAlwaysOn ? `${year}-${startMonth}-01` : dateStart;
   const campaignEnd = isAlwaysOn ? `${year}-12-31` : dateEnd;
   const quarterToken = `${campaignStart.slice(0, 4)}-Q${Math.ceil(Number(campaignStart.slice(5, 7) || '1') / 3)}`;
 
   const formulaInputs: Record<string, string> = {
     country,
-    ta: TAS.find(t => t.id === taId)?.token || 'oncology',
-    product: selectedBrand?.code || '',
+    ta: taValue,
+    product: selectedBrand ? dictBrandValue(selectedBrand.name, selectedBrand.code) : '',
     indication,
     messagingType,
     audience,
@@ -302,15 +307,16 @@ export const AgencyDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            <FilePlus />
             {isEdit ? 'Edit Campaign' : source ? 'Clone Campaign' : 'New Campaign'}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             {isEdit
               ? 'Change the campaign fields and review the new formula'
               : source
-              ? `Cloned from “${source.campaignName}” — check the formula, change what differs, then submit for approval`
-              : 'Fill in the campaign fields and review the formula — it goes to the marketer when you submit — then add its tactic'}
-            {' '}&mdash; {selectedMarket} &middot; {user?.organization}
+              ? `Cloned from “${source.campaignName}”: check the formula, change what differs, then submit for approval`
+              : 'Fill in the campaign fields and review the formula (it goes to the marketer when you submit), then add its tactic'}
+            {' '}&middot; {selectedMarket} &middot; {user?.organization}
           </p>
         </div>
         <button
@@ -327,7 +333,7 @@ export const AgencyDashboard: React.FC = () => {
         <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-xs text-red-900 space-y-1" role="note">
           <div className="font-extrabold">The marketer rejected this campaign</div>
           <p className="leading-relaxed">“{source.reviewNotes?.campaign || source.notes || 'No comment was left.'}”</p>
-          <p className="text-[11px] text-red-700">Make the changes below and save — the campaign goes back to the marketer for approval.</p>
+          <p className="text-[11px] text-red-700">Make the changes below and save: the campaign goes back to the marketer for approval.</p>
         </div>
       )}
 
@@ -352,7 +358,7 @@ export const AgencyDashboard: React.FC = () => {
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {step === 1
-                ? 'The campaign name, the formula fields and the campaign dates — channel and asset details come next, with the tactic.'
+                ? 'The campaign name, the formula fields and the campaign dates. Channel and asset details come next, with the tactic.'
                 : 'This is the Campaign Name taxonomy built from your fields.'}
             </p>
           </div>
@@ -369,17 +375,17 @@ export const AgencyDashboard: React.FC = () => {
                   type="text"
                   value={marketingName}
                   onChange={e => setMarketingName(e.target.value)}
-                  placeholder="e.g. Yescarta 2L LBCL — ORR awareness push"
+                  placeholder="e.g. Yescarta 2L LBCL - ORR awareness push"
                   className={`${FIELD_CLS} ${err(!marketingName.trim())}`}
                 />
               </div>
               <div>
                 {label('Country')}
-                {select(country, setCountry, plain(CREATION_COUNTRIES))}
+                {select(country, setCountry, plain(withCurrent(countries, country)))}
               </div>
               <div>
                 {label('Therapeutic area')}
-                {select(taId, setTaId, TAS.map(t => ({ value: t.id, label: t.label })))}
+                {select(taValue, setTaValue, plain(withCurrent(tas, taValue)))}
               </div>
               <div>
                 {label('Product code')}
@@ -389,21 +395,21 @@ export const AgencyDashboard: React.FC = () => {
                   className={`${FIELD_CLS} ${err(!brandId)}`}
                 >
                   {(activeBrand ? [activeBrand] : brands).map(b => (
-                    <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
+                    <option key={b.id} value={b.id}>{dictBrandValue(b.name, b.code)}</option>
                   ))}
                 </select>
               </div>
               <div>
                 {label('Indication')}
-                {select(indication, setIndication, plain(INDICATIONS))}
+                {select(indication, setIndication, plain(withCurrent(indications, indication)))}
               </div>
               <div>
                 {label('Messaging type')}
-                {select(messagingType, setMessagingType, plain(MESSAGING_TYPES))}
+                {select(messagingType, setMessagingType, plain(withCurrent(messagingTypes, messagingType)))}
               </div>
               <div>
                 {label('Audience')}
-                {select(audience, setAudience, plain(AUDIENCES))}
+                {select(audience, setAudience, plain(withCurrent(audiences, audience)))}
               </div>
               <div>
                 {label('Segment name')}
@@ -427,7 +433,7 @@ export const AgencyDashboard: React.FC = () => {
               </div>
               <div>
                 {label('Campaign type')}
-                {select(campaignType, setCampaignType, plain(CAMPAIGN_TYPES))}
+                {select(campaignType, setCampaignType, plain(withCurrent(campaignTypes, campaignType)))}
               </div>
               <div>
                 {label('Objective')}
@@ -436,8 +442,8 @@ export const AgencyDashboard: React.FC = () => {
                   onChange={e => setObjective(e.target.value)}
                   className={`${FIELD_CLS} ${err(!objective)}`}
                 >
-                  <option value="">— select —</option>
-                  {OBJECTIVES.map(o => (
+                  <option value="">Select…</option>
+                  {withCurrent(objectives, objective).map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
@@ -468,7 +474,7 @@ export const AgencyDashboard: React.FC = () => {
                         <option key={y} value={y}>{y}</option>
                       ))}
                     </select>
-                    <span className="text-slate-400">— an always-on campaign runs through December {year}</span>
+                    <span className="text-slate-400"> · an always-on campaign runs through December {year}</span>
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-2">
@@ -564,25 +570,25 @@ export const AgencyDashboard: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs">
               <div>
                 <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campaign name</span>
-                <span className="font-bold text-slate-900">{marketingName || '—'}</span>
+                <span className="font-bold text-slate-900">{marketingName || '-'}</span>
               </div>
               <div>
                 <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campaign dates</span>
-                <span className="font-bold text-slate-900">{campaignStart || '—'} → {campaignEnd || '—'}</span>
+                <span className="font-bold text-slate-900">{campaignStart || '-'} → {campaignEnd || '-'}</span>
               </div>
-              <p className="sm:col-span-2 text-[11px] text-slate-400">The campaign name and the dates are campaign details — they are not part of the formula above. A system-generated Campaign ID is assigned when you submit.</p>
+              <p className="sm:col-span-2 text-[11px] text-slate-400">The campaign name and the dates are campaign details: they are not part of the formula above. A system-generated Campaign ID is assigned when you submit.</p>
             </div>
 
             {cloning && source && (
               <div className="text-xs bg-navy-50 border border-navy-200 text-navy-900 rounded-xl px-3.5 py-2.5">
-                Only the campaign is copied. A tactic belongs to one campaign, so the clone starts with none — you can add its tactics once it is approved.
+                Only the campaign is copied. A tactic belongs to one campaign, so the clone starts with none: you can add its tactics once it is approved.
               </div>
             )}
 
             {duplicate && (
               <div className="text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-3.5 py-2.5">
                 <strong>Heads up:</strong> a campaign with exactly this formula already exists (“{duplicate.campaignName}”).
-                {cloning ? ' Go back and change a field — the date or segment, usually — so the clone is distinct.' : ''}
+                {cloning ? ' Go back and change a field (the date or segment, usually) so the clone is distinct.' : ''}
               </div>
             )}
 
@@ -650,7 +656,7 @@ export const AgencyDashboard: React.FC = () => {
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 {isApproved(created.campaign.status)
-                  ? 'The campaign is approved. Next, add its tactic — channel, publisher, placement and the rest — and send that for approval too.'
+                  ? 'The campaign is approved. Next, add its tactic (channel, publisher, placement and the rest) and send that for approval too.'
                   : 'Your campaign has been created, but it is yet to be approved. Tactics can be added once the marketer approves it.'}
               </p>
               {created.campaign.campaignId && (

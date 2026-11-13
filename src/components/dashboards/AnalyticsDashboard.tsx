@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { resolveDiscrepancy, exportCsv } from '../../services/api';
-import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
 import {
   BarChart3,
   AlertTriangle,
@@ -47,7 +46,10 @@ export const AnalyticsDashboard: React.FC = () => {
 
       {/* Page header */}
       <div>
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Compliance</h1>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <BarChart3 />
+          Compliance
+        </h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Monitor taxonomy compliance across downstream engines, audit discrepancies, and export governance data.
         </p>

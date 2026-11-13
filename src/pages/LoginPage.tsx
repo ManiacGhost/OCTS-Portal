@@ -6,103 +6,133 @@ import { homePathFor } from '../auth/home';
 import { DUMMY_CREDENTIALS, UserCredentials } from '../data/credentials';
 
 /**
- * Original line-art of digital promotional channels (email, push, paid search,
- * social, display/video, broadcast, alerts, analytics) wired into one network.
- * Hand-drawn here — not derived from any third-party asset — and rendered greyed
- * out behind the brand panel.
+ * The sign-in backdrop: the portal's own parts — campaign & UTM tagging, content tagging, content MDM,
+ * journey metadata and the dictionary — each an orbit of the one shared taxonomy at the centre. Signals flow
+ * in from each part, tags flow back out, and each part's own assets circle it. No words: it sits behind the
+ * headline. Original line art, drawn here.
  */
+const HUB = { x: 320, y: 450 };
+const RADIUS = 235;
+// two tags travel in along each spoke; half of them carry a dictionary code (null = a plain green tag)
+const PILLARS: { glyph: string; angle: number; tags: [string | null, string | null] }[] = [
+  { glyph: 'pl-link', angle: -90, tags: ['src', null] }, // campaign management (GA / UTM)
+  { glyph: 'pl-tag', angle: -18, tags: [null, 'chnl'] }, // content tagging / mapping
+  { glyph: 'pl-db', angle: 54, tags: ['brd', null] }, // content MDM
+  { glyph: 'pl-route', angle: 126, tags: [null, 'indc'] }, // journey metadata
+  { glyph: 'pl-book', angle: 198, tags: ['src', null] }, // dictionary
+];
+const at = (angle: number, r = RADIUS, c = HUB) => ({
+  x: c.x + r * Math.cos((angle * Math.PI) / 180),
+  y: c.y + r * Math.sin((angle * Math.PI) / 180),
+});
+
 const ChannelsBackdrop: React.FC = () => (
+  // softened well back, so it reads as a backdrop behind the headline
   <div className="absolute inset-0" aria-hidden="true">
-    <svg
-      viewBox="0 0 480 760"
-      preserveAspectRatio="xMidYMid slice"
-      className="h-full w-full text-slate-300 opacity-[0.12]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+   <div className="absolute inset-0 opacity-60 blur-[2px]">
+    <svg viewBox="0 0 640 900" preserveAspectRatio="xMidYMid slice" className="h-full w-full text-slate-200" fill="none" strokeLinecap="round" strokeLinejoin="round">
       <defs>
-        {/* each icon drawn in a 0 0 100 100 box */}
-        <g id="ch-email">
-          <rect x="12" y="24" width="76" height="52" rx="6" />
-          <path d="M14 30l36 26 36-26" />
+        {/* pillar icons, each drawn in a 0 0 100 100 box */}
+        <g id="pl-link" strokeWidth={7}>
+          <path d="M42 58a14 14 0 0 0 20 0l14-14a14 14 0 0 0-20-20l-6 6" />
+          <path d="M58 42a14 14 0 0 0-20 0L24 56a14 14 0 0 0 20 20l6-6" />
         </g>
-        <g id="ch-phone">
-          <rect x="30" y="10" width="40" height="80" rx="8" />
-          <line x1="44" y1="80" x2="56" y2="80" />
-          <circle cx="66" cy="22" r="5" fill="currentColor" stroke="none" />
+        <g id="pl-tag" strokeWidth={7}>
+          <path d="M14 50V18a4 4 0 0 1 4-4h32l36 36-36 36z" />
+          <circle cx="32" cy="32" r="6" />
         </g>
-        <g id="ch-cursor">
-          <path d="M34 26l8 46 10-18 18-5z" />
-          <path d="M20 20l7 7M18 36h9M36 18v9" />
+        <g id="pl-db" strokeWidth={7}>
+          <ellipse cx="50" cy="24" rx="30" ry="10" />
+          <path d="M20 24v52c0 5.5 13.4 10 30 10s30-4.5 30-10V24" />
+          <path d="M20 50c0 5.5 13.4 10 30 10s30-4.5 30-10" />
         </g>
-        <g id="ch-chat">
-          <path d="M16 22h68a6 6 0 0 1 6 6v30a6 6 0 0 1-6 6H44L26 82V64h-10a6 6 0 0 1-6-6V28a6 6 0 0 1 6-6z" />
-          <circle cx="36" cy="44" r="4" fill="currentColor" stroke="none" />
-          <circle cx="50" cy="44" r="4" fill="currentColor" stroke="none" />
-          <circle cx="64" cy="44" r="4" fill="currentColor" stroke="none" />
+        <g id="pl-route" strokeWidth={7}>
+          <circle cx="22" cy="78" r="8" />
+          <circle cx="78" cy="22" r="8" />
+          <path d="M30 78h30a14 14 0 0 0 0-28H40a14 14 0 0 1 0-28h30" />
         </g>
-        <g id="ch-display">
-          <rect x="12" y="18" width="76" height="50" rx="6" />
-          <path d="M42 32l20 11-20 11z" fill="currentColor" stroke="none" />
-          <line x1="34" y1="82" x2="66" y2="82" />
-          <line x1="50" y1="68" x2="50" y2="82" />
-        </g>
-        <g id="ch-megaphone">
-          <path d="M18 44v14l12 3 6 20h9l-5-18 28 10V26z" />
-          <path d="M80 34c9 4 9 24 0 28" />
-        </g>
-        <g id="ch-bell">
-          <path d="M50 14a20 20 0 0 1 20 20v16l8 12H22l8-12V34a20 20 0 0 1 20-20z" />
-          <path d="M42 74a8 8 0 0 0 16 0" />
-        </g>
-        <g id="ch-search">
-          <circle cx="44" cy="44" r="22" />
-          <line x1="60" y1="60" x2="84" y2="84" />
-        </g>
-        <g id="ch-bars">
-          <line x1="16" y1="84" x2="88" y2="84" />
-          <line x1="26" y1="84" x2="26" y2="56" />
-          <line x1="44" y1="84" x2="44" y2="40" />
-          <line x1="62" y1="84" x2="62" y2="50" />
-          <line x1="80" y1="84" x2="80" y2="28" />
-        </g>
-        <g id="ch-at">
-          <circle cx="50" cy="50" r="15" />
-          <path d="M65 50c0 11 13 11 13 -1a28 28 0 1 0-11 22" />
+        <g id="pl-book" strokeWidth={7}>
+          <path d="M50 26c-10-8-26-8-36-4v58c10-4 26-4 36 4 10-8 26-8 36-4V22c-10-4-26-4-36 4z" />
+          <path d="M50 26v58" />
         </g>
       </defs>
 
-      {/* connective network */}
-      <g opacity="0.55">
-        <path d="M88 96 L272 74 M272 74 L392 150 M120 232 L272 74 M120 232 L252 366 M252 366 L338 300 M252 366 L392 400 M120 470 L252 366 M320 512 L252 366 M88 604 L120 470 M272 632 L320 512 M392 660 L272 632 M180 700 L120 470 M60 342 L120 232" />
-        {[
-          [88, 96], [272, 74], [392, 150], [120, 232], [252, 366], [338, 300],
-          [392, 400], [60, 342], [120, 470], [320, 512], [88, 604], [272, 632],
-          [392, 660], [180, 700],
-        ].map(([cx, cy], i) => (
-          <circle key={i} cx={cx} cy={cy} r="3.5" fill="currentColor" stroke="none" />
-        ))}
-      </g>
+      {/* spokes from every part of the portal to the shared taxonomy */}
+      {PILLARS.map(p => {
+        const n = at(p.angle);
+        return <line key={`s${p.angle}`} className="flow-line" x1={n.x} y1={n.y} x2={HUB.x} y2={HUB.y} stroke="currentColor" strokeOpacity={0.2} strokeWidth={1.5} />;
+      })}
+      {/* the outer ring that links the parts to each other */}
+      <circle cx={HUB.x} cy={HUB.y} r={RADIUS} stroke="currentColor" strokeOpacity={0.1} strokeWidth={1.5} strokeDasharray="2 10" />
+      <circle className="svg-box spin-slow" cx={HUB.x} cy={HUB.y} r={RADIUS + 60} stroke="currentColor" strokeOpacity={0.06} strokeWidth={1} strokeDasharray="1 14" />
 
-      {/* channel glyphs */}
-      <use href="#ch-email" transform="translate(40 46) scale(0.9)" />
-      <use href="#ch-search" transform="translate(228 30) scale(0.85)" />
-      <use href="#ch-display" transform="translate(346 104) scale(0.9)" />
-      <use href="#ch-chat" transform="translate(72 184) scale(0.95)" />
-      <use href="#ch-at" transform="translate(20 296) scale(0.85)" />
-      <use href="#ch-megaphone" transform="translate(196 318) scale(0.95)" />
-      <use href="#ch-bars" transform="translate(292 250) scale(0.9)" />
-      <use href="#ch-phone" transform="translate(300 340) scale(0.85)" />
-      <use href="#ch-bell" transform="translate(76 420) scale(0.85)" />
-      <use href="#ch-cursor" transform="translate(276 460) scale(0.95)" />
-      <use href="#ch-email" transform="translate(36 556) scale(0.8)" />
-      <use href="#ch-phone" transform="translate(232 584) scale(0.8)" />
-      <use href="#ch-chat" transform="translate(346 612) scale(0.8)" />
-      <use href="#ch-search" transform="translate(140 656) scale(0.8)" />
+      {/* signals flowing in */}
+      {PILLARS.map((p, i) => {
+        const n = at(p.angle);
+        return (
+          <circle key={`in${p.angle}`} r={3.5} fill="#7dd3fc" opacity={0.85}>
+            <animateMotion dur={`${3.6 + (i % 3) * 0.5}s`} begin={`${i * 0.7}s`} repeatCount="indefinite" path={`M${n.x} ${n.y} L${HUB.x} ${HUB.y}`} />
+          </circle>
+        );
+      })}
+      {/* green tags travel in from each part alongside its signals, in the same soft focus as the dots */}
+      {PILLARS.flatMap((p, i) => {
+        const n = at(p.angle);
+        return p.tags.map((tag, k) => {
+          const begin = `${(i * 1.3 + k * 3.25 + 0.6).toFixed(2)}s`;
+          const route = `M${n.x} ${n.y} L${HUB.x} ${HUB.y}`;
+          // a price-tag shape: a body with a pointed end and a punched hole; a named tag has a longer body for its text
+          const body = tag ? tag.length * 6.8 + 14 : 14;
+          const shape = `M${-body / 2 - 6} -8 h${body} l8 8 l-8 8 h${-body} z`;
+          return (
+            <g key={`tag${p.angle}-${k}`} opacity={0}>
+              {/* plain tags turn to point the way they travel; named ones stay level so they can be read */}
+              <animateMotion dur="6.5s" begin={begin} repeatCount="indefinite" path={route} {...(tag ? {} : { rotate: 'auto' })} />
+              <animate attributeName="opacity" values="0;0.95;0.95;0" keyTimes="0;0.15;0.8;1" dur="6.5s" begin={begin} repeatCount="indefinite" />
+              <path d={shape} fill="#065f46" stroke="#34d399" strokeWidth={1.5} strokeLinejoin="round" />
+              <circle cx={-body / 2 - 1} cy={0} r={2.2} fill="#16243a" stroke="#34d399" strokeWidth={1} />
+              {tag && (
+                <text x={4} y={4} textAnchor="middle" fontSize={11} fontWeight={600} fontFamily="JetBrains Mono, monospace" fill="#d1fae5">
+                  {tag}
+                </text>
+              )}
+            </g>
+          );
+        });
+      })}
+      {/* each part of the portal, with its own items circling it */}
+      {PILLARS.map((p, i) => {
+        const n = at(p.angle);
+        return (
+          <g key={`n${p.angle}`}>
+            <g className="svg-box spin-slow" style={{ animationDuration: `${18 + i * 4}s`, animationDirection: i % 2 ? 'reverse' : 'normal' }}>
+              <circle cx={n.x} cy={n.y} r={54} stroke="currentColor" strokeOpacity={0.12} strokeWidth={1} strokeDasharray="3 7" />
+              {[0, 120, 240].map(a => {
+                const d = at(a + i * 30, 54, n);
+                return <circle key={a} cx={d.x} cy={d.y} r={3} fill="currentColor" fillOpacity={0.45} />;
+              })}
+            </g>
+            <circle cx={n.x} cy={n.y} r={32} fill="#16243a" stroke="currentColor" strokeOpacity={0.35} strokeWidth={1.5} />
+            <use href={`#${p.glyph}`} transform={`translate(${n.x - 16} ${n.y - 16}) scale(0.32)`} stroke="currentColor" strokeOpacity={0.8} />
+          </g>
+        );
+      })}
+
+      {/* the shared taxonomy at the centre */}
+      <circle className="svg-box spin-slow" cx={HUB.x} cy={HUB.y} r={84} stroke="#7dd3fc" strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="6 9" />
+      <circle cx={HUB.x} cy={HUB.y} r={60} stroke="#7dd3fc" strokeOpacity={0.45} strokeWidth={1.5}>
+        <animate attributeName="r" values="60;72;60" dur="3.4s" repeatCount="indefinite" />
+        <animate attributeName="stroke-opacity" values="0.45;0.05;0.45" dur="3.4s" repeatCount="indefinite" />
+      </circle>
+      <circle cx={HUB.x} cy={HUB.y} r={50} fill="#1d3358" stroke="#7dd3fc" strokeOpacity={0.6} strokeWidth={2} />
+      {/* the Tagging360 mark at the heart of the hub, ringed by blue dots: many values, one structure */}
+      {[30, 90, 150, 210, 270, 330].map(a => {
+        const d = at(a, 25);
+        return <circle key={a} cx={d.x} cy={d.y} r={4} fill="#7dd3fc" fillOpacity={0.7} />;
+      })}
+      <image href="/logo-icon.png" x={HUB.x - 15} y={HUB.y - 15} width={30} height={30} preserveAspectRatio="xMidYMid meet" opacity={0.9} style={{ filter: 'brightness(0) invert(1)' }} />
     </svg>
+   </div>
   </div>
 );
 
@@ -152,13 +182,17 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50">
       {/* Brand panel */}
-      <div className="relative hidden lg:flex flex-col justify-between bg-slate-800 text-white p-12 overflow-hidden">
+      <div className="relative hidden lg:flex flex-col justify-between bg-slate-800 text-white p-12 overflow-hidden login-aurora">
         {/* Greyed-out decorative backdrop — original line art of digital promotional channels */}
         <ChannelsBackdrop />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-900/60 to-slate-900/90" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/75 via-slate-900/45 to-slate-900/85" />
 
         <div className="relative z-10 flex items-center gap-3">
-          <img src="/logo-full.png" alt="Tagging360" className="h-24 w-auto brightness-0 invert" />
+          <span className="logo-reveal relative inline-flex">
+            <img src="/logo-full.png" alt="Tagging360" className="h-32 w-auto brightness-0 invert drop-shadow-lg" />
+            {/* a band of light that sweeps across the mark itself (masked to the logo's shape) */}
+            <span className="logo-sheen absolute inset-0" aria-hidden="true" />
+          </span>
           <div>
             <div className="text-[11px] text-navy-300 font-bold uppercase tracking-widest">
               Digital Content Taxonomy &amp; Metadata
@@ -167,12 +201,13 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div className="relative z-10 space-y-4 max-w-md">
-          <h1 className="text-3xl font-extrabold leading-tight">
+          <div className="hero-in h-1 w-14 rounded-full bg-gradient-to-r from-sky-300 to-navy-300" style={{ animationDelay: "100ms" }} />
+          <h1 className="hero-in font-display text-[2rem] sm:text-4xl font-extrabold leading-[1.15] tracking-tight" style={{ animationDelay: "200ms" }}>
             One source of truth for omnichannel content taxonomy &amp; metadata.
           </h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="hero-in text-[15px] text-slate-300 leading-relaxed" style={{ animationDelay: "350ms" }}>
             Build compliant campaign taxonomy, map topics &amp; subtopics, and keep every
-            downstream engine aligned — governed by role.
+            downstream engine aligned: governed by role.
           </p>
         </div>
 
@@ -245,7 +280,7 @@ export const LoginPage: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
               <Key className="w-3.5 h-3.5 text-navy-600" />
-              <span>Demo roles — one-click sign in</span>
+              <span>Demo roles: one-click sign in</span>
             </div>
             <div className="grid gap-2">
               {DUMMY_CREDENTIALS.map(cred => (

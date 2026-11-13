@@ -3,22 +3,13 @@ import { useSearchParams } from 'react-router-dom';
 import { Code, Copy, Check, Link2, Layers } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
-import { KITE_MEDIUM, KiteChannel } from '../../data/kiteTaxonomy';
-import { hasTactic, isApproved, tacticStatusOf, statusLabel, tacticCode, campaignIdOf } from '../../data/approvalStatus';
+import { hasTactic, isApproved, tacticStatusOf, statusLabel, tacticCode, campaignIdOf, channelLabel } from '../../data/approvalStatus';
 import { VaultCombobox } from './VaultCombobox';
 import { VaultItem } from '../../data/assetVault';
 import { CampaignTaxonomy } from '../../types';
 
-/** Old campaign channelType → Kite channel. */
-const KITE_CHANNEL_OF: Record<string, KiteChannel> = {
-  Digital: 'Digital',
-  Social: 'Social',
-  Search: 'Search',
-  SFMC: 'Email',
-  Email: 'Email',
-  IVA: 'IVA',
-  Website: 'Website',
-};
+/** What the sending platform replaces with the recipient's user ID. */
+const USER_ID_TOKEN = '{user_id}';
 
 const slug = (v: string | undefined | null): string =>
   String(v ?? '')
@@ -32,16 +23,16 @@ const Row: React.FC<{ label: string; children: React.ReactNode; mono?: boolean }
   <div className="grid grid-cols-3 gap-3 py-2 border-b border-slate-100 last:border-0">
     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</div>
     <div className={`col-span-2 text-xs text-slate-900 break-words ${mono ? 'font-mono' : 'font-medium'}`}>
-      {children || <span className="text-slate-300">—</span>}
+      {children || <span className="text-slate-300">-</span>}
     </div>
   </div>
 );
 
 const tacticTitle = (t: CampaignTaxonomy): string =>
-  `${tacticCode(t)} — ` + [
-    [t.channelType || 'Tactic', t.subChannel].filter(Boolean).join(' · '),
+  `${tacticCode(t)}: ` + [
+    [channelLabel(t) || 'Tactic', t.subChannel].filter(Boolean).join(' · '),
     t.tactic?.publisher || 'Publisher not set',
-  ].join(' · ') + (t.tactic?.placement ? ` — ${t.tactic.placement}` : '');
+  ].join(' · ') + (t.tactic?.placement ? ` · ${t.tactic.placement}` : '');
 
 /**
  * Tactic-based UTM generator: pick a tactic, see its campaign and its own details, and build the
@@ -80,27 +71,35 @@ export const TaxonomyCodeGenerator: React.FC = () => {
   const brand = campaign ? brands.find(b => b.id === campaign.brandId) : undefined;
   const ts = tactic ? tacticStatusOf(tactic) : undefined;
 
+  // Only four UTM parameters go into the link — more would make the URL too long (client's call).
+  const utmParams = useMemo(() => {
+    if (!tactic || !campaign) return [];
+    return [
+      { name: 'utm_medium', value: slug(channelLabel(tactic)), from: 'Channel' },
+      { name: 'utm_campaign', value: slug(campaignIdOf(campaign)), from: 'Campaign ID' },
+      // utm_term carries the user's ID (not their name). The sending platform fills it in for each recipient.
+      { name: 'utm_term', value: USER_ID_TOKEN, from: 'User ID (filled in per user by the platform)' },
+      { name: 'utm_content', value: slug(tactic.assetId), from: 'Creative / Asset ID' },
+    ];
+  }, [tactic, campaign]);
+
   const trackingUrl = useMemo(() => {
     if (!tactic || !campaign) return '';
     const brandCode = brand?.code || 'brand';
-    const medium = KITE_MEDIUM[(KITE_CHANNEL_OF[tactic.channelType || ''] || 'Digital') as KiteChannel] || 'digital';
-    const params: [string, string][] = [
-      ['utm_source', slug(tactic.tactic?.publisher || tactic.channelType)],
-      ['utm_medium', slug(tactic.subChannel || medium)],
-      ['utm_campaign', slug(campaignIdOf(campaign))],
-      ['utm_content', slug(tactic.assetId || tactic.tactic?.targetAudience)],
-      ['campaign_id', campaignIdOf(campaign)],
-      ['tactic_id', tacticCode(tactic)],
-    ];
+    const pairs: [string, string][] = utmParams.map(p => [p.name, p.value]);
     const landing = tactic.tactic?.landingPageUrl?.trim();
+    const base = landing && /^https?:\/\//i.test(landing) ? landing : `https://hcp.kitepharma.com/${slug(brandCode)}`;
+    // built by hand so the {user_id} placeholder stays readable instead of being percent-encoded
+    const query = pairs.map(([k, v]) => `${k}=${v === USER_ID_TOKEN ? v : encodeURIComponent(v)}`).join('&');
     try {
-      const u = new URL(landing && /^https?:\/\//i.test(landing) ? landing : `https://hcp.kitepharma.com/${slug(brandCode)}`);
-      params.forEach(([k, v]) => u.searchParams.set(k, v));
-      return u.toString();
+      const u = new URL(base);
+      const existing = u.search.replace(/^\?/, '');
+      u.search = '';
+      return `${u.toString()}?${[existing, query].filter(Boolean).join('&')}`;
     } catch {
-      return `https://hcp.kitepharma.com/${slug(brandCode)}?` + params.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+      return `${base}${base.includes('?') ? '&' : '?'}${query}`;
     }
-  }, [tactic, campaign, brand]);
+  }, [tactic, campaign, brand, utmParams]);
 
   const copy = () => {
     navigator.clipboard?.writeText(trackingUrl);
@@ -163,7 +162,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
           <div>
             <h4 className="text-xs font-extrabold text-slate-900 mb-1">Tactic details</h4>
             <Row label="Tactic ID" mono>{tacticCode(tactic)}</Row>
-            <Row label="Channel">{tactic.channelType}</Row>
+            <Row label="Channel">{channelLabel(tactic)}</Row>
             <Row label="Sub-channel">{tactic.subChannel}</Row>
             <Row label="Publisher / Platform">{tactic.tactic?.publisher}</Row>
             <Row label="Placement">{tactic.tactic?.placement}</Row>
@@ -172,6 +171,30 @@ export const TaxonomyCodeGenerator: React.FC = () => {
             <Row label="Landing page URL" mono>{tactic.tactic?.landingPageUrl}</Row>
             <Row label="Start – end">{tactic.tactic ? `${tactic.tactic.startDate} → ${tactic.tactic.endDate}` : ''}</Row>
             <Row label="Tactic status">{ts ? statusLabel(ts) : ''}</Row>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-extrabold text-slate-900 mb-1">UTM parameters</h4>
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 py-2">Parameter</th>
+                    <th className="text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 py-2">Value</th>
+                    <th className="text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 py-2">Taken from</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {utmParams.map(p => (
+                    <tr key={p.name} className="border-b border-slate-100 last:border-0">
+                      <td className="px-3 py-1.5 text-xs font-mono font-bold text-navy-700">{p.name}</td>
+                      <td className="px-3 py-1.5 text-xs font-mono text-slate-900 break-all">{p.value}</td>
+                      <td className="px-3 py-1.5 text-xs text-slate-500">{p.from}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">

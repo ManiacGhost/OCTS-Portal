@@ -119,7 +119,7 @@ export const KeyMessageSelector: React.FC<KeyMessageSelectorProps> = ({
           >
             {keyMessages.map((cat) => (
               <option key={cat.id} value={cat.id}>
-                {cat.name} ({cat.code}) — {cat.subcategories.length} subtopics
+                {cat.name} ({cat.code}): {cat.subcategories.length} subtopics
               </option>
             ))}
           </select>

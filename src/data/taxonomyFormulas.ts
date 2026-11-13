@@ -11,7 +11,6 @@
 import { MediaChannelType } from '../types';
 export type { MediaChannelType };
 
-export const CHANNEL_TYPES: MediaChannelType[] = ['Digital', 'Social', 'Search', 'Email', 'IVA', 'Website'];
 
 export type TokenKind = 'c' | 'v' | 'm' | 'f';
 
@@ -32,21 +31,8 @@ export interface FormulaToken {
   options?: string[];
 }
 
-// ---- controlled vocabularies -------------------------------------------------
-
-export const COUNTRIES = ['US', 'CA', 'GB', 'DE', 'FR', 'Global'];
-/** Campaign formula: branded / unbranded only. */
-export const MESSAGING_TYPES = ['Branded', 'Unbranded'];
-/** Campaign formula `audience`: HCP or DTP (confirm HCP / DTP vs DTC with the client). */
-export const AUDIENCES = ['HCP', 'DTP'];
-/** Used by the UTM generator's audience picker. */
-export const TARGETS = ['HCP', 'DTP', 'Patient', 'Caregiver', 'Payer'];
-/** Indication is "Cancer" — captured at the specific CAR-T level. */
-export const INDICATIONS = ['LBCL', 'FL', 'MCL', 'B-ALL'];
-/** `always_on` = ongoing; `specific` = marketing-led, with its own window. */
-export const CAMPAIGN_TYPES = ['Always on', 'Specific'];
-/** Optional — the field stays in the formula even when left blank. */
-export const OBJECTIVES = ['Awareness', 'Referral'];
+// The allowed values of every dropdown field live in the Kite dictionary (kiteDictionary.ts) — the
+// forms read them from there, so nothing is hardcoded here.
 
 // ---- Campaign Name formula (same for every channel) ----------------------------
 //
@@ -58,16 +44,16 @@ export const OBJECTIVES = ['Awareness', 'Referral'];
 // itself and are deliberately NOT part of the formula.
 
 export const CAMPAIGN_FORMULA: FormulaToken[] = [
-  { key: 'country', name: 'country', label: 'Country', kind: 'c', source: 'input', options: COUNTRIES },
+  { key: 'country', name: 'country', label: 'Country', kind: 'c', source: 'input' },
   { key: 'ta', name: 'TA', label: 'Therapeutic area', kind: 'c', source: 'ta' },
   { key: 'product', name: 'productcode', label: 'Product code', kind: 'c', source: 'brand' },
-  { key: 'indication', name: 'indication', label: 'Indication', kind: 'c', source: 'input', options: INDICATIONS },
-  { key: 'messagingType', name: 'messagingtype', label: 'Messaging type', kind: 'c', source: 'input', options: MESSAGING_TYPES },
-  { key: 'audience', name: 'audience', label: 'Audience', kind: 'c', source: 'input', options: AUDIENCES },
+  { key: 'indication', name: 'indication', label: 'Indication', kind: 'c', source: 'input' },
+  { key: 'messagingType', name: 'messagingtype', label: 'Messaging type', kind: 'c', source: 'input' },
+  { key: 'audience', name: 'audience', label: 'Audience', kind: 'c', source: 'input' },
   { key: 'segmentName', name: 'segmentname', label: 'Segment name', kind: 'f', source: 'input' },
   { key: 'segmentValue', name: 'segmentvalue', label: 'Segment value', kind: 'f', source: 'input' },
-  { key: 'campaignType', name: 'campaigntype', label: 'Campaign type', kind: 'c', source: 'input', options: CAMPAIGN_TYPES },
-  { key: 'objective', name: 'objective', label: 'Objective', kind: 'c', source: 'input', options: OBJECTIVES },
+  { key: 'campaignType', name: 'campaigntype', label: 'Campaign type', kind: 'c', source: 'input' },
+  { key: 'objective', name: 'objective', label: 'Objective', kind: 'c', source: 'input' },
 ];
 
 /** The formula as the client writes it: country_TA_productcode_…_objective (no date — dates are campaign details) */
@@ -87,35 +73,6 @@ export const SUB_CHANNELS: Record<MediaChannelType, string[]> = {
   Email: [],
   IVA: [],
   Website: [],
-};
-
-export interface ExtraField {
-  key: string;
-  label: string;
-  options?: string[];
-  placeholder?: string;
-}
-
-export const SUB_CHANNEL_FIELDS: Record<MediaChannelType, Record<string, ExtraField[]>> = {
-  Digital: {
-    '3P Email': [
-      { key: 'vendor', label: 'Vendor', options: ['Medscape', 'ReachMD'] },
-      { key: 'subjLine', label: 'Subject line', placeholder: 'e.g. See the 2-year data' },
-    ],
-    '3P SMS': [
-      { key: 'vendor', label: 'Vendor', options: ['Impiricus'] },
-      { key: 'shortCode', label: 'Short code', placeholder: 'e.g. 55512' },
-    ],
-    Display: [
-      { key: 'vendor', label: 'Vendor', options: ['DeepIntent', 'Medscape', 'Open Evidence', 'ReachMD', 'Relevate Health'] },
-      { key: 'adSize', label: 'Ad size', options: ['300x250', '728x90', '160x600', '970x250', '1x1'] },
-    ],
-  },
-  Social: {},
-  Search: {},
-  Email: {},
-  IVA: {},
-  Website: {},
 };
 
 // ---- assembler ------------------------------------------------------------

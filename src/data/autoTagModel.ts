@@ -96,7 +96,7 @@ export function suggestTag(
     `Tracing the ${ctx.channelName} → ${ctx.subChannel} journey for ${ctx.brandName}, recurring ` +
     `${topic.name.toLowerCase()} signals${signals.length ? ` (${signals.join(', ')})` : ''} across ` +
     `the tactic sequence drive this classification` +
-    (differs ? ' — it diverges from the currently recorded topic and is flagged for review.' : '.');
+    (differs ? '; it diverges from the currently recorded topic and is flagged for review.' : '.');
 
   // AI-inferred brand + indication (content assets don't carry them from a formula).
   const recordedBrand = brands.find(b => b.id === campaign.brandId) || brands[0];
@@ -117,15 +117,15 @@ export function suggestTag(
     topicCode: topic.code,
     topicName: topic.name,
     subtopicId: sub?.id || '',
-    subtopicCode: sub?.code || '—',
-    subtopicName: sub?.name || '—',
+    subtopicCode: sub?.code || '-',
+    subtopicName: sub?.name || '-',
     confidence,
     reason,
     signals,
     differsFromRecorded: differs,
 
     brandName: brand?.name || ctx.brandName,
-    brandCode: brand?.code || '—',
+    brandCode: brand?.code || '-',
     brandConfidence,
     brandDiffers,
     indication,
@@ -153,13 +153,13 @@ const SLIDE_TITLES = [
   'Rationale for CAR T-cell therapy',
   'Mechanism of action',
   'Pivotal trial design & patient population',
-  'Primary endpoint — objective response rate',
+  'Primary endpoint: objective response rate',
   'Depth & durability of response',
   'Overall & progression-free survival',
   'Key subgroup analyses',
   'Safety overview',
-  'CRS — grading & management algorithm',
-  'ICANS — monitoring & mitigation',
+  'CRS: grading & management algorithm',
+  'ICANS: monitoring & mitigation',
   'Patient identification & referral timing',
   'Apheresis-to-infusion logistics',
   'Authorized Treatment Center network',

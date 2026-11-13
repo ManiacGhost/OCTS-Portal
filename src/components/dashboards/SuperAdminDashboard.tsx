@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { addKeyMessageSubcategory } from '../../services/api';
 import { KeyMessageSelector } from '../common/KeyMessageSelector';
-import { TaxonomyDictionaryView } from '../common/TaxonomyDictionaryView';
+import { DictionaryView } from '../common/DictionaryView';
 import { UserPersona, AgencyPartner } from '../../types';
 import {
   ShieldAlert,
@@ -272,7 +272,10 @@ export const SuperAdminDashboard: React.FC = () => {
 
       {/* Page header */}
       <div>
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Administration</h1>
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <ShieldAlert />
+          Administration
+        </h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Onboard agencies, manage marketer &amp; analytics users, edit the master taxonomy, and review the audit trail.
         </p>
@@ -750,7 +753,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
           {/* Master Browser */}
           <div className="lg:col-span-2">
-            <TaxonomyDictionaryView />
+            <DictionaryView embedded />
           </div>
 
         </div>
@@ -992,7 +995,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     required
                     value={userForm.name}
                     onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
-                    placeholder="e.g. Dr. Marcus Vance"
+                    placeholder="e.g. Marcus Vance"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-navy-500"
                   />
                 </div>

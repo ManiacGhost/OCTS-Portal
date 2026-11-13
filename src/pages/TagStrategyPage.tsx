@@ -127,8 +127,8 @@ export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ v
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          <Route className="w-5 h-5 text-navy-600" />
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Route className="w-6 h-6 text-navy-600" />
           {isBrand ? 'Brand Tagging Strategy' : 'Tags'}
         </h1>
         {isBrand && (
@@ -292,7 +292,7 @@ export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ v
                 onChange={e => e.target.value && setKbqId(e.target.value)}
                 className="w-full bg-white border border-navy-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-navy-500"
               >
-                <option value="" disabled>— select a question —</option>
+                <option value="" disabled>Select a question…</option>
                 {coreKbqs.map(kbq => (
                   <option key={kbq.id} value={kbq.id}>
                     {STATUS_PREFIX[kbq.status]} {kbq.question}
@@ -315,7 +315,7 @@ export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ v
                   onChange={e => e.target.value && setKbqId(e.target.value)}
                   className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-purple-500"
                 >
-                  <option value="" disabled>— select a question —</option>
+                  <option value="" disabled>Select a question…</option>
                   {channelKbqs.map(kbq => (
                     <option key={kbq.id} value={kbq.id}>
                       {STATUS_PREFIX[kbq.status]} {kbq.question}
@@ -557,7 +557,7 @@ export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ v
                             {d.portalSources.map(p => (
                               <span
                                 key={p}
-                                title="Added by the portal — not in the publisher sheet"
+                                title="Added by the portal: not in the publisher sheet"
                                 className="text-[10px] font-bold text-purple-700 bg-purple-50 border border-dashed border-purple-400 rounded px-1.5 py-0.5"
                               >
                                 {p}
@@ -568,7 +568,7 @@ export const TagStrategyPage: React.FC<{ variant?: 'summary' | 'brand' }> = ({ v
                         <td className="p-2">
                           <input
                             value={ed.defaultValue ?? ''}
-                            placeholder="—"
+                            placeholder="-"
                             onChange={e => editDim(d.code, { defaultValue: e.target.value })}
                             className={VALUE_INPUT}
                           />

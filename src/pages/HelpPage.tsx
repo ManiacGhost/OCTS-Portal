@@ -38,12 +38,12 @@ const DOCS: DocSection[] = [
         kind: 'list',
         items: [
           KBQ_ENABLED
-            ? 'Tagging Strategy — decide which dimensions each brand tags on each channel, and see which business questions that answers.'
-            : 'Tagging Strategy — decide which dimensions each brand tags on each channel, and see what is tagged where.',
-          'Campaigns — build a campaign’s taxonomy string from the approved formula, starting from its Asset and Tactic.',
-          'UTM Generator — part of the campaign flow: after a campaign is created you can create its UTMs straight away, or later from the campaigns list (Open with UTM Generator).',
-          'Dictionary — browse every approved value and abbreviation.',
-          ...(AUTOTAG_ENABLED ? ['Auto Tagging — review the AI’s suggested tags for IVA slides and give feedback.'] : []),
+            ? 'Tagging Strategy: decide which dimensions each brand tags on each channel, and see which business questions that answers.'
+            : 'Tagging Strategy: decide which dimensions each brand tags on each channel, and see what is tagged where.',
+          'Campaigns: build a campaign’s taxonomy string from the approved formula, starting from its Asset and Tactic.',
+          'UTM Generator: part of the campaign flow. After a campaign is created you can create its UTMs straight away, or later from the campaigns list (Open with UTM Generator).',
+          'Dictionary: browse every approved value and abbreviation.',
+          ...(AUTOTAG_ENABLED ? ['Auto Tagging: review the AI’s suggested tags for IVA slides and give feedback.'] : []),
         ],
       },
       {
@@ -79,8 +79,8 @@ const DOCS: DocSection[] = [
       {
         kind: 'p',
         text: KBQ_ENABLED
-          ? 'This screen answers: for this brand, on every channel, what do we tag — and what can analytics learn from it? It opens on a read-only Overview: pick a brand and see each business question with, for every channel it applies to, its status and which dimensions are tagged (highlighted). Switch to Edit strategy to change what a brand tags.'
-          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, shown in two columns, GA tags and Content tags; hover a dimension to see which channels carry it. The small grid icon at the end of each column opens a floating tile listing every available dimension in that group (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags — there, the GA and Content bar above the column names switches the table between the two groups.',
+          ? 'This screen answers: for this brand, on every channel, what do we tag, and what can analytics learn from it? It opens on a read-only Overview: pick a brand and see each business question with, for every channel it applies to, its status and which dimensions are tagged (highlighted). Switch to Edit strategy to change what a brand tags.'
+          : 'This screen answers: for this brand, on every channel, what do we tag? It opens on a read-only Overview: pick a brand and see, for each channel and sub-channel, which dimensions are tagged, shown in two columns, GA tags and Content tags; hover a dimension to see which channels carry it. The small grid icon at the end of each column opens a floating tile listing every available dimension in that group (the already-tagged ones are greyed out); the Overview is view-only. Switch to Edit strategy to change what a brand tags: there, the GA and Content bar above the column names switches the table between the two groups.',
       },
       {
         kind: 'steps',
@@ -90,7 +90,7 @@ const DOCS: DocSection[] = [
           'Tick the dimensions this brand tags. Use the checkbox in the header to tick or clear them all (it applies to the rows you are looking at).',
           'Type a Default value for any dimension that usually takes the same value. Dimension names and what they capture are fixed.',
           ...(KBQ_ENABLED
-            ? ['Watch the counters on the Business questions & KPIs card — Covered, Partial and Not tagged — as you tick.']
+            ? ['Watch the counters on the Business questions & KPIs card (Covered, Partial and Not tagged) as you tick.']
             : []),
         ],
       },
@@ -119,11 +119,11 @@ const DOCS: DocSection[] = [
       {
         kind: 'steps',
         items: [
-          'Asset & Tactic — the Asset ID of the promotional asset and the Tactic ID it runs under. Both are required, and every later step is anchored to them.',
-          'Campaign Context — the campaign name, market and target quarter.',
-          'Topic & Subtopic — therapeutic area, brand, and the topic and subtopic the campaign is about.',
-          'Channel & Formula — pick the promotional channel (and sub-channel), then fill the highlighted fields; the rest fill automatically and the taxonomy string builds live from the approved Campaign Name formula, which is the same for every channel.',
-          'Review & Submit — check the summary and submit. The campaign goes to the marketer for approval.',
+          'Asset & Tactic: the Asset ID of the promotional asset and the Tactic ID it runs under. Both are required, and every later step is anchored to them.',
+          'Campaign Context: the campaign name, market and target quarter.',
+          'Topic & Subtopic: therapeutic area, brand, and the topic and subtopic the campaign is about.',
+          'Channel & Formula: pick the promotional channel (and sub-channel), then fill the highlighted fields; the rest fill automatically and the taxonomy string builds live from the approved Campaign Name formula, which is the same for every channel.',
+          'Review & Submit: check the summary and submit. The campaign goes to the marketer for approval.',
         ],
       },
       {
@@ -181,7 +181,7 @@ const DOCS: DocSection[] = [
       {
         kind: 'steps',
         items: [
-          'Pick a field from the dropdown — it lists every controlled-vocabulary field from the Kite / Evoke taxonomy sheet, with the number of values.',
+          'Pick a field from the dropdown: it lists every controlled-vocabulary field from the Kite taxonomy sheet, with the number of values.',
           'Browse the approved values in the left column and their abbreviations in the right.',
           'Use Filter to search the values and abbreviations of the field you’re in.',
         ],
@@ -216,9 +216,9 @@ const DOCS: DocSection[] = [
       {
         kind: 'list',
         items: [
-          'Marketers — Approvals lists agency submissions. Approve a campaign, or reject it back to the agency with notes.',
-          'Analytics — Compliance shows taxonomy compliance by platform and agency, flagged discrepancies you can mark resolved, and CSV exports of campaigns and the topic dictionary.',
-          'Administrators — Administration onboards agencies, manages marketer and analytics users, edits the master topic and subtopic list, and shows the audit trail of every action.',
+          'Marketers: Approvals lists agency submissions. Approve a campaign, or reject it back to the agency with notes.',
+          'Analytics: Compliance shows taxonomy compliance by platform and agency, flagged discrepancies you can mark resolved, and CSV exports of campaigns and the topic dictionary.',
+          'Administrators: Administration onboards agencies, manages marketer and analytics users, edits the master topic and subtopic list, and shows the audit trail of every action.',
         ],
       },
     ],
@@ -234,15 +234,15 @@ const DOCS: DocSection[] = [
           { term: 'Dimension', def: 'A tagged field such as Campaign ID, Topic or Audience.' },
           ...(KBQ_ENABLED
             ? [
-                { term: 'KBQ', def: 'Key Business Question — something analytics needs to be able to answer, e.g. which topics drive engagement.' },
-                { term: 'KPI', def: 'Key Performance Indicator — the measure a KBQ is answered with.' },
+                { term: 'KBQ', def: 'Key Business Question: something analytics needs to be able to answer, e.g. which topics drive engagement.' },
+                { term: 'KPI', def: 'Key Performance Indicator: the measure a KBQ is answered with.' },
                 { term: 'Cross-channel / channel-specific', def: 'Whether a business question applies the same way to every channel, or only to one.' },
               ]
             : []),
           { term: 'Asset ID', def: 'The identifier of the promotional asset a campaign is built around.' },
           { term: 'Tactic ID', def: 'The identifier of the tactic the asset is promoted under.' },
           { term: 'Topic / Subtopic', def: 'The master key-message taxonomy every asset is classified against.' },
-          { term: 'IVA', def: 'Interactive visual aid — the slide decks reps present in the field.' },
+          { term: 'IVA', def: 'Interactive visual aid: the slide decks reps present in the field.' },
           { term: 'Sub-channel', def: 'A more specific route within a channel, e.g. 3P Email within Digital.' },
         ],
       },
@@ -255,10 +255,10 @@ const DOCS: DocSection[] = [
       {
         kind: 'list',
         items: [
-          'A field is greyed out in the UTM Generator — a campaign is linked. Clear the Campaign dropdown to edit it.',
-          'No dimensions appear in the UTM Generator — nothing is ticked for that brand and channel yet. Tick some in Tagging Strategy.',
-          'I can’t continue past step 1 of the campaign builder — both the Asset ID and the Tactic ID are required.',
-          'My campaign is missing after a long time away — work is stored in this browser; clearing site data or using a different browser or device will not show it.',
+          'A field is greyed out in the UTM Generator: a campaign is linked. Clear the Campaign dropdown to edit it.',
+          'No dimensions appear in the UTM Generator: nothing is ticked for that brand and channel yet. Tick some in Tagging Strategy.',
+          'I can’t continue past step 1 of the campaign builder: both the Asset ID and the Tactic ID are required.',
+          'My campaign is missing after a long time away: work is stored in this browser; clearing site data or using a different browser or device will not show it.',
         ],
       },
       { kind: 'p', text: 'Still stuck? Use “Reach out to us” on this page.' },
@@ -421,7 +421,7 @@ const ContactEmail: React.FC = () => {
   const [message, setMessage] = useState('');
 
   const subject = `[Tagging360] ${topic}`;
-  const body = `${message.trim()}\n\n— ${user?.name || 'Tagging360 user'}${user?.roleTitle ? `, ${user.roleTitle}` : ''}${user?.organization ? ` (${user.organization})` : ''}`;
+  const body = `${message.trim()}\n\n${user?.name || 'Tagging360 user'}${user?.roleTitle ? `, ${user.roleTitle}` : ''}${user?.organization ? ` (${user.organization})` : ''}`;
   const valid = /^\S+@\S+\.\S+$/.test(to.trim());
 
   const send = (e: React.FormEvent) => {
@@ -511,7 +511,7 @@ export const HelpPage: React.FC = () => {
         <div className="flex-1 min-w-0">
           <div className="text-base font-extrabold">How to use &amp; Documentation</div>
           <div className="text-xs text-navy-100 mt-0.5">
-            The complete guide to Tagging360 — every screen step by step, how taxonomy strings are built, a glossary and troubleshooting.
+            The complete guide to Tagging360: every screen step by step, how taxonomy strings are built, a glossary and troubleshooting.
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold shrink-0">
