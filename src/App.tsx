@@ -23,6 +23,7 @@ import { MarketerDashboard } from './components/dashboards/MarketerDashboard';
 import { AnalyticsDashboard } from './components/dashboards/AnalyticsDashboard';
 import { SuperAdminDashboard } from './components/dashboards/SuperAdminDashboard';
 import { UserRole } from './types';
+import { JourneyMetadataPage } from './pages/JourneyMetadataPage';
 
 const RoleRoute: React.FC<{ roles: UserRole[]; children: React.ReactNode }> = ({ roles, children }) => (
   <ProtectedRoute roles={roles}>{children}</ProtectedRoute>
@@ -73,7 +74,7 @@ export default function App() {
           />
           <Route
             path="/content-metadata"
-            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><ComingSoonPage title="Journey Metadata" /></RoleRoute>}
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><JourneyMetadataPage /></RoleRoute>}
           />
           <Route
             path="/content-mdm"

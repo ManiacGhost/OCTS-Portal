@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
@@ -30,6 +30,9 @@ export function usePaged<T>(items: T[], pageSize: number, resetKey: unknown) {
 export function useFitRows(listRef: React.RefObject<HTMLElement | null>, initial: number, min = 3, max = 25): number {
   const [size, setSize] = useState(initial);
   const [tick, setTick] = useState(0);
+  // the smallest page size that has overflowed at this window height: never grow back to it, or rows of
+  // different heights (wrapping text) would make the size flip back and forth for ever
+  const overflowedAt = useRef<{ height: number; size: number }>({ height: 0, size: Infinity });
   useEffect(() => {
     const onResize = () => setTick(t => t + 1);
     window.addEventListener('resize', onResize);
@@ -57,8 +60,11 @@ export function useFitRows(listRef: React.RefObject<HTMLElement | null>, initial
     // a row's share of the list, gaps included
     const perRow = rows.length > 1 ? (span - last.height) / (rows.length - 1) : first.height;
     const overhead = natural - span;
-    const fits = Math.floor((window.innerHeight - overhead - last.height) / perRow) + 1;
-    const next = Math.max(min, Math.min(max, fits));
+    const h = window.innerHeight;
+    if (overflowedAt.current.height !== h) overflowedAt.current = { height: h, size: Infinity };
+    if (natural > h + 1) overflowedAt.current.size = Math.min(overflowedAt.current.size, size);
+    const fits = Math.floor((h - overhead - last.height) / perRow) + 1;
+    const next = Math.max(min, Math.min(max, fits, overflowedAt.current.size - 1));
     if (next !== size) setSize(next);
   });
   void tick;

@@ -194,12 +194,21 @@ const USAGE: Record<string, DictUse[]> = {
 };
 
 /** Fields the flows capture that the sheet does not list (free text, system generated or derived). */
+/** Dictionary fields added because a metadata layer needs them and the Kite sheet does not have them: key -> the layer. */
+export const ADDED_FIELDS: Record<string, string> = {
+  journey_tactic_id: 'Journey Metadata',
+  vendor_channel: 'Content MDM',
+};
+
 const EXTRAS: { key: string; abbreviation: string; label: string; kind: FieldKind; usedIn: DictUse[]; note: string }[] = [
   { key: 'campaign_id', abbreviation: 'cpgn_id', label: 'Campaign ID', kind: 'system', usedIn: ['campaign', 'utm'], note: 'System-generated, e.g. CMP-2026-0101' },
   { key: 'campaign_name', abbreviation: 'cpgn_nm', label: 'Campaign name', kind: 'free', usedIn: ['campaign'], note: 'Free text' },
   { key: 'segment_name', abbreviation: 'segmentname', label: 'Segment name', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
   { key: 'segment_value', abbreviation: 'segmentvalue', label: 'Segment value', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
   { key: 'campaign_dates', abbreviation: 'cpgn_dt', label: 'Campaign dates', kind: 'free', usedIn: ['campaign'], note: 'Year and month for always-on, or a start and end date. Not part of the formula' },
+  // fields Journey Metadata / Content MDM need that the Kite sheet does not have (marked "Added" there)
+  { key: 'vendor_channel', abbreviation: 'vendor_channel', label: 'Vendor channel', kind: 'free', usedIn: [], note: 'Delivery channel / vendor label. Added for Content MDM.' },
+  { key: 'journey_tactic_id', abbreviation: 'tactic_id', label: 'Journey tactic ID', kind: 'free', usedIn: [], note: 'Journey input trigger for Medscape / Relevate tactics, e.g. 61249. Vendor transaction data, not a content attribute. Added for Journey Metadata.' },
   { key: 'tactic_id', abbreviation: 'tact_id', label: 'Tactic ID', kind: 'system', usedIn: ['tactic', 'utm'], note: 'System-generated, e.g. TACT-2026-0201' },
   { key: 'placement', abbreviation: 'plact_nm', label: 'Placement', kind: 'free', usedIn: ['tactic'], note: 'Free text' },
   { key: 'landing_url', abbreviation: 'url', label: 'Landing page URL', kind: 'free', usedIn: ['tactic', 'utm'], note: 'Free text: the base of the tracking link' },
@@ -344,6 +353,7 @@ function load(): DictState {
       if (!sf) return f;
       return {
         ...f,
+        label: sf.label,
         note: f.kind === 'dictionary' ? f.note : sf.note,
         usedIn: sf.usedIn,
         owner: f.owner === OLD_DEFAULT_OWNER ? sf.owner : clean(f.owner),
