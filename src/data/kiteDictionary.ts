@@ -194,29 +194,20 @@ const USAGE: Record<string, DictUse[]> = {
 };
 
 /** Fields the flows capture that the sheet does not list (free text, system generated or derived). */
-/** Dictionary fields added because a metadata layer needs them and the Kite sheet does not have them: key -> the layer. */
-export const ADDED_FIELDS: Record<string, string> = {
-  journey_tactic_id: 'Journey Metadata',
-  vendor_channel: 'Content MDM',
-};
-
 const EXTRAS: { key: string; abbreviation: string; label: string; kind: FieldKind; usedIn: DictUse[]; note: string }[] = [
-  { key: 'campaign_id', abbreviation: 'cpgn_id', label: 'Campaign ID', kind: 'system', usedIn: ['campaign', 'utm'], note: 'System-generated, e.g. CMP-2026-0101' },
+  { key: 'campaign_id', abbreviation: 'cpgn_id', label: 'Campaign ID', kind: 'system', usedIn: ['campaign', 'utm'], note: 'System-generated: cp + year + month + running number for the month, e.g. cp202602001' },
   { key: 'campaign_name', abbreviation: 'cpgn_nm', label: 'Campaign name', kind: 'free', usedIn: ['campaign'], note: 'Free text' },
   { key: 'segment_name', abbreviation: 'segmentname', label: 'Segment name', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
   { key: 'segment_value', abbreviation: 'segmentvalue', label: 'Segment value', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
   { key: 'campaign_dates', abbreviation: 'cpgn_dt', label: 'Campaign dates', kind: 'free', usedIn: ['campaign'], note: 'Year and month for always-on, or a start and end date. Not part of the formula' },
-  // fields Journey Metadata / Content MDM need that the Kite sheet does not have (marked "Added" there)
-  { key: 'vendor_channel', abbreviation: 'vendor_channel', label: 'Vendor channel', kind: 'free', usedIn: [], note: 'Delivery channel / vendor label. Added for Content MDM.' },
-  { key: 'journey_tactic_id', abbreviation: 'tactic_id', label: 'Journey tactic ID', kind: 'free', usedIn: [], note: 'Journey input trigger for Medscape / Relevate tactics, e.g. 61249. Vendor transaction data, not a content attribute. Added for Journey Metadata.' },
   { key: 'tactic_id', abbreviation: 'tact_id', label: 'Tactic ID', kind: 'system', usedIn: ['tactic', 'utm'], note: 'System-generated, e.g. TACT-2026-0201' },
   { key: 'placement', abbreviation: 'plact_nm', label: 'Placement', kind: 'free', usedIn: ['tactic'], note: 'Free text' },
   { key: 'landing_url', abbreviation: 'url', label: 'Landing page URL', kind: 'free', usedIn: ['tactic', 'utm'], note: 'Free text: the base of the tracking link' },
   { key: 'tactic_dates', abbreviation: 'tact_dt', label: 'Tactic start / end dates', kind: 'free', usedIn: ['tactic'], note: 'Free text (dates)' },
   { key: 'utm_medium', abbreviation: 'utm_medium', label: 'utm_medium', kind: 'derived', usedIn: ['utm'], note: 'Derived from the tactic channel (chnl)' },
   { key: 'utm_campaign', abbreviation: 'utm_campaign', label: 'utm_campaign', kind: 'derived', usedIn: ['utm'], note: 'Derived from the Campaign ID' },
-  { key: 'utm_term', abbreviation: 'utm_term', label: 'utm_term', kind: 'derived', usedIn: ['utm'], note: 'The user ID (not the user name): the sending platform fills it in for each user' },
-  { key: 'utm_content', abbreviation: 'utm_content', label: 'utm_content', kind: 'derived', usedIn: ['utm'], note: 'Derived from the creative / asset ID (aset_id)' },
+  { key: 'utm_term', abbreviation: 'utm_term', label: 'utm_term', kind: 'derived', usedIn: ['utm'], note: 'The user ID (not the user name), e.g. u40718263: the sending platform fills in the ID of each recipient' },
+  { key: 'utm_content', abbreviation: 'utm_content', label: 'utm_content', kind: 'derived', usedIn: ['utm'], note: 'System-generated content ID: us + ct + year + month + a number, e.g. usct202608201' },
 ];
 
 /** The headline of the history entry once a change has been approved. */

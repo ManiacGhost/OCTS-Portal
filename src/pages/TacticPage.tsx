@@ -9,6 +9,7 @@ import { hasTactic, isApproved, tacticStatusOf, tacticCode, campaignIdOf, campai
 import { StatusFlags } from '../components/common/StatusFlags';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import type { MediaChannelType } from '../types';
+import { publishersFor } from '../data/channelPublishers';
 
 const CHANNEL_ID: Record<MediaChannelType, string> = {
   Digital: 'chan-digital',
@@ -41,7 +42,6 @@ export const TacticPage: React.FC = () => {
   const channels = useDictValues('chnl');
   const subChannels = useDictValues('sub_chnl');
   const publishers = useDictValues('src');
-  const audiences = useDictValues('target');
   const assetValues = useDictValues('aset_id');
   const assetItems = useMemo(() => assetValues.map(v => ({ id: v, name: v })), [assetValues]);
 
@@ -50,6 +50,13 @@ export const TacticPage: React.FC = () => {
   const channelType: MediaChannelType = channelTypeOf(channel);
   const [subChannel, setSubChannel] = useState('');
   const [publisher, setPublisher] = useState('');
+  // only the publishers that run on the chosen channel are offered
+  const forChannel = useMemo(() => publishersFor(channel, publishers), [channel, publishers]);
+  const chooseChannel = (next: string) => {
+    setChannel(next);
+    const allowed = publishersFor(next, publishers).available;
+    if (publisher && !allowed.includes(publisher)) setPublisher('');
+  };
   const [placement, setPlacement] = useState('');
   const [assetId, setAssetId] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
@@ -72,7 +79,8 @@ export const TacticPage: React.FC = () => {
       setSubChannel(campaign.subChannel || '');
     }
     setAssetId(isNew ? '' : campaign.assetId || '');
-    setTargetAudience(t?.targetAudience || campaign.formulaInputs?.audience || campaign.targetAudience || '');
+    // the audience belongs to the campaign; the tactic just carries it along
+    setTargetAudience(campaign.formulaInputs?.audience || t?.targetAudience || campaign.targetAudience || '');
     setPublisher(t?.publisher || '');
     setPlacement(t?.placement || '');
     setLandingPageUrl(t?.landingPageUrl || campaign.contentAssetUrl || '');
@@ -85,8 +93,8 @@ export const TacticPage: React.FC = () => {
     const p: Record<string, string> = {};
     if (!channel) p.channel = 'Choose the channel.';
     if (!subChannel) p.subChannel = 'Choose the sub-channel.';
-    if (!publisher.trim()) p.publisher = 'Choose the publisher or platform.';
-    if (!targetAudience) p.targetAudience = 'Choose the target audience.';
+    if (!publisher.trim()) p.publisher = channel && forChannel.available.length === 0 ? `No publisher is set up for ${channel} yet.` : 'Choose the publisher or platform.';
+    else if (channel && !forChannel.available.includes(publisher)) p.publisher = `${publisher} does not run on ${channel}. Pick one of its publishers.`;
     if (!placement.trim()) p.placement = 'Enter the placement.';
     if (!assetId.trim()) p.assetId = 'Choose the creative / asset ID.';
     if (!/^https?:\/\/\S+\.\S+/i.test(landingPageUrl.trim())) p.landingPageUrl = 'Enter a full URL, starting with https://';
@@ -94,7 +102,7 @@ export const TacticPage: React.FC = () => {
     if (!endDate) p.endDate = 'Pick an end date.';
     else if (startDate && endDate < startDate) p.endDate = 'The end date is before the start date.';
     return p;
-  }, [channel, subChannel, publisher, placement, targetAudience, assetId, landingPageUrl, startDate, endDate]);
+  }, [channel, subChannel, publisher, placement, targetAudience, assetId, landingPageUrl, startDate, endDate, forChannel]);
 
   if (isLoading) return <div className="p-10 text-center text-sm text-slate-400">Loading…</div>;
   if (!campaign) {
@@ -284,7 +292,7 @@ export const TacticPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="t-channel" className="block text-xs font-bold text-slate-700 mb-1">Channel{req}</label>
-            <select id="t-channel" value={channel} onChange={e => setChannel(e.target.value)} className={`${FIELD_CLS} ${fieldErr('channel')}`}>
+            <select id="t-channel" value={channel} onChange={e => chooseChannel(e.target.value)} className={`${FIELD_CLS} ${fieldErr('channel')}`}>
               <option value="">Select…</option>
               {withCurrent(channels, channel).map(v => (
                 <option key={v} value={v}>{v}</option>
@@ -306,12 +314,21 @@ export const TacticPage: React.FC = () => {
 
           <div>
             <label htmlFor="t-publisher" className="block text-xs font-bold text-slate-700 mb-1">Publisher / Platform{req}</label>
-            <select id="t-publisher" value={publisher} onChange={e => setPublisher(e.target.value)} className={`${FIELD_CLS} ${fieldErr('publisher')}`}>
-              <option value="">Select…</option>
-              {withCurrent(publishers, publisher).map(v => (
+            <select
+              id="t-publisher"
+              value={publisher}
+              onChange={e => setPublisher(e.target.value)}
+              disabled={!channel}
+              className={`${FIELD_CLS} ${fieldErr('publisher')} disabled:bg-slate-50 disabled:text-slate-400`}
+            >
+              <option value="">{channel ? 'Select…' : 'Choose the channel first'}</option>
+              {withCurrent(forChannel.available, publisher).map(v => (
                 <option key={v} value={v}>{v}</option>
               ))}
             </select>
+            {channel && !forChannel.mapped && (
+              <p className="text-[11px] text-amber-700 mt-1">No publishers are mapped to {channel} yet.</p>
+            )}
             {errMsg('publisher')}
           </div>
 
@@ -337,22 +354,6 @@ export const TacticPage: React.FC = () => {
               placeholder="Search or select an asset ID…"
             />
             {errMsg('assetId')}
-          </div>
-
-          <div>
-            <label htmlFor="t-audience" className="block text-xs font-bold text-slate-700 mb-1">Target audience{req}</label>
-            <select
-              id="t-audience"
-              value={targetAudience}
-              onChange={e => setTargetAudience(e.target.value)}
-              className={`${FIELD_CLS} ${fieldErr('targetAudience')}`}
-            >
-              <option value="">Select…</option>
-              {withCurrent(audiences, targetAudience).map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-            {errMsg('targetAudience')}
           </div>
 
           <div className="sm:col-span-2">

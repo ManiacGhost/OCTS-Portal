@@ -8,8 +8,26 @@ import { VaultCombobox } from './VaultCombobox';
 import { VaultItem } from '../../data/assetVault';
 import { CampaignTaxonomy } from '../../types';
 
-/** What the sending platform replaces with the recipient's user ID. */
-const USER_ID_TOKEN = '{user_id}';
+const hashOf = (seed: string): number => {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return h >>> 0;
+};
+
+/**
+ * The content ID for utm_content, system generated like the campaign ID: us (the market) + ct + year + month +
+ * a number, e.g. usct202608201. The month is the tactic's; the number comes from its tactic ID, so it never changes.
+ */
+const contentIdOf = (t: CampaignTaxonomy): string => {
+  const d = new Date(t.createdAt || t.tactic?.startDate || Date.now());
+  const when = isNaN(d.getTime()) ? new Date() : d;
+  const digits = (tacticCode(t).match(/\d+/g) || []).join('');
+  const n = digits ? Number(digits.slice(-3)) || 1 : (hashOf(t.id) % 999) + 1;
+  return `usct${when.getFullYear()}${String(when.getMonth() + 1).padStart(2, '0')}${String(n).padStart(3, '0')}`;
+};
+
+/** A sample user ID for utm_term (the sending platform puts each recipient's own ID here), e.g. u40718263. */
+const sampleUserIdOf = (t: CampaignTaxonomy): string => `u${String(hashOf(`user|${t.id}`) % 100000000).padStart(8, '0')}`;
 
 const slug = (v: string | undefined | null): string =>
   String(v ?? '')
@@ -77,9 +95,9 @@ export const TaxonomyCodeGenerator: React.FC = () => {
     return [
       { name: 'utm_medium', value: slug(channelLabel(tactic)), from: 'Channel' },
       { name: 'utm_campaign', value: slug(campaignIdOf(campaign)), from: 'Campaign ID' },
-      // utm_term carries the user's ID (not their name). The sending platform fills it in for each recipient.
-      { name: 'utm_term', value: USER_ID_TOKEN, from: 'User ID (filled in per user by the platform)' },
-      { name: 'utm_content', value: slug(tactic.assetId), from: 'Creative / Asset ID' },
+      // utm_term carries the user's ID (not their name); the sending platform puts each recipient's own ID here
+      { name: 'utm_term', value: sampleUserIdOf(tactic), from: 'User ID (sample, each recipient gets their own)' },
+      { name: 'utm_content', value: contentIdOf(tactic), from: 'Content ID (system generated)' },
     ];
   }, [tactic, campaign]);
 
@@ -89,8 +107,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
     const pairs: [string, string][] = utmParams.map(p => [p.name, p.value]);
     const landing = tactic.tactic?.landingPageUrl?.trim();
     const base = landing && /^https?:\/\//i.test(landing) ? landing : `https://hcp.kitepharma.com/${slug(brandCode)}`;
-    // built by hand so the {user_id} placeholder stays readable instead of being percent-encoded
-    const query = pairs.map(([k, v]) => `${k}=${v === USER_ID_TOKEN ? v : encodeURIComponent(v)}`).join('&');
+    const query = pairs.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
     try {
       const u = new URL(base);
       const existing = u.search.replace(/^\?/, '');
@@ -167,7 +184,6 @@ export const TaxonomyCodeGenerator: React.FC = () => {
             <Row label="Publisher / Platform">{tactic.tactic?.publisher}</Row>
             <Row label="Placement">{tactic.tactic?.placement}</Row>
             <Row label="Creative / Asset ID" mono>{tactic.assetId}</Row>
-            <Row label="Target audience">{tactic.tactic?.targetAudience}</Row>
             <Row label="Landing page URL" mono>{tactic.tactic?.landingPageUrl}</Row>
             <Row label="Start – end">{tactic.tactic ? `${tactic.tactic.startDate} → ${tactic.tactic.endDate}` : ''}</Row>
             <Row label="Tactic status">{ts ? statusLabel(ts) : ''}</Row>

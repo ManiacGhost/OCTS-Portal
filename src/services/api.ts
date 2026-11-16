@@ -116,20 +116,34 @@ db.campaigns.forEach(c => {
   }
 });
 
-/** Next campaign ID, e.g. CMP-2026-0102: one more than the highest number already issued. */
-function nextCampaignId(): string {
-  const nums = db.campaigns.map(c => /^CMP-\d{4}-(\d+)$/.exec(c.campaignId || '')?.[1]).filter(Boolean).map(Number);
-  const next = Math.max(100, ...nums) + 1;
-  return `CMP-${new Date().getFullYear()}-${String(next).padStart(4, '0')}`;
+/**
+ * Next campaign ID: cp + year + month + a running number for that month, e.g. cp202602001 for the first
+ * campaign created in February 2026. The month is the campaign's creation month.
+ */
+function nextCampaignId(createdAt?: string): string {
+  const d = createdAt ? new Date(createdAt) : new Date();
+  const when = isNaN(d.getTime()) ? new Date() : d;
+  const prefix = `cp${when.getFullYear()}${String(when.getMonth() + 1).padStart(2, '0')}`;
+  const nums = db.campaigns
+    .map(c => (c.campaignId || '').startsWith(prefix) ? Number(c.campaignId!.slice(prefix.length)) : NaN)
+    .filter(n => !isNaN(n));
+  const next = Math.max(0, ...nums) + 1;
+  return `${prefix}${String(next).padStart(3, '0')}`;
 }
 
 // every campaign carries a system-generated ID — give one (oldest first) to any that were created without;
 // extra-tactic records share their campaign's ID
+// (IDs in the earlier CMP-2026-0101 style are issued again in the cp202602001 style)
+[...db.campaigns]
+  .filter(c => !c.parentCampaignId && (!c.campaignId || /^CMP-/.test(c.campaignId)))
+  .forEach(c => {
+    c.campaignId = undefined;
+  });
 [...db.campaigns]
   .filter(c => !c.parentCampaignId && !c.campaignId)
   .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
   .forEach(c => {
-    c.campaignId = nextCampaignId();
+    c.campaignId = nextCampaignId(c.createdAt);
   });
 db.campaigns.forEach(c => {
   if (c.parentCampaignId) {
@@ -453,7 +467,7 @@ export async function createCampaign(body: Partial<CampaignTaxonomy> & Record<st
   const fallbackTaxonomyString = `COMM_${regionCode}_${taCode}_${brandCode}_${qtr}_${audCode}_${chanCode}_${kmCode}_${randNum}`;
   const taxonomyString = body.taxonomyString || fallbackTaxonomyString;
 
-  const campaignId = nextCampaignId();
+  const campaignId = nextCampaignId(new Date().toISOString());
   const newCampaign: CampaignTaxonomy = {
     id: `cmp-${Date.now()}`,
     campaignId,

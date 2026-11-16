@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useDictionary, ADDED_FIELDS } from '../../data/kiteDictionary';
+import { Plus } from 'lucide-react';
+import { useDictionary } from '../../data/kiteDictionary';
 import { Pagination, usePaged, useFitRows } from './Pagination';
 
 /** A field of a metadata layer (Content MDM, Journey Metadata) and the dictionary field it maps to. */
@@ -12,15 +13,18 @@ export interface MappedField {
   text: string;
   /** key of the dictionary field it maps to */
   dictKey: string;
+  /** an example value */
+  example?: string;
+  /** the name to offer when it is not in the dictionary yet (its key / abbreviation is `dictKey`) */
+  addLabel?: string;
   /** review state from the source sheet's legend, when it has one */
   review?: 'open' | 'ready';
 }
 
-type DictStatus = 'in' | 'added' | 'missing';
+type DictStatus = 'in' | 'missing';
 const DICT: Record<DictStatus, { label: string; chip: string; dot: string }> = {
   in: { label: 'In dictionary', chip: 'bg-navy-50 text-navy-700 border-navy-200', dot: 'bg-navy-500' },
-  added: { label: 'Added to dictionary', chip: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  missing: { label: 'Not in dictionary', chip: 'bg-slate-50 text-slate-500 border-slate-200', dot: 'bg-slate-400' },
+  missing: { label: 'Not present', chip: 'bg-amber-50 text-amber-800 border-amber-200', dot: 'bg-amber-500' },
 };
 const REVIEW: Record<'open' | 'ready', { label: string; row: string; dot: string }> = {
   open: { label: 'Open item: needs confirmation / action before build', row: 'bg-amber-50/70', dot: 'bg-amber-400' },
@@ -33,7 +37,7 @@ export const FieldMappingTable: React.FC<{ rows: MappedField[]; textHeading: str
   const dict = useDictionary();
   const mapped = rows.map(r => {
     const d = dict.fields.find(x => x.key === r.dictKey);
-    const status: DictStatus = !d ? 'missing' : ADDED_FIELDS[r.dictKey] ? 'added' : 'in';
+    const status: DictStatus = d ? 'in' : 'missing';
     return { ...r, d, status };
   });
   const hasReview = rows.some(r => r.review);
@@ -46,10 +50,10 @@ export const FieldMappingTable: React.FC<{ rows: MappedField[]; textHeading: str
     <div className="space-y-3">
       {/* legend */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-slate-600">
-        {(['in', 'added'] as DictStatus[]).map(s => (
+        {(['in', 'missing'] as DictStatus[]).map(s => (
           <span key={s} className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${DICT[s].dot}`} />
-            {DICT[s].label}
+            {s === 'in' ? 'In dictionary' : 'Not present in the dictionary'}
           </span>
         ))}
         {hasReview &&
@@ -63,12 +67,13 @@ export const FieldMappingTable: React.FC<{ rows: MappedField[]; textHeading: str
 
       <div ref={listRef} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[52rem] border-collapse">
+          <table className="w-full min-w-[64rem] border-collapse">
             <thead className="bg-navy-100 border-b border-navy-200">
               <tr>
                 <th className={`${TH} w-52`}>Field</th>
                 {showSource && <th className={`${TH} w-56`}>Source</th>}
                 <th className={TH}>{textHeading}</th>
+                <th className={`${TH} w-56`}>Example</th>
                 <th className={`${TH} w-52`}>Dictionary</th>
               </tr>
             </thead>
@@ -83,14 +88,22 @@ export const FieldMappingTable: React.FC<{ rows: MappedField[]; textHeading: str
                   </td>
                   {showSource && <td className="px-4 py-3 text-[13px] text-slate-700">{r.source}</td>}
                   <td className="px-4 py-3 text-[13px] leading-relaxed text-slate-600">{r.text}</td>
+                  <td className="px-4 py-3 text-[12px] font-mono text-slate-700 break-words">{r.example || <span className="text-slate-300 font-sans">-</span>}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${DICT[r.status].chip}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${DICT[r.status].dot}`} />
                       {DICT[r.status].label}
                     </span>
-                    {r.d && (
+                    {r.d ? (
                       <Link to="/dictionary" className="block mt-1.5 text-[11px] text-slate-500 hover:text-navy-700">
                         {r.d.label} <span className="font-mono text-navy-600">({r.d.abbreviation})</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/dictionary?add=${encodeURIComponent(r.dictKey)}&label=${encodeURIComponent(r.addLabel || r.field)}`}
+                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-navy-700 hover:text-navy-900 hover:underline"
+                      >
+                        <Plus className="w-3 h-3" /> Click to add in dictionary
                       </Link>
                     )}
                   </td>

@@ -450,7 +450,7 @@ export const AgencyDashboard: React.FC = () => {
               </div>
 
               <div className="sm:col-span-2">
-                {label('Campaign dates', { hint: 'not part of the formula' })}
+                {label('Campaign dates')}
                 {isAlwaysOn ? (
                   <div className="flex flex-wrap items-center gap-2 text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-700">
                     <span className="font-semibold text-slate-500">Starts</span>
@@ -498,11 +498,6 @@ export const AgencyDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Formula so far</span>
-              <div className="font-mono text-[11px] text-slate-700 break-all">{built.string}</div>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">

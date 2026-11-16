@@ -149,7 +149,9 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
   const [searchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
   const [tab, setTab] = useState<Tab>(!embedded && urlTab === 'notifications' ? 'notifications' : initialTab);
-  const [addingField, setAddingField] = useState(false);
+  // a link from Content MDM / Journey Metadata (?add=<abbreviation>&label=<name>) opens "Add field" filled in
+  const [addingField, setAddingField] = useState(!embedded && !!searchParams.get('add'));
+  const addPrefill = { abbreviation: searchParams.get('add') || '', label: searchParams.get('label') || '' };
   const { items: notes, unread } = useNotifications(actor);
   const [query, setQuery] = useState('');
   const [usedFilter, setUsedFilter] = useState<'all' | DictUse>('all');
@@ -214,7 +216,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
   };
   const vf = viewing ? dict.fields.find(f => f.key === viewing) : undefined;
   const vq = attrQuery.trim().toLowerCase();
-  const vAttrs = vf ? vf.attributes.filter(a => !vq || a.value.toLowerCase().includes(vq) || (a.abbreviation || '').toLowerCase().includes(vq)) : [];
+  const vAttrs = vf ? vf.attributes.filter(a => !vq || a.value.toLowerCase().includes(vq)) : [];
   const vPend = vf ? pendingOf(vf.key) : [];
   // Escape closes the full view, unless a dialog on top of it is open
   useEffect(() => {
@@ -450,7 +452,6 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                                 <thead className="bg-slate-50 border-b border-slate-200">
                                   <tr>
                                     <th className={TH}>Attribute</th>
-                                    <th className={TH}>Abbreviation</th>
                                     <th className={TH}>Business owner</th>
                                   </tr>
                                 </thead>
@@ -458,7 +459,6 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                                   {c.field.attributes.map(a => (
                                     <tr key={a.value} className="border-b border-slate-100 last:border-0">
                                       <td className="px-3 py-1 text-[11px] font-semibold text-slate-800">{a.value}</td>
-                                      <td className="px-3 py-1 text-[11px] font-mono text-navy-700">{a.abbreviation || c.field!.abbreviation}</td>
                                       <td className="px-3 py-1 text-[11px] text-slate-600">{a.owner || c.field!.owner}</td>
                                     </tr>
                                   ))}
@@ -765,7 +765,6 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                     <tr>
                       <th className={ATH}>Attribute</th>
                       {vf.attributes.some(a => a.definition) && <th className={ATH}>Definition</th>}
-                      <th className={ATH}>Abbreviation</th>
                       <th className={ATH}>Business owner</th>
                       <th className={ATH}>Last updated by</th>
                       <th className={ATH}>Last updated</th>
@@ -789,9 +788,6 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                             )}
                           </td>
                           {vf.attributes.some(x => x.definition) && <td className={`${TD} max-w-md`}>{a.definition || <span className="text-slate-300">-</span>}</td>}
-                          <td className={TD}>
-                            <span className="font-mono text-[11px] font-medium text-navy-600">{a.abbreviation || vf.abbreviation}</span>
-                          </td>
                           <td className={TD}>
                             <OwnerChip name={a.owner || vf.owner} />
                           </td>
@@ -841,6 +837,8 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
       {addingField && actor && (
         <AddFieldDialog
           direct={canAddFieldDirectly(actor)}
+          initialLabel={addPrefill.label}
+          initialAbbreviation={addPrefill.abbreviation}
           onClose={() => setAddingField(false)}
           onSubmit={(field, reason) => {
             const res = proposeChange({ fieldKey: '', type: 'add_field', field, reason }, actor);
@@ -938,11 +936,7 @@ const ProposalDialog: React.FC<{
         )}
 
         {(proposal.type === 'add_value' || proposal.type === 'update_value') && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="dp-abbr" className="block text-xs font-bold text-slate-700 mb-1">Abbreviation <span className="font-normal text-slate-400">(optional)</span></label>
-              <input id="dp-abbr" value={abbreviation} onChange={e => setAbbreviation(e.target.value)} className={`${INPUT} font-mono`} placeholder={`Same as the field (${field.abbreviation})`} />
-            </div>
+          <div>
             <div>
               <label htmlFor="dp-attr-owner" className="block text-xs font-bold text-slate-700 mb-1">Business owner <span className="font-normal text-slate-400">(optional)</span></label>
               <input id="dp-attr-owner" value={attrOwner} onChange={e => setAttrOwner(e.target.value)} className={INPUT} placeholder={`Same as the field (${field.owner})`} />
@@ -984,11 +978,13 @@ const ProposalDialog: React.FC<{
 /** Add a whole new field with its attributes. The brand adds directly; anyone else needs the brand's approval. */
 const AddFieldDialog: React.FC<{
   direct: boolean;
+  initialLabel?: string;
+  initialAbbreviation?: string;
   onClose: () => void;
   onSubmit: (field: NewField, reason: string) => string | null;
-}> = ({ direct, onClose, onSubmit }) => {
-  const [label, setLabel] = useState('');
-  const [abbreviation, setAbbreviation] = useState('');
+}> = ({ direct, initialLabel = '', initialAbbreviation = '', onClose, onSubmit }) => {
+  const [label, setLabel] = useState(initialLabel);
+  const [abbreviation, setAbbreviation] = useState(initialAbbreviation);
   const [owner, setOwner] = useState('');
   const [usedIn, setUsedIn] = useState<DictUse[]>([]);
   // one row per attribute, each with its own details (blank abbreviation / owner = same as the field)
@@ -1066,28 +1062,20 @@ const AddFieldDialog: React.FC<{
             </button>
           </div>
           <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-[1.2fr_1fr_1.2fr_2rem] gap-2 bg-slate-50 border-b border-slate-200 px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="grid grid-cols-[1.4fr_1.2fr_2rem] gap-2 bg-slate-50 border-b border-slate-200 px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               <span>Attribute</span>
-              <span>Abbreviation</span>
               <span>Business owner</span>
               <span />
             </div>
             <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
               {rows.map((r, i) => (
-                <div key={i} className="grid grid-cols-[1.2fr_1fr_1.2fr_2rem] gap-2 px-2.5 py-1.5 items-center">
+                <div key={i} className="grid grid-cols-[1.4fr_1.2fr_2rem] gap-2 px-2.5 py-1.5 items-center">
                   <input
                     aria-label={`Attribute ${i + 1} name`}
                     value={r.value}
                     onChange={e => setRows(rs => rs.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))}
                     className={INPUT}
                     placeholder={i === 0 ? 'e.g. Webinar' : 'Attribute'}
-                  />
-                  <input
-                    aria-label={`Attribute ${i + 1} abbreviation`}
-                    value={r.abbreviation}
-                    onChange={e => setRows(rs => rs.map((x, j) => (j === i ? { ...x, abbreviation: e.target.value } : x)))}
-                    className={`${INPUT} font-mono`}
-                    placeholder={abbreviation || 'Same as field'}
                   />
                   <input
                     aria-label={`Attribute ${i + 1} business owner`}
@@ -1109,7 +1097,7 @@ const AddFieldDialog: React.FC<{
               ))}
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Leave the abbreviation or owner blank to use the field's. The last updater and date are filled in when the change is made.</p>
+          <p className="text-[10px] text-slate-400 mt-1">Leave the owner blank to use the field's. The last updater and date are filled in when the change is made.</p>
         </div>
 
         {!direct && (

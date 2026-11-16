@@ -158,7 +158,7 @@ export interface CampaignTaxonomy {
   /** Set on a record that exists only to hold an extra tactic: the id of the campaign it belongs to.
    *  Such a record is a tactic, never listed as a campaign of its own. */
   parentCampaignId?: string;
-  /** System-generated campaign ID (CMP-2026-0101), like the tactic ID. */
+  /** System-generated campaign ID: cp + year + month + running number for the month, e.g. cp202602001. */
   campaignId?: string;
   /** Campaign dates (YYYY-MM-DD). Captured on the campaign but not part of the formula. */
   startDate?: string;

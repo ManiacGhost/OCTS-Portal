@@ -138,7 +138,6 @@ export const MarketerDashboard: React.FC = () => {
               <Detail label="Publisher / Platform">{t?.publisher}</Detail>
               <Detail label="Placement">{t?.placement}</Detail>
               <Detail label="Creative / Asset ID" mono>{cmp.assetId}</Detail>
-              <Detail label="Target audience">{t?.targetAudience || cmp.targetAudience}</Detail>
               <div className="col-span-2">
                 <Detail label="Landing page URL" mono>{t?.landingPageUrl}</Detail>
               </div>

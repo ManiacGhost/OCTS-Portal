@@ -122,7 +122,6 @@ const TacticItem: React.FC<{
           <Row label="Publisher / Platform">{t.tactic?.publisher}</Row>
           <Row label="Placement">{t.tactic?.placement}</Row>
           <Row label="Creative / Asset ID" mono>{t.assetId}</Row>
-          <Row label="Target audience">{t.tactic?.targetAudience}</Row>
           <Row label="Landing page URL" mono>{t.tactic?.landingPageUrl}</Row>
           <Row label="Start – end">{t.tactic ? `${t.tactic.startDate} → ${t.tactic.endDate}` : undefined}</Row>
           <Row label="Tactic status">{status ? statusLabel(status) : undefined}</Row>
@@ -239,6 +238,7 @@ export const CampaignDetailModal: React.FC<{
           {tactics && (
             <>
               <Section title="Campaign details">
+                <Row label="Campaign ID" mono>{campaignIdOf(c)}</Row>
                 <Row label="Product">{brand ? `${brand.name} (${brand.code})` : c.brandId}</Row>
                 {CAMPAIGN_FORMULA.filter(t => t.source !== 'brand').map(t => (
                   <Row key={t.key} label={t.label} mono>{c.formulaInputs?.[t.key] || undefined}</Row>
@@ -313,7 +313,6 @@ export const CampaignDetailModal: React.FC<{
               <Row label="Publisher / Platform">{c.tactic.publisher}</Row>
               <Row label="Placement">{c.tactic.placement}</Row>
               <Row label="Creative / Asset ID" mono>{c.assetId}</Row>
-              <Row label="Target audience">{c.tactic.targetAudience}</Row>
               <Row label="Landing page URL" mono>{c.tactic.landingPageUrl}</Row>
               <Row label="Start – end">{c.tactic.startDate} → {c.tactic.endDate}</Row>
             </Section>
@@ -329,7 +328,7 @@ export const CampaignDetailModal: React.FC<{
 
           <Section title="Targeting & scope">
             <Row label="Campaign dates">{campaignDates(c).start ? `${campaignDates(c).start} → ${campaignDates(c).end}` : undefined}</Row>
-            <Row label="Target audience">{c.targetAudience}</Row>
+            <Row label="Target audience">{c.formulaInputs?.audience || c.targetAudience}</Row>
             <Row label="Region">{c.region}</Row>
             <Row label="Quarter">{c.quarter}</Row>
           </Section>

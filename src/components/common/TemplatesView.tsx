@@ -49,7 +49,10 @@ export const TemplatesView: React.FC = () => {
 
   // chosen examples, by field name; fields without a dictionary list keep the template's own example
   const [chosen, setChosen] = useState<Record<string, string>>({});
-  const [vendor, setVendor] = useState('Agency');
+  // the vendor in the file name is the agency sending the file: one fixed choice for now
+  const vendorOpts = ['Agency'];
+  const [vendorPick, setVendor] = useState('');
+  const vendor = vendorOpts.includes(vendorPick) ? vendorPick : vendorOpts[0] || '';
   const [brand, setBrand] = useState('');
   const [segmentFilter, setSegmentFilter] = useState('all');
   const [custom, setCustom] = useState<CustomField[]>([]);
@@ -80,7 +83,7 @@ export const TemplatesView: React.FC = () => {
     custom.forEach((c, i) => {
       if (!c.name.trim()) out.push(`Custom field ${i + 1}: enter its name, or remove it.`);
     });
-    if (!vendor.trim()) out.push('Enter the vendor name for the file name.');
+    if (!vendor.trim()) out.push('Pick the vendor for the file name.');
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chosen, dict, vendor, custom]);
@@ -140,7 +143,9 @@ export const TemplatesView: React.FC = () => {
           </div>
           <label className="block">
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Vendor name</span>
-            <input value={vendor} onChange={e => setVendor(e.target.value)} className={`${INPUT} mt-1 py-2`} placeholder="e.g. AgencyName" />
+            <select value={vendor} onChange={e => setVendor(e.target.value)} className={`${INPUT} mt-1 py-2`} aria-label="Vendor name">
+              {vendorOpts.map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
           </label>
           <label className="block">
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Brand (dictionary)</span>
