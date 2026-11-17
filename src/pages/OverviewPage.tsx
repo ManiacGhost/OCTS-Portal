@@ -82,7 +82,7 @@ export const OverviewPage: React.FC = () => {
       stats = [
         { label: 'All campaigns', value: topLevel.length, hint: 'Across every agency', filter: 'all' },
         { label: 'Partner agencies', value: agencies.length, hint: 'Onboarded' },
-        { label: 'Marketers', value: personas.filter(p => p.role === 'marketer').length, hint: 'Brand approvers' },
+        { label: 'Marketer/Admin', value: personas.filter(p => p.role === 'marketer').length, hint: 'Brand approvers' },
         { label: 'Master topics', value: keyMessages.length, hint: 'Taxonomy categories' },
       ];
       break;

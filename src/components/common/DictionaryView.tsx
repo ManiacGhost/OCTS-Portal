@@ -919,7 +919,7 @@ const ProposalDialog: React.FC<{
       >
         <div>
           <h3 className="text-base font-extrabold text-slate-900">{title}</h3>
-          <p className="text-[11px] text-slate-500 mt-1">This is a request. It is applied once a marketer or administrator approves it.</p>
+          <p className="text-[11px] text-slate-500 mt-1">This is a request. It is applied once a Marketer/Admin or administrator approves it.</p>
         </div>
 
         {proposal.type === 'add_value' && (

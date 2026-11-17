@@ -32,7 +32,7 @@ const DOCS: DocSection[] = [
     blocks: [
       {
         kind: 'p',
-        text: 'Tagging360 is the single place to define how every piece of Kite promotional content is tagged, named and tracked. It keeps agencies, marketers and analytics teams working from the same taxonomy so reporting lines up across channels.',
+        text: 'Tagging360 is the single place to define how every piece of Kite promotional content is tagged, named and tracked. It keeps agencies, Marketer/Admin users and analytics teams working from the same taxonomy so reporting lines up across channels.',
       },
       {
         kind: 'list',
@@ -48,7 +48,7 @@ const DOCS: DocSection[] = [
       },
       {
         kind: 'p',
-        text: 'Which screens you see depends on your role (agency, marketer/admin, analytics or administrator). The left-hand menu always shows the ones available to you.',
+        text: 'Which screens you see depends on your role (agency, Marketer/Admin, analytics or administrator). The left-hand menu always shows the ones available to you.',
       },
     ],
   },
@@ -123,7 +123,7 @@ const DOCS: DocSection[] = [
           'Campaign Context: the campaign name, market and target quarter.',
           'Topic & Subtopic: therapeutic area, brand, and the topic and subtopic the campaign is about.',
           'Channel & Formula: pick the promotional channel (and sub-channel), then fill the highlighted fields; the rest fill automatically and the taxonomy string builds live from the approved Campaign Name formula, which is the same for every channel.',
-          'Review & Submit: check the summary and submit. The campaign goes to the marketer for approval.',
+          'Review & Submit: check the summary and submit. The campaign goes to the Marketer/Admin for approval.',
         ],
       },
       {
@@ -218,7 +218,7 @@ const DOCS: DocSection[] = [
         items: [
           'Marketer/Admin: Approvals lists agency submissions. Approve a campaign, or reject it back to the agency with notes.',
           'Analytics: Compliance shows taxonomy compliance by platform and agency, flagged discrepancies you can mark resolved, and CSV exports of campaigns and the topic dictionary.',
-          'Administrators: Administration onboards agencies, manages marketer and analytics users, edits the master topic and subtopic list, and shows the audit trail of every action.',
+          'Administrators: Administration onboards agencies, manages Marketer/Admin and analytics users, edits the master topic and subtopic list, and shows the audit trail of every action.',
         ],
       },
     ],
@@ -273,7 +273,7 @@ const FAQS = [
   },
   {
     q: 'What happens after I submit a campaign?',
-    a: 'It moves to the marketer’s approval queue with a "Pending" status. The marketer can approve it or reject it back to you with notes.',
+    a: 'It moves to the Marketer/Admin’s approval queue with a "Pending" status. The Marketer/Admin can approve it or reject it back to you with notes.',
   },
   {
     q: 'Why can’t I edit a dimension’s name in Tagging Strategy?',

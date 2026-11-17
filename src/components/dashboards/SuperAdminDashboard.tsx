@@ -476,7 +476,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <UserPlus className="w-5 h-5 text-blue-600" />
-                  Brand Marketers Directory
+                  Marketer/Admin Directory
                 </h3>
                 <p className="text-xs text-slate-500">
                   Create and manage commercial marketers responsible for approving agency submissions and mapping brand key messages.
@@ -488,7 +488,7 @@ export const SuperAdminDashboard: React.FC = () => {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm self-start sm:self-auto"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Create New Marketer</span>
+                <span>Create New Marketer/Admin</span>
               </button>
             </div>
 
@@ -541,7 +541,7 @@ export const SuperAdminDashboard: React.FC = () => {
                           <button
                             onClick={() => handleOpenUserModal('marketer', m)}
                             className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition"
-                            title="Edit Marketer"
+                            title="Edit Marketer/Admin"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -552,7 +552,7 @@ export const SuperAdminDashboard: React.FC = () => {
                               }
                             }}
                             className="p-1.5 text-slate-400 hover:text-navy-600 hover:bg-navy-50 rounded-lg transition"
-                            title="Delete Marketer"
+                            title="Delete Marketer/Admin"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

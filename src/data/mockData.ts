@@ -125,14 +125,14 @@ export const INITIAL_PERSONAS: UserPersona[] = [
     avatarBg: 'bg-teal-600',
     badgeColor: 'bg-teal-100 text-teal-800 border-teal-200',
     description:
-      'Builds Tecartus campaign taxonomy and tactics for the agency and submits them for marketer approval. Has access to the Tecartus brand only.',
+      'Builds Tecartus campaign taxonomy and tactics for the agency and submits them for Marketer/Admin approval. Has access to the Tecartus brand only.',
     status: 'active',
     assignedBrands: ['Tecartus®'],
     assignedTherapeuticAreas: ['Hematologic Malignancies'],
     primaryTasks: [
       'Create Tecartus campaigns from the approved Campaign Name formula',
       'Add tactics (channel, publisher, placement, asset) and generate UTMs',
-      'Resubmit campaigns and tactics after marketer feedback',
+      'Resubmit campaigns and tactics after Marketer/Admin feedback',
     ],
     permissions: ['campaign:create', 'campaign:edit_draft', 'taxonomy:view', 'export:agency_sheet'],
   },
@@ -429,7 +429,7 @@ export const INITIAL_CAMPAIGNS: CampaignTaxonomy[] = [
     utmContent: 'orr_hero_hcp',
     createdAt: '2026-07-15T10:30:00Z',
     updatedAt: '2026-07-18T14:20:00Z',
-    notes: 'Approved by Marketer. Built from the approved Digital Campaign Name formula.',
+    notes: 'Approved by Marketer/Admin. Built from the approved Digital Campaign Name formula.',
   },
   {
     id: 'cmp-102',
@@ -458,7 +458,7 @@ export const INITIAL_CAMPAIGNS: CampaignTaxonomy[] = [
     utmContent: 'crs_protocol_carousel',
     createdAt: '2026-08-01T09:15:00Z',
     updatedAt: '2026-08-01T09:15:00Z',
-    notes: 'Submitted by agency. Awaiting Marketer approval.',
+    notes: 'Submitted by agency. Awaiting Marketer/Admin approval.',
   },
   {
     id: 'cmp-103',

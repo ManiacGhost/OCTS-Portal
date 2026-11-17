@@ -126,7 +126,7 @@ const TacticItem: React.FC<{
           <Row label="Tactic status">{status ? statusLabel(status) : undefined}</Row>
           {status === 'rejected' && (
             <div className="my-2 bg-red-50 border border-red-200 rounded-xl p-3 space-y-1 text-xs text-red-900">
-              <div className="font-extrabold">Marketer feedback</div>
+              <div className="font-extrabold">Marketer/Admin feedback</div>
               <p>{t.reviewNotes?.tactic || 'No comment was left.'}</p>
             </div>
           )}
@@ -229,7 +229,7 @@ export const CampaignDetailModal: React.FC<{
 
           {c.status === 'rejected' && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1.5 text-xs text-red-900">
-              <div className="font-extrabold">Marketer feedback</div>
+              <div className="font-extrabold">Marketer/Admin feedback</div>
               <p>{c.reviewNotes?.campaign || c.notes || 'No comment was left.'}</p>
             </div>
           )}

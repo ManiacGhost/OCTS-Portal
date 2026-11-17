@@ -399,7 +399,7 @@ export async function addKeyMessageSubcategory(data: {
   const { categoryId, categoryName, subcategoryName, subcategoryCode, description, targetAudience } = data;
   const cur = currentPersona();
   if (cur?.role !== 'superadmin' && cur?.role !== 'marketer') {
-    throw new Error('Only Super Admin or Marketers can add/edit Key Message categories.');
+    throw new Error('Only Super Admin or Marketer/Admin users can add/edit Key Message categories.');
   }
 
   let cat = db.keyMessages.find(k => k.id === categoryId);

@@ -53,6 +53,7 @@ export const AgencyDashboard: React.FC = () => {
   const campaignTypes = useDictValues('alrt_typ');
   const objectives = useDictValues('objective');
   const segmentNames = useDictValues('segment_name');
+  const segmentValues = useDictValues('segment_value');
 
   const [country, setCountry] = useState(() => dictValues('country').find(v => v === 'US') || dictValues('country')[0] || '');
   const [taValue, setTaValue] = useState(() => dictValues('ta')[0] || '');
@@ -62,7 +63,7 @@ export const AgencyDashboard: React.FC = () => {
   const [indication, setIndication] = useState(() => dictValues('indc')[0] || '');
   const [messagingType, setMessagingType] = useState(() => dictValues('messaging_type').find(v => v === 'Branded') || dictValues('messaging_type')[0] || '');
   const [audience, setAudience] = useState(() => dictValues('target').find(v => v === 'HCP') || dictValues('target')[0] || '');
-  // segment is split into name + value (free text) so a delimiter in the value can't break the string
+  // segment is split into name + value (both dictionary dropdowns) so a delimiter in the value can't break the string
   const [segmentName, setSegmentName] = useState('');
   const [segmentValue, setSegmentValue] = useState('');
   const [campaignType, setCampaignType] = useState(() => dictValues('alrt_typ').find(v => isAlwaysOnType(v)) || dictValues('alrt_typ')[0] || '');
@@ -322,8 +323,8 @@ export const AgencyDashboard: React.FC = () => {
               : source
               ? `Cloned from “${source.campaignName}”: check the formula, change what differs, then ${autoApprove ? 'create it' : 'submit for approval'}`
               : autoApprove
-              ? 'Fill in the campaign fields and review the formula, then add its tactic. As the marketer/admin, what you create is approved straight away'
-              : 'Fill in the campaign fields and review the formula (it goes to the marketer when you submit), then add its tactic'}
+              ? 'Fill in the campaign fields and review the formula, then add its tactic. As the Marketer/Admin, what you create is approved straight away'
+              : 'Fill in the campaign fields and review the formula (it goes to the Marketer/Admin when you submit), then add its tactic'}
             {' '}&middot; {selectedMarket} &middot; {user?.organization}
           </p>
         </div>
@@ -339,9 +340,9 @@ export const AgencyDashboard: React.FC = () => {
 
       {isEdit && source && source.status === 'rejected' && (
         <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-xs text-red-900 space-y-1" role="note">
-          <div className="font-extrabold">The marketer rejected this campaign</div>
+          <div className="font-extrabold">The Marketer/Admin rejected this campaign</div>
           <p className="leading-relaxed">“{source.reviewNotes?.campaign || source.notes || 'No comment was left.'}”</p>
-          <p className="text-[11px] text-red-700">Make the changes below and save: the campaign goes back to the marketer for approval.</p>
+          <p className="text-[11px] text-red-700">Make the changes below and save: the campaign goes back to the Marketer/Admin for approval.</p>
         </div>
       )}
 
@@ -425,13 +426,7 @@ export const AgencyDashboard: React.FC = () => {
               </div>
               <div>
                 {label('Segment value')}
-                <input
-                  type="text"
-                  value={segmentValue}
-                  onChange={e => setSegmentValue(e.target.value)}
-                  placeholder="e.g. P1-CART-Treaters"
-                  className={`${FIELD_CLS} ${err(!segmentValue.trim())}`}
-                />
+                {select(segmentValue, setSegmentValue, plain(withCurrent(segmentValues, segmentValue)), 'Select…')}
               </div>
               <div>
                 {label('Campaign type')}
@@ -627,7 +622,7 @@ export const AgencyDashboard: React.FC = () => {
       {confirmEdit && (
         <ConfirmDialog
           title="Submit changes to an approved campaign?"
-          message="This campaign is already approved. If you submit these changes it goes back to the marketer and shows as pending approval until they approve it again. Its tactic stays as it is."
+          message="This campaign is already approved. If you submit these changes it goes back to the Marketer/Admin and shows as pending approval until they approve it again. Its tactic stays as it is."
           confirmLabel="Yes, submit changes"
           busy={isSubmitting}
           onConfirm={applyEdit}
@@ -654,7 +649,7 @@ export const AgencyDashboard: React.FC = () => {
               <p className="text-xs text-slate-500 mt-1">
                 {isApproved(created.campaign.status)
                   ? 'The campaign is approved. Next, add its tactic (channel, publisher, placement and the rest). Tactics need no approval.'
-                  : 'Your campaign has been created, but it is yet to be approved. Tactics can be added once the marketer approves it.'}
+                  : 'Your campaign has been created, but it is yet to be approved. Tactics can be added once the Marketer/Admin approves it.'}
               </p>
               {created.campaign.campaignId && (
                 <p className="mt-3 text-xs text-slate-600">Campaign ID: <span className="font-mono font-bold text-navy-700">{created.campaign.campaignId}</span></p>

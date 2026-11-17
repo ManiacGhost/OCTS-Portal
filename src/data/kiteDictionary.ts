@@ -185,7 +185,8 @@ const USAGE: Record<string, DictUse[]> = {
   indc: ['campaign'],
   messaging_type: ['campaign'],
   target: ['campaign', 'tactic'],
-  segment: ['campaign'],
+  segment_name: ['campaign'],
+  segment_value: ['campaign'],
   alrt_typ: ['campaign'],
   objective: ['campaign'],
   src: ['tactic', 'utm'],
@@ -198,8 +199,6 @@ const USAGE: Record<string, DictUse[]> = {
 const EXTRAS: { key: string; abbreviation: string; label: string; kind: FieldKind; usedIn: DictUse[]; note: string }[] = [
   { key: 'campaign_id', abbreviation: 'cpgn_id', label: 'Campaign ID', kind: 'system', usedIn: ['campaign', 'utm'], note: 'System-generated: cp + year + month + running number for the month, e.g. cp202602001' },
   { key: 'campaign_name', abbreviation: 'cpgn_nm', label: 'Campaign name', kind: 'free', usedIn: ['campaign'], note: 'Free text' },
-  { key: 'segment_name', abbreviation: 'segmentname', label: 'Segment name', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
-  { key: 'segment_value', abbreviation: 'segmentvalue', label: 'Segment value', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
   { key: 'campaign_dates', abbreviation: 'cpgn_dt', label: 'Campaign dates', kind: 'free', usedIn: ['campaign'], note: 'Year and month for always-on, or a start and end date. In the formula as the date token, YYYYMM-YYYYMM' },
   { key: 'tactic_id', abbreviation: 'tact_id', label: 'Tactic ID', kind: 'system', usedIn: ['tactic', 'utm'], note: 'System-generated, e.g. TACT-2026-0201' },
   { key: 'placement', abbreviation: 'plact_nm', label: 'Placement', kind: 'free', usedIn: ['tactic'], note: 'Free text' },
@@ -330,6 +329,10 @@ function seedState(): DictState {
 // ---------------------------------------------------------------------------------------------
 
 const LS_KEY = 'tagging360.dictionary.v1';
+/** Fields taken out of the dictionary on purpose: dropped from saved copies too. */
+const RETIRED_FIELDS = new Set(['segment']);
+/** Fields whose values are set by the client, not the sheet: saved copies take exactly the seeded values. */
+const FIXED_VALUE_FIELDS = new Set(['segment_name', 'segment_value']);
 
 function load(): DictState {
   const seed = seedState();
@@ -346,11 +349,12 @@ function load(): DictState {
     const touched = new Set((stored.log || []).filter(l => !l.id.startsWith('dlog-seed-')).map(l => l.fieldKey));
     // derived / system / free-text fields that are no longer part of the portal (e.g. utm_source) drop out;
     // fields users added themselves are kept
-    const current = stored.fields.filter(f => !f.key.startsWith('pld_') && (seedBy.has(f.key) || f.kind === 'dictionary'));
+    const current = stored.fields.filter(f => !f.key.startsWith('pld_') && !RETIRED_FIELDS.has(f.key) && (seedBy.has(f.key) || f.kind === 'dictionary'));
     // fields nobody has touched yet pick up the current initial owner / updater
     const refreshed = current.map(f => {
       const sf = seedBy.get(f.key);
       if (!sf) return f;
+      if (FIXED_VALUE_FIELDS.has(f.key)) return { ...sf, owner: f.owner === OLD_DEFAULT_OWNER ? sf.owner : clean(f.owner) };
       // values the sheet gained since this copy was saved are added (unless someone removed them on purpose)
       const removed = new Set(
         (stored.changes || []).filter(c => c.status === 'approved' && c.type === 'remove_value' && c.fieldKey === f.key).map(c => (c.value || '').toLowerCase())
@@ -376,7 +380,7 @@ function load(): DictState {
     });
     return {
       fields: [...refreshed, ...seed.fields.filter(f => !have.has(f.key))],
-      changes: (stored.changes || []).filter(c => !c.fieldKey.startsWith('pld_')),
+      changes: (stored.changes || []).filter(c => !c.fieldKey.startsWith('pld_') && !RETIRED_FIELDS.has(c.fieldKey)),
       // the seeded history is (re)added in front of whatever real activity has been logged since
       log: [...(stored.log || []).filter(l => !l.id.startsWith('dlog-seed-')), ...seed.log].sort((a, b) => b.ts.localeCompare(a.ts)),
       notifications: stored.notifications || [],
@@ -545,7 +549,7 @@ export function proposeChange(input: ProposalInput, actor: Actor): { ok: boolean
       ],
       notifications: [
         notification(change.fieldKey, label, 'Approval needed', `${actor.name} asked to add the field “${label}” (${abbreviation}). It needs the brand's approval.`, [
-          { kind: 'brand', label: 'Brand (marketers)' },
+          { kind: 'brand', label: 'Brand (Marketer/Admin)' },
         ]),
         ...state.notifications,
       ],
@@ -827,6 +831,7 @@ export const FORMULA_FIELD_KEY: Record<string, string> = {
   messagingType: 'messaging_type',
   audience: 'target',
   segmentName: 'segment_name',
+  segmentValue: 'segment_value',
   campaignType: 'alrt_typ',
   objective: 'objective',
 };

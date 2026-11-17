@@ -749,42 +749,6 @@ export const KITE_DICTIONARY_SEED: SeedField[] = [
     }
   },
   {
-    "key": "segment",
-    "abbreviation": "segment",
-    "label": "Segment",
-    "sheetHeader": "segment",
-    "values": [
-      "treater-P1-CART-Treater",
-      "Actively Referring Community",
-      "Additional Referring Community & Other Targets",
-      "CAR T Treater",
-      "Internal Referrers",
-      "Non-Prioritized Community Referrers",
-      "ORDs",
-      "Referrers",
-      "Treaters",
-      "Bispecifics",
-      "All",
-      "Retargeting",
-      "P1",
-      "P2",
-      "P3",
-      "P4"
-    ],
-    "valueAbbr": {
-      "Actively Referring Community": "ARC-P1",
-      "Additional Referring Community & Other Targets": "ARCOT-P2",
-      "CAR T Treater": "CTT-P1",
-      "Internal Referrers": "IR-P1",
-      "Non-Prioritized Community Referrers": "NPCR-P3",
-      "ORDs": "ORD-P4",
-      "P1": "P1",
-      "P2": "P2",
-      "P3": "P3",
-      "P4": "P4"
-    }
-  },
-  {
     "key": "code_m",
     "abbreviation": "code (m)",
     "label": "Code (machine)",
@@ -2454,9 +2418,22 @@ export const KITE_DICTIONARY_SEED: SeedField[] = [
     "label": "Segment name",
     "sheetHeader": "SEGMENT NAME",
     "values": [
-      "Priority",
-      "Classification",
-      "Journey"
+      "TREATER",
+      "REFERRER",
+      "BISPECIFIC",
+      "ALL"
+    ],
+    "valueAbbr": {}
+  },
+  {
+    "key": "segment_value",
+    "abbreviation": "segmentvalue",
+    "label": "Segment value",
+    "sheetHeader": "SEGMENT VALUE",
+    "values": [
+      "P1",
+      "P2",
+      "P3"
     ],
     "valueAbbr": {}
   },
