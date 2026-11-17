@@ -39,6 +39,23 @@ h1, h2, h3, h4 { letter-spacing: -0.02em; }
 table, .tabular { font-variant-numeric: tabular-nums; }
 .font-mono, code, kbd { letter-spacing: 0; font-variant-ligatures: none; }
 
+/* every dropdown gets the same quiet chevron, inset from the edge, instead of the browser's own arrow */
+select:not([multiple]):not([size]) {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+select:not([multiple]):not([size]):hover,
+select:not([multiple]):not([size]):focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2324406e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+}
+select:disabled { cursor: not-allowed; opacity: 0.75; }
+
 /* Brand wordmark — refined serif */
 .font-wordmark {
   font-family: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
