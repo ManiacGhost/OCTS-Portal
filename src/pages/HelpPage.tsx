@@ -48,7 +48,7 @@ const DOCS: DocSection[] = [
       },
       {
         kind: 'p',
-        text: 'Which screens you see depends on your role (agency, marketer, analytics or administrator). The left-hand menu always shows the ones available to you.',
+        text: 'Which screens you see depends on your role (agency, marketer/admin, analytics or administrator). The left-hand menu always shows the ones available to you.',
       },
     ],
   },
@@ -216,7 +216,7 @@ const DOCS: DocSection[] = [
       {
         kind: 'list',
         items: [
-          'Marketers: Approvals lists agency submissions. Approve a campaign, or reject it back to the agency with notes.',
+          'Marketer/Admin: Approvals lists agency submissions. Approve a campaign, or reject it back to the agency with notes.',
           'Analytics: Compliance shows taxonomy compliance by platform and agency, flagged discrepancies you can mark resolved, and CSV exports of campaigns and the topic dictionary.',
           'Administrators: Administration onboards agencies, manages marketer and analytics users, edits the master topic and subtopic list, and shows the audit trail of every action.',
         ],

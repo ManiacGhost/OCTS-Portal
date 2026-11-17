@@ -65,6 +65,8 @@ interface Col {
 
 const DOCUMENT: Col = { head: 'Document', width: 'w-[6.5rem]', cls: 'font-mono text-[11px] text-slate-500', cell: r => r.document };
 const ELEMENT: Col = { head: 'Element (slide)', cls: 'font-semibold text-slate-900 leading-snug', cell: r => r.element };
+// on HVA the same title is the name of the document (page) the content lives in
+const DOCUMENT_NAME: Col = { ...ELEMENT, head: 'Document name' };
 const TOPIC: Col = { head: <LockedHead label="Topic" />, width: 'w-[12rem]', cell: r => <LockedChip value={r.topic} /> };
 const SUBTOPIC: Col = { head: <LockedHead label="Subtopic" />, width: 'w-[12rem]', cell: r => <LockedChip value={r.subtopic} /> };
 const KEY_MESSAGE: Col = { head: 'Key message', width: 'w-[12rem]', cls: 'text-slate-700 leading-snug', cell: r => r.keyMessage };
@@ -152,8 +154,8 @@ export const HvaPage: React.FC = () => (
         <MousePointerClick />
         HVA
       </h1>
-      <p>Yescarta HCP content, element by element: topic and subtopic (locked, from the approved content metadata), the page it lives on, and its status.</p>
+      <p>Yescarta HCP content, document by document: topic and subtopic (locked, from the approved content metadata), the page it lives on, and its status.</p>
     </div>
-    <SlideTable columns={[DOCUMENT, ELEMENT, TOPIC, SUBTOPIC, PAGE_URL, STATUS_COL]} minWidth="min-w-[60rem]" noun="elements" />
+    <SlideTable columns={[DOCUMENT, DOCUMENT_NAME, TOPIC, SUBTOPIC, PAGE_URL, STATUS_COL]} minWidth="min-w-[60rem]" noun="documents" />
   </div>
 );

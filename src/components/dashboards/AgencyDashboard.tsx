@@ -322,7 +322,7 @@ export const AgencyDashboard: React.FC = () => {
               : source
               ? `Cloned from “${source.campaignName}”: check the formula, change what differs, then ${autoApprove ? 'create it' : 'submit for approval'}`
               : autoApprove
-              ? 'Fill in the campaign fields and review the formula, then add its tactic. As the marketer, what you create is approved straight away'
+              ? 'Fill in the campaign fields and review the formula, then add its tactic. As the marketer/admin, what you create is approved straight away'
               : 'Fill in the campaign fields and review the formula (it goes to the marketer when you submit), then add its tactic'}
             {' '}&middot; {selectedMarket} &middot; {user?.organization}
           </p>

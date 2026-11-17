@@ -4,6 +4,7 @@ import { LogIn, Lock, Mail, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { homePathFor } from '../auth/home';
 import { DUMMY_CREDENTIALS, UserCredentials } from '../data/credentials';
+import { roleLabel } from '../auth/permissions';
 
 /**
  * The sign-in backdrop: the portal's own parts — campaign & UTM tagging, content tagging, content MDM,
@@ -300,7 +301,7 @@ export const LoginPage: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-navy-700 bg-navy-50 border border-navy-200 px-2 py-1 rounded-lg shrink-0">
-                    {cred.role}
+                    {roleLabel(cred.role)}
                   </span>
                 </button>
               ))}

@@ -301,7 +301,7 @@ export const SuperAdminDashboard: React.FC = () => {
           }`}
         >
           <UserPlus className="w-4 h-4" />
-          <span>Marketers Directory & Creation</span>
+          <span>Marketer/Admin Directory & Creation</span>
           <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[10px]">{marketersList.length}</span>
         </button>
 
@@ -497,7 +497,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <table className="w-full text-left text-xs text-slate-700">
                 <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-200">
                   <tr>
-                    <th className="p-3">Marketer Name & Title</th>
+                    <th className="p-3">Marketer/Admin Name & Title</th>
                     <th className="p-3">Email & Department</th>
                     <th className="p-3">Organization</th>
                     <th className="p-3">Assigned Brand Portfolios</th>

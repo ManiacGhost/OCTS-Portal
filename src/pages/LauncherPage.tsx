@@ -19,10 +19,10 @@ const TILES: Tile[] = [
   { to: '/tagging-strategy', label: 'Brand Tagging Strategy', icon: Route, desc: 'Review and Edit Channel-wise tagging strategy' },
   { to: '/overview', label: 'Campaign Management (GA/UTM)', icon: Link2, desc: 'Create campaigns with the approved taxonomy formula, then generate the UTMs for content trafficking.' },
   {
-    to: '/content-metadata',
+    to: '/content-mdm',
     label: 'Content Tagging/Mapping',
     icon: Tags,
-    desc: 'Review tagging of assets/other engagements (Calls, speaker programs, etc.) with content metadata: Journey Metadata, Content MDM, IVA and HVA.',
+    desc: 'Review tagging of assets/other engagements (Calls, speaker programs, etc.) with content metadata: Content MDM, Journey Metadata, IVA and HVA.',
   },
   { to: '/dictionary', label: 'Dictionary and Templates', icon: BookOpen, desc: 'The Kite Digital Taxonomy: approved values and abbreviations, in one shared language.' },
 ];

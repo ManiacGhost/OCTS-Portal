@@ -8,6 +8,7 @@ import { NotificationToastContainer } from '../common/NotificationToast';
 import { Sidebar } from './Sidebar';
 import { BrandLogo } from '../common/BrandLogo';
 import { useNotifications } from '../../data/kiteDictionary';
+import { roleLabel } from '../../auth/permissions';
 
 export const AppShell: React.FC = () => {
   const { user, logout } = useAuth();
@@ -104,7 +105,7 @@ export const AppShell: React.FC = () => {
                     </div>
                     <div className="hidden sm:block leading-tight">
                       <div className="text-sm font-bold text-slate-900">{user.name}</div>
-                      <div className="text-[11px] text-slate-500 capitalize">{user.role}</div>
+                      <div className="text-[11px] text-slate-500">{roleLabel(user.role)}</div>
                     </div>
                     <ChevronDown className="w-4 h-4 text-slate-400" />
                   </button>

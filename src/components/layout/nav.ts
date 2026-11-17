@@ -48,13 +48,13 @@ export const NAV_ITEMS: NavItem[] = [
   },
   // dropdown: the parts of content tagging / mapping
   {
-    to: '/content-metadata',
+    to: '/content-mdm',
     label: 'Content Tagging/Mapping',
     icon: Tags,
     roles: LAUNCHER_ROLES,
     children: [
-      { to: '/content-metadata', label: 'Journey Metadata', icon: FileText, roles: LAUNCHER_ROLES, description: 'Data that follows each audience journey' },
       { to: '/content-mdm', label: 'Content MDM', icon: Database, roles: LAUNCHER_ROLES, description: 'Latest content metadata from VVPM' },
+      { to: '/content-metadata', label: 'Journey Metadata', icon: FileText, roles: LAUNCHER_ROLES, description: 'Data that follows each audience journey' },
       { to: '/autotag', label: 'IVA', icon: Presentation, roles: LAUNCHER_ROLES, description: 'Tagging of IVA decks' },
       { to: '/hva', label: 'HVA', icon: MousePointerClick, roles: LAUNCHER_ROLES, description: 'Website pages and high-value actions' },
     ],
