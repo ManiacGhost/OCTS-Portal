@@ -18,7 +18,7 @@ const FIELDS: MappedField[] = [
   {
     field: 'utm_source',
     text: 'Platform that delivered the asset (deepintent, medscape, relevate-health, sfmc, veeva-crm, equals5, impiricus, doximity, OpenEvidence, BioPharm).',
-    dictKey: 'src',
+    dictKey: 'utm_source',
     example: 'deepintent',
   },
   { field: 'utm_medium', text: 'Channel type (display / email).', dictKey: 'utm_medium', example: 'display' },

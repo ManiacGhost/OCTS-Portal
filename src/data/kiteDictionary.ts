@@ -6,7 +6,8 @@ import type { MediaChannelType } from '../types';
  * The Kite dictionary: every field, its attributes (allowed values), its abbreviation, its business
  * owner and who last changed it. Changes go through an approval process and leave an audit trail.
  *
- *  - The fields and attribute values come from Kite_Dictionary.xlsx (see kiteDictionarySeed.ts).
+ *  - The fields and attribute values come from Kite_Dictionary.xlsx merged with Kite_Dictionary_Values_v2.xlsx
+ *    (see kiteDictionarySeed.ts).
  *  - Fields the campaign / tactic / UTM flows use that are not in the sheet (free text, system
  *    generated or derived) are listed too, so the table covers everything those flows capture.
  *  - The campaign and tactic forms read their dropdown options from here, so a value only exists in
@@ -283,7 +284,13 @@ function seedHistory(fields: DictField[]): { fields: DictField[]; log: DictLogEn
 
 function seedState(): DictState {
   const fields: DictField[] = KITE_DICTIONARY_SEED.map(f => {
-    const attributes = f.values.map(v => ({ value: v, updatedBy: pick(`by|${f.key}|${v}`), updatedAt: randomDate(`at|${f.key}|${v}`) }));
+    const attributes = f.values.map(v => ({
+      value: v,
+      // kept with the value though the dictionary shows abbreviations at field level only
+      ...(f.valueAbbr?.[v] ? { abbreviation: f.valueAbbr[v] } : {}),
+      updatedBy: pick(`by|${f.key}|${v}`),
+      updatedAt: randomDate(`at|${f.key}|${v}`),
+    }));
     // a field was last updated when its most recently updated attribute was
     const latest = attributes.map(a => a.updatedAt).sort().pop() || randomDate(`at|${f.key}`);
     return {
@@ -298,7 +305,9 @@ function seedState(): DictState {
       attributes,
     };
   });
-  EXTRAS.forEach(e =>
+  // a portal field the sheet now lists (e.g. Segment name) comes from the sheet, with its values
+  const fromSheet = new Set(fields.map(f => f.key));
+  EXTRAS.filter(e => !fromSheet.has(e.key)).forEach(e =>
     fields.push({
       key: e.key,
       abbreviation: e.abbreviation,
@@ -342,8 +351,15 @@ function load(): DictState {
     const refreshed = current.map(f => {
       const sf = seedBy.get(f.key);
       if (!sf) return f;
+      // values the sheet gained since this copy was saved are added (unless someone removed them on purpose)
+      const removed = new Set(
+        (stored.changes || []).filter(c => c.status === 'approved' && c.type === 'remove_value' && c.fieldKey === f.key).map(c => (c.value || '').toLowerCase())
+      );
+      const have = new Set(f.attributes.map(a => a.value.toLowerCase()));
+      const gained = sf.attributes.filter(a => !have.has(a.value.toLowerCase()) && !removed.has(a.value.toLowerCase()));
       return {
         ...f,
+        kind: sf.kind,
         label: sf.label,
         note: f.kind === 'dictionary' ? f.note : sf.note,
         usedIn: sf.usedIn,
@@ -353,8 +369,9 @@ function load(): DictState {
         attributes: f.attributes.map(a => {
           const sa = sf.attributes.find(x => x.value === a.value);
           const next = a.updatedBy === OLD_INITIAL_BY && sa ? { ...a, updatedBy: sa.updatedBy } : { ...a, updatedBy: clean(a.updatedBy), owner: a.owner ? clean(a.owner) : a.owner };
-          return a.updatedAt === INITIAL_AT && sa ? { ...next, updatedAt: sa.updatedAt } : next;
-        }),
+          const dated = a.updatedAt === INITIAL_AT && sa ? { ...next, updatedAt: sa.updatedAt } : next;
+          return !dated.abbreviation && sa?.abbreviation ? { ...dated, abbreviation: sa.abbreviation } : dated;
+        }).concat(gained),
       };
     });
     return {
@@ -809,6 +826,7 @@ export const FORMULA_FIELD_KEY: Record<string, string> = {
   indication: 'indc',
   messagingType: 'messaging_type',
   audience: 'target',
+  segmentName: 'segment_name',
   campaignType: 'alrt_typ',
   objective: 'objective',
 };

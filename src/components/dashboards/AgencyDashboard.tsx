@@ -49,6 +49,7 @@ export const AgencyDashboard: React.FC = () => {
   const audiences = useDictValues('target');
   const campaignTypes = useDictValues('alrt_typ');
   const objectives = useDictValues('objective');
+  const segmentNames = useDictValues('segment_name');
 
   const [country, setCountry] = useState(() => dictValues('country').find(v => v === 'US') || dictValues('country')[0] || '');
   const [taValue, setTaValue] = useState(() => dictValues('ta')[0] || '');
@@ -413,13 +414,7 @@ export const AgencyDashboard: React.FC = () => {
               </div>
               <div>
                 {label('Segment name')}
-                <input
-                  type="text"
-                  value={segmentName}
-                  onChange={e => setSegmentName(e.target.value)}
-                  placeholder="e.g. treater"
-                  className={`${FIELD_CLS} ${err(!segmentName.trim())}`}
-                />
+                {select(segmentName, setSegmentName, plain(withCurrent(segmentNames, segmentName)), 'Select…')}
               </div>
               <div>
                 {label('Segment value')}

@@ -30,7 +30,7 @@ const FIELDS: MappedField[] = [
     field: 'platform',
     source: 'Campaign Metadata',
     text: 'Delivery platform label (e.g. DeepIntent Orchestrate, Veeva CRM, SFMC). OE-facing; NBA uses utm_source in Content MDM instead.',
-    dictKey: 'src',
+    dictKey: 'platform',
     example: 'DeepIntent Orchestrate (also SFMC, Veeva CRM, Relevate Health)',
   },
   {
