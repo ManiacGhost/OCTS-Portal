@@ -7,7 +7,6 @@ import { VaultCombobox } from '../components/common/VaultCombobox';
 import { useDictValues, channelTypeOf, channelFromType } from '../data/kiteDictionary';
 import { hasTactic, isApproved, tacticStatusOf, tacticCode, campaignIdOf, campaignDates } from '../data/approvalStatus';
 import { StatusFlags } from '../components/common/StatusFlags';
-import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import type { MediaChannelType } from '../types';
 import { publishersFor } from '../data/channelPublishers';
 
@@ -29,7 +28,7 @@ const withCurrent = (list: string[], current: string) => (current && !list.inclu
 export const TacticPage: React.FC = () => {
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const { campaigns, isLoading, saveTactic, submitForApproval, showToast, brands } = usePersona();
+  const { campaigns, isLoading, saveTactic, showToast, brands } = usePersona();
   const campaign = campaigns.find(c => c.id === id);
   const [searchParams] = useSearchParams();
   // "Add tactic" on a campaign that already has one: build a new tactic instead of editing the first
@@ -67,7 +66,6 @@ export const TacticPage: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   // which action is waiting on the 'submit changes to an approved tactic?' pop-up
-  const [confirm, setConfirm] = useState<null | 'utm' | 'submit'>(null);
 
   // Fill from the saved tactic (editing) or sensible defaults from the campaign (first time).
   useEffect(() => {
@@ -193,36 +191,24 @@ export const TacticPage: React.FC = () => {
       return;
     }
     if (tacticApproved && !changed) {
-      // nothing changed: the tactic stays approved, no re-approval needed
-      showToast('No changes to the tactic: it stays approved.', 'info');
+      showToast('No changes to the tactic.', 'info');
       if (action === 'utm') goUtm();
       else navigate('/overview');
       return;
     }
-    if (tacticApproved && changed) {
-      setConfirm(action);
-      return;
-    }
-    run(action, false);
+    run(action);
   };
 
-  const run = async (action: 'utm' | 'submit', resubmit: boolean) => {
+  // tactics need no approval: saving is all there is
+  const run = async (action: 'utm' | 'submit') => {
     setBusy(true);
     try {
-      if (!(await persist(resubmit))) return;
-      if (action === 'utm') {
-        showToast('Tactic saved.', 'success');
-        goUtm();
-      } else {
-        // a changed approved tactic was already re-submitted by the save; otherwise send it now
-        if (resubmit || (await submitForApproval(targetId()))) {
-          showToast('Tactic submitted to the marketer for approval.', 'success');
-          navigate('/overview');
-        }
-      }
+      if (!(await persist())) return;
+      showToast('Tactic saved.', 'success');
+      if (action === 'utm') goUtm();
+      else navigate('/overview');
     } finally {
       setBusy(false);
-      setConfirm(null);
     }
   };
 
@@ -230,9 +216,6 @@ export const TacticPage: React.FC = () => {
   const errMsg = (k: string) =>
     showErrors && problems[k] ? <p className="text-[11px] font-bold text-red-600 mt-1">{problems[k]}</p> : null;
   const req = <span className="text-navy-500"> *</span>;
-
-  // already with the marketer / approved, nothing left to send
-  const alreadySent = tStatus === 'submitted' && !changed;
 
   return (
     <div className="space-y-6">
@@ -259,22 +242,10 @@ export const TacticPage: React.FC = () => {
         </button>
       </div>
 
-      {tStatus === 'rejected' && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-xs text-red-900 space-y-1" role="note">
-          <div className="font-extrabold">The marketer rejected this tactic</div>
-          <p className="leading-relaxed">“{campaign.reviewNotes?.tactic || 'No comment was left.'}”</p>
-          <p className="text-[11px] text-red-700">The campaign stays approved. Make the changes below and resubmit the tactic for approval.</p>
-        </div>
-      )}
-
       <div className="flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Status</span>
         <StatusFlags campaign={campaign} />
-        {hasTactic(campaign) && tacticApproved && (
-          <span className="text-[11px] text-slate-500">
-            This tactic is approved: only changes to it go back for approval.
-          </span>
-        )}
+        <span className="text-[11px] text-slate-500">Tactics need no approval: a saved tactic is ready for UTMs.</span>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 space-y-6 shadow-sm text-slate-900">
@@ -395,16 +366,9 @@ export const TacticPage: React.FC = () => {
           </div>
         </div>
 
-        {alreadySent && (
-          <div className="text-xs bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3.5 py-2.5">
-            Campaign is <strong>{campaign.status}</strong> and tactic is <strong>{tStatus}</strong>: there is nothing left to send for approval.
-          </div>
-        )}
-
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-slate-100">
           <p className="text-[11px] text-slate-400 max-w-sm">
-            The campaign is already with the marketer; the tactic is approved separately, and UTMs need no approval.
-            You can generate UTMs before or after sending the tactic.
+            Tactics and UTMs need no approval: save the tactic, then generate its UTMs now or later.
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <button
@@ -419,25 +383,15 @@ export const TacticPage: React.FC = () => {
             <button
               type="button"
               onClick={() => guard('submit')}
-              disabled={busy || alreadySent}
+              disabled={busy}
               className="bg-navy-600 hover:bg-navy-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs px-6 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
             >
               <Send className="w-4 h-4" />
-              {tacticApproved ? 'Save changes' : tStatus === 'rejected' ? 'Save & resubmit for approval' : 'Save & submit for approval'}
+              {tacticApproved ? 'Save changes' : 'Save tactic'}
             </button>
           </div>
         </div>
       </div>
-      {confirm && (
-        <ConfirmDialog
-          title="Submit changes to an approved tactic?"
-          message="This tactic is already approved. If you submit these changes it goes back to the marketer and shows as pending approval until they approve it again."
-          confirmLabel="Yes, submit changes"
-          busy={busy}
-          onConfirm={() => run(confirm, true)}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
     </div>
   );
 };

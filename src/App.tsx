@@ -9,9 +9,6 @@ import { LoginPage } from './pages/LoginPage';
 import { LauncherPage } from './pages/LauncherPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { DictionaryPage } from './pages/DictionaryPage';
-import { AutoTaggingPage } from './pages/AutoTaggingPage';
-import { ComingSoonPage } from './pages/ComingSoonPage';
-import { AUTOTAG_ENABLED } from './data/autoTagModel';
 import { TagStrategyPage } from './pages/TagStrategyPage';
 import { ContentMdmPage } from './pages/ContentMdmPage';
 import { UtmGeneratorPage } from './pages/UtmGeneratorPage';
@@ -24,6 +21,7 @@ import { AnalyticsDashboard } from './components/dashboards/AnalyticsDashboard';
 import { SuperAdminDashboard } from './components/dashboards/SuperAdminDashboard';
 import { UserRole } from './types';
 import { JourneyMetadataPage } from './pages/JourneyMetadataPage';
+import { IvaPage, HvaPage } from './pages/IvaPage';
 
 const RoleRoute: React.FC<{ roles: UserRole[]; children: React.ReactNode }> = ({ roles, children }) => (
   <ProtectedRoute roles={roles}>{children}</ProtectedRoute>
@@ -60,7 +58,7 @@ export default function App() {
             path="/autotag"
             element={
               <RoleRoute roles={['agency', 'marketer', 'analytics']}>
-                {AUTOTAG_ENABLED ? <AutoTaggingPage /> : <ComingSoonPage title="Content Tagging/Mapping" />}
+                <IvaPage />
               </RoleRoute>
             }
           />
@@ -71,6 +69,10 @@ export default function App() {
           <Route
             path="/brand-strategy"
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><TagStrategyPage variant="brand" /></RoleRoute>}
+          />
+          <Route
+            path="/hva"
+            element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><HvaPage /></RoleRoute>}
           />
           <Route
             path="/content-metadata"
@@ -88,9 +90,9 @@ export default function App() {
             path="/help"
             element={<RoleRoute roles={['agency', 'marketer', 'analytics']}><HelpPage /></RoleRoute>}
           />
-          <Route path="/campaigns/new" element={<RoleRoute roles={['agency']}><AgencyDashboard /></RoleRoute>} />
-          <Route path="/campaigns/:id/edit" element={<RoleRoute roles={['agency']}><AgencyDashboard /></RoleRoute>} />
-          <Route path="/campaigns/:id/tactic" element={<RoleRoute roles={['agency']}><TacticPage /></RoleRoute>} />
+          <Route path="/campaigns/new" element={<RoleRoute roles={['agency', 'marketer']}><AgencyDashboard /></RoleRoute>} />
+          <Route path="/campaigns/:id/edit" element={<RoleRoute roles={['agency', 'marketer']}><AgencyDashboard /></RoleRoute>} />
+          <Route path="/campaigns/:id/tactic" element={<RoleRoute roles={['agency', 'marketer']}><TacticPage /></RoleRoute>} />
           <Route path="/campaigns" element={<Navigate to="/overview" replace />} />
           <Route path="/approvals" element={<RoleRoute roles={['marketer']}><MarketerDashboard /></RoleRoute>} />
           <Route path="/compliance" element={<RoleRoute roles={['analytics']}><AnalyticsDashboard /></RoleRoute>} />

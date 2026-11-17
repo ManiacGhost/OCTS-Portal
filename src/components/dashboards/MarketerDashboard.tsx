@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePersona } from '../../context/PersonaContext';
 import { DictionaryView } from '../common/DictionaryView';
 import { usePendingChangeCount } from '../../data/kiteDictionary';
-import { pendingParts, campaignIdOf, ApprovalPart, channelLabel } from '../../data/approvalStatus';
+import { campaignIdOf, ApprovalPart, channelLabel } from '../../data/approvalStatus';
 import { CampaignFlag } from '../common/StatusFlags';
 import { CampaignTaxonomy } from '../../types';
 import {
@@ -12,7 +12,6 @@ import {
   Check,
   X,
   Layers,
-  FileText,
   Megaphone,
   ChevronDown,
   ChevronRight,
@@ -37,16 +36,14 @@ export const MarketerDashboard: React.FC = () => {
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [needsComment, setNeedsComment] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<Tab>('approvals');
-  // which queue the listing shows, driven by the two tiles
-  const [queue, setQueue] = useState<ApprovalPart>('campaign');
+  const queue: ApprovalPart = 'campaign';
   // rows opened for review
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   const newest = (a: CampaignTaxonomy, b: CampaignTaxonomy) => (b.updatedAt || '').localeCompare(a.updatedAt || '');
   const campaignQueue = campaigns.filter(c => c.status === 'submitted').sort(newest);
-  // a tactic is only reviewed once its campaign is approved, so it sits inside that campaign
-  const tacticQueue = campaigns.filter(c => pendingParts(c).includes('tactic')).sort(newest);
-  const items = queue === 'campaign' ? campaignQueue : tacticQueue;
+  // tactics need no approval: campaigns are the only queue
+  const items = campaignQueue;
 
   const keyOf = (id: string, part: ApprovalPart) => `${id}:${part}`;
   const brandName = (id: string) => brands.find(b => b.id === id)?.name?.split(/[ (]/)[0] || '-';
@@ -91,7 +88,6 @@ export const MarketerDashboard: React.FC = () => {
     return (
       <button
         type="button"
-        onClick={() => setQueue(part)}
         aria-pressed={active}
         className={`text-left bg-white border rounded-2xl p-5 shadow-sm transition ${
           active ? 'border-navy-500 ring-2 ring-navy-500/30' : 'border-slate-200 hover:border-navy-300'
@@ -128,7 +124,7 @@ export const MarketerDashboard: React.FC = () => {
               </div>
             </div>
             <p className="text-[11px] text-slate-500">
-              Its tactic can be reviewed once the campaign is approved.
+              Once approved, the agency can add its tactics (tactics need no approval).
             </p>
           </>
         ) : (
@@ -184,23 +180,22 @@ export const MarketerDashboard: React.FC = () => {
           Approvals
         </h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Campaigns and tactics are approved separately: pick a queue, open a row to review it.
+          Campaigns waiting for your approval: open a row to review it. Tactics need no approval.
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-2 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto">
-        {tabBtn('approvals', <ShieldCheck className="w-4 h-4" />, `Approvals (${campaignQueue.length + tacticQueue.length})`)}
+        {tabBtn('approvals', <ShieldCheck className="w-4 h-4" />, `Approvals (${campaignQueue.length})`)}
         {tabBtn('matrix', <BarChart2 className="w-4 h-4" />, 'Topic Strategy Matrix')}
         {tabBtn('dictionary', <Layers className="w-4 h-4" />, `Dictionary changes (${dictPending})`)}
       </div>
 
       {activeTab === 'approvals' && (
         <div className="space-y-4">
-          {/* One tile per queue */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* The campaign queue (tactics need no approval) */}
+          <div className="grid grid-cols-1 sm:max-w-sm gap-4">
             {tile('campaign', <Megaphone className="w-4 h-4" />, 'Campaigns to approve', campaignQueue.length, 'Campaign Name taxonomy')}
-            {tile('tactic', <FileText className="w-4 h-4" />, 'Tactics to approve', tacticQueue.length, 'Inside approved campaigns')}
           </div>
 
           {/* Listing for the selected queue */}

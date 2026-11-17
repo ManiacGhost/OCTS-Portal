@@ -445,6 +445,9 @@ export async function fetchCampaigns(params?: { status?: string; agency?: string
   return { campaigns: filtered };
 }
 
+/** The marketer approves campaigns and tactics, so what they create or change needs no approval. */
+const autoApproves = () => currentPersona()?.role === 'marketer';
+
 export async function createCampaign(body: Partial<CampaignTaxonomy> & Record<string, any>): Promise<{ success: boolean; campaign: CampaignTaxonomy }> {
   const cur = currentPersona();
 
@@ -493,7 +496,7 @@ export async function createCampaign(body: Partial<CampaignTaxonomy> & Record<st
     quarter: body.quarter || '2026-Q3',
     agencyOwner: cur?.role === 'agency' ? cur.organization : (body.agencyOwner || 'Klick Health'),
     marketerOwner: body.marketerOwner || 'Marcus Vance',
-    status: body.status || 'submitted',
+    status: body.status === 'draft' ? 'draft' : autoApproves() ? 'approved' : body.status || 'submitted',
     complianceScore: Math.floor(95 + Math.random() * 5),
     taxonomyString,
     utmSource: (body.subChannel || chan?.name || 'programmatic').toLowerCase().replace(/[^a-z0-9]+/g, '_'),
@@ -561,10 +564,8 @@ export async function updateCampaign(
   if (patch.startDate !== undefined) {
     campaign.startDate = patch.startDate;
     campaign.endDate = patch.endDate;
-    // the date is not part of the formula any more
-    if (campaign.formulaInputs) delete campaign.formulaInputs.date;
   }
-  campaign.status = patch.asDraft ? 'draft' : 'submitted';
+  campaign.status = patch.asDraft ? 'draft' : autoApproves() ? 'approved' : 'submitted';
   campaign.updatedAt = new Date().toISOString();
   addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_EDITED', campaign.campaignCode, patch.asDraft ? `Saved draft ${campaign.campaignName}` : `Edited campaign ${campaign.campaignName} and re-submitted it for approval`);
   persist();
@@ -619,8 +620,8 @@ export async function saveTactic(
   if (!campaign.tacticId) campaign.tacticId = nextTacticId();
   campaign.formulaInputs = { ...(campaign.formulaInputs || {}), ...(data.formulaInputs || {}), aset_id: data.assetId, tact_id: campaign.tacticId };
   freezeTacticStatus(campaign);
-  if (!campaign.tacticStatus || campaign.tacticStatus === 'rejected') campaign.tacticStatus = 'draft';
-  if (data.resubmit) campaign.tacticStatus = 'submitted';
+  // tactics need no approval: a saved tactic is ready to use
+  campaign.tacticStatus = 'approved';
   const chan = db.channels.find(c => c.id === data.channelId);
   campaign.utmSource = (data.subChannel || chan?.name || 'programmatic').toLowerCase().replace(/[^a-z0-9]+/g, '_');
   campaign.utmMedium = (chan?.name || 'display').toLowerCase().replace(/[^a-z0-9]+/g, '_');
@@ -636,7 +637,7 @@ export async function deleteCampaign(id: string) {
   const i = db.campaigns.findIndex(c => c.id === id);
   if (i === -1) throw new Error('Campaign not found');
   const campaign = db.campaigns[i];
-  if (campaign.status !== 'submitted' && campaign.status !== 'draft') throw new Error('Only a draft or pending campaign can be deleted');
+  if (!autoApproves() && campaign.status !== 'submitted' && campaign.status !== 'draft') throw new Error('Only a draft or pending campaign can be deleted');
   db.campaigns.splice(i, 1);
   db.analytics.totalCampaigns = Math.max(0, db.analytics.totalCampaigns - 1);
   addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_DELETED', campaign.campaignCode, `Deleted ${campaign.status} campaign ${campaign.campaignName}`);
@@ -655,7 +656,7 @@ export async function deleteTactic(id: string, removeRecord: boolean) {
   if (i === -1) throw new Error('Tactic not found');
   const campaign = db.campaigns[i];
   const ts = campaign.tacticStatus ?? campaign.status;
-  if (ts !== 'submitted' && ts !== 'draft') throw new Error('Only a draft or pending tactic can be deleted');
+  void ts; // tactics have no approval, so any tactic can be deleted
   if (removeRecord) {
     db.campaigns.splice(i, 1);
   } else {
@@ -681,13 +682,11 @@ export async function submitForApproval(id: string) {
   if (!campaign) throw new Error('Campaign not found');
   const hasTactic = !!(campaign.tactic || campaign.channelType);
   freezeTacticStatus(campaign);
-  if (campaign.status === 'draft' || campaign.status === 'rejected') campaign.status = 'submitted';
-  if (hasTactic) {
-    const ts = campaign.tacticStatus ?? campaign.status;
-    if (ts === 'draft' || ts === 'rejected') campaign.tacticStatus = 'submitted';
-  }
+  const to = autoApproves() ? 'approved' : 'submitted';
+  if (campaign.status === 'draft' || campaign.status === 'rejected' || (to === 'approved' && campaign.status === 'submitted')) campaign.status = to;
+  if (hasTactic) campaign.tacticStatus = 'approved';
   campaign.updatedAt = new Date().toISOString();
-  addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_SUBMITTED', campaign.campaignCode, `Submitted ${hasTactic ? 'campaign and tactic' : 'campaign'} for approval`);
+  addAuditLog(cur?.name || 'User', cur?.role || 'agency', 'CAMPAIGN_SUBMITTED', campaign.campaignCode, to === 'approved' ? 'Created and approved campaign' : 'Submitted campaign for approval');
   persist();
   return { success: true, campaign };
 }

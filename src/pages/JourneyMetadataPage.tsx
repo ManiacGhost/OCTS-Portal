@@ -1,44 +1,43 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
-import { FieldMappingTable, MappedField } from '../components/common/FieldMappingTable';
+import { MetadataRecordsTable, RecordColumn } from '../components/common/MetadataRecordsTable';
+import { dictValues } from '../data/kiteDictionary';
 
-/** The journey metadata fields, from the client's sheet: where each comes from, its rule, and the dictionary field behind it. */
-const FIELDS: MappedField[] = [
+/** Journey tactic IDs: the numbers inside the dictionary's tactic names (e.g. "kite-bispecifics-audience / 61249"). */
+const journeyTacticIds = (): string[] => [...new Set(dictValues('tactic_name').flatMap(v => v.match(/\d{4,}/g) || []))];
+
+/**
+ * The journey metadata record: one row per asset firing at a journey step, values from the dictionary. The
+ * vault_asset_id joins to the same asset on the Content MDM page. Hover a header for the field's rule.
+ */
+const COLUMNS: RecordColumn[] = [
   {
     field: 'vault_asset_id',
-    source: 'VVPM - document_number__v',
-    text: 'Join key only. OE joins to Content MDM on this to pull every content attribute (brand, topic, subtopic, status, indication, etc.). Direct passthrough - same value as Content MDM.',
+    definition: 'Join key only. OE joins to Content MDM on this to pull every content attribute. Direct passthrough - same value as Content MDM.',
     dictKey: 'aset_id',
-    example: 'US-YES-00248',
   },
   {
     field: 'step_id',
-    source: 'Campaign Metadata',
-    text: "Exact journey step the asset fires at (e.g. UC3-31A). Pure journey construct - nothing to do with content. Not an NBA field (Jatin, 5-Nov: 'NBA does not use a step ID'). No VVPM equivalent.",
+    definition: 'Exact journey step the asset fires at (e.g. UC3-31A). Pure journey construct, nothing to do with content. No VVPM equivalent.',
     dictKey: 'step_id',
-    example: 'UC1-15 (also UC2-18, UC3-31A)',
   },
   {
     field: 'tactic_id',
-    source: 'Campaign Metadata',
-    text: 'Journey input trigger for Medscape/Relevate tactics (e.g. 61249). Vendor transaction data, not a content attribute.',
-    dictKey: 'journey_tactic_id',
-    example: '61249 (also 126715, 2431)',
-    addLabel: 'Journey tactic ID',
+    definition: 'Journey input trigger for Medscape/Relevate tactics (e.g. 61249). Vendor transaction data, not a content attribute.',
+    derive: ({ index }) => {
+      const ids = journeyTacticIds();
+      return ids.length ? ids[(index * 7 + 3) % ids.length] : '';
+    },
   },
   {
     field: 'platform',
-    source: 'Campaign Metadata',
-    text: 'Delivery platform label (e.g. DeepIntent Orchestrate, Veeva CRM, SFMC). OE-facing; NBA uses utm_source in Content MDM instead.',
+    definition: 'Delivery platform label (e.g. DeepIntent Orchestrate, Veeva CRM, SFMC). OE-facing; NBA uses utm_source in Content MDM instead.',
     dictKey: 'platform',
-    example: 'DeepIntent Orchestrate (also SFMC, Veeva CRM, Relevate Health)',
   },
   {
     field: 'creative_id',
-    source: 'Campaign Metadata / DeepIntent',
-    text: 'DeepIntent ad creative ID (e.g. 309320). OE=Yes in the Metadata_Optimise matrix, but Jatin flagged it as an unconfirmed NBA candidate, not settled OE-only. Confirm scope with Jatin before KMDH builds.',
+    definition: 'DeepIntent ad creative ID (e.g. 309320). Unconfirmed NBA candidate: confirm scope before KMDH builds.',
     dictKey: 'creative_id',
-    example: '152926',
   },
 ];
 
@@ -49,8 +48,8 @@ export const JourneyMetadataPage: React.FC = () => (
         <FileText />
         Journey Metadata
       </h1>
-      <p>The data leveraged across channels to follow each audience journey, where each field comes from and the rule that governs it.</p>
+      <p>The data leveraged across channels to follow each audience journey: one row per asset at a journey step, with values from the dictionary. Hover a column for its rule.</p>
     </div>
-    <FieldMappingTable rows={FIELDS} textHeading="Business rule / mapping" showSource />
+    <MetadataRecordsTable columns={COLUMNS} count={24} seed="journey" noun="journey records" />
   </div>
 );

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { usePersona } from '../../context/PersonaContext';
 import { useAuth } from '../../auth/AuthContext';
+import { selfApproves } from '../../auth/permissions';
 import { CreationStepper } from '../common/CreationStepper';
 import { hasTactic, isApproved, campaignDates } from '../../data/approvalStatus';
 import { StatusFlags } from '../common/StatusFlags';
@@ -30,6 +31,8 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 export const AgencyDashboard: React.FC = () => {
   const { brands, activeBrand, campaigns, addCampaign, editCampaign, showToast, selectedMarket } = usePersona();
   const { user } = useAuth();
+  // the marketer approves campaigns, so what they create or change is approved straight away
+  const autoApprove = selfApproves(user?.role);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const cloneId = searchParams.get('clone') || '';
@@ -66,7 +69,7 @@ export const AgencyDashboard: React.FC = () => {
   const [objective, setObjective] = useState('');
   // free-text name for the campaign; not part of the formula
   const [marketingName, setMarketingName] = useState('');
-  // Dates are campaign details, not part of the formula.
+  // The dates go into the formula's date token as YYYYMM-YYYYMM.
   // always on → a year and the month it starts in (it runs through December); specific → a start and end date
   const [year, setYear] = useState('2026');
   const [startMonth, setStartMonth] = useState('01');
@@ -134,6 +137,8 @@ export const AgencyDashboard: React.FC = () => {
     segmentValue,
     campaignType,
     objective,
+    // YYYYMM-YYYYMM from the campaign's start and end dates
+    date: campaignStart && campaignEnd ? `${campaignStart.slice(0, 7).replace('-', '')}-${campaignEnd.slice(0, 7).replace('-', '')}` : '',
   };
   const built = buildCampaignTaxonomy(formulaInputs);
 
@@ -230,7 +235,7 @@ export const AgencyDashboard: React.FC = () => {
         });
         if (!res) return;
       }
-      showToast('Draft saved. Submit it for approval when it is ready.', 'success');
+      showToast(autoApprove ? 'Draft saved. Create it when it is ready.' : 'Draft saved. Submit it for approval when it is ready.', 'success');
       navigate('/overview');
     } finally {
       setIsSubmitting(false);
@@ -255,7 +260,7 @@ export const AgencyDashboard: React.FC = () => {
         quarter: quarterToken,
       });
       if (saved) {
-        showToast('Campaign changes submitted for approval.', 'success');
+        showToast(autoApprove ? 'Campaign changes saved and approved.' : 'Campaign changes submitted for approval.', 'success');
         navigate('/overview');
       }
     } finally {
@@ -270,7 +275,7 @@ export const AgencyDashboard: React.FC = () => {
       return;
     }
     // changing an approved campaign sends it back for approval — ask first
-    if (isApproved(source.status)) setConfirmEdit(true);
+    if (isApproved(source.status) && !autoApprove) setConfirmEdit(true);
     else applyEdit();
   };
 
@@ -315,7 +320,9 @@ export const AgencyDashboard: React.FC = () => {
             {isEdit
               ? 'Change the campaign fields and review the new formula'
               : source
-              ? `Cloned from “${source.campaignName}”: check the formula, change what differs, then submit for approval`
+              ? `Cloned from “${source.campaignName}”: check the formula, change what differs, then ${autoApprove ? 'create it' : 'submit for approval'}`
+              : autoApprove
+              ? 'Fill in the campaign fields and review the formula, then add its tactic. As the marketer, what you create is approved straight away'
               : 'Fill in the campaign fields and review the formula (it goes to the marketer when you submit), then add its tactic'}
             {' '}&middot; {selectedMarket} &middot; {user?.organization}
           </p>
@@ -342,7 +349,7 @@ export const AgencyDashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Status</span>
           <StatusFlags campaign={source} />
-          {isApproved(source.status) && (
+          {isApproved(source.status) && !autoApprove && (
             <span className="text-[11px] text-slate-500">
               Saving a change sends the campaign back for approval; the tactic is not affected.
             </span>
@@ -566,7 +573,7 @@ export const AgencyDashboard: React.FC = () => {
                 <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campaign dates</span>
                 <span className="font-bold text-slate-900">{campaignStart || '-'} → {campaignEnd || '-'}</span>
               </div>
-              <p className="sm:col-span-2 text-[11px] text-slate-400">The campaign name and the dates are campaign details: they are not part of the formula above. A system-generated Campaign ID is assigned when you submit.</p>
+              <p className="sm:col-span-2 text-[11px] text-slate-400">The campaign name is a campaign detail: it is not part of the formula above. The dates make up its date token (YYYYMM-YYYYMM). A system-generated Campaign ID is assigned when you submit.</p>
             </div>
 
             {cloning && source && (
@@ -609,7 +616,7 @@ export const AgencyDashboard: React.FC = () => {
                   className="bg-navy-600 hover:bg-navy-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs px-8 py-3 rounded-xl transition flex items-center gap-2 shadow-md"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{isEdit && source?.status !== 'draft' ? 'Save changes' : 'Submit for approval'}</span>
+                  <span>{isEdit && source?.status !== 'draft' ? 'Save changes' : autoApprove ? 'Create campaign' : 'Submit for approval'}</span>
                 </button>
               </div>
             </div>
@@ -642,11 +649,11 @@ export const AgencyDashboard: React.FC = () => {
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-900">
-                {created.cloned ? 'Campaign cloned and submitted' : 'Campaign created successfully'}
+                {created.cloned ? (isApproved(created.campaign.status) ? 'Campaign cloned and approved' : 'Campaign cloned and submitted') : 'Campaign created successfully'}
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 {isApproved(created.campaign.status)
-                  ? 'The campaign is approved. Next, add its tactic (channel, publisher, placement and the rest) and send that for approval too.'
+                  ? 'The campaign is approved. Next, add its tactic (channel, publisher, placement and the rest). Tactics need no approval.'
                   : 'Your campaign has been created, but it is yet to be approved. Tactics can be added once the marketer approves it.'}
               </p>
               {created.campaign.campaignId && (

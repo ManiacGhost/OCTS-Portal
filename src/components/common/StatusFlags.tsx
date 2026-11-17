@@ -1,6 +1,6 @@
 import React from 'react';
 import { CampaignTaxonomy } from '../../types';
-import { statusLabel, tacticStatusOf, visibleTacticStatus } from '../../data/approvalStatus';
+import { statusLabel, hasTactic } from '../../data/approvalStatus';
 
 export const STATUS_BADGE: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -18,26 +18,10 @@ export const CampaignFlag: React.FC<{ status: string; plain?: boolean }> = ({ st
   </span>
 );
 
-export const TacticFlag: React.FC<{ status: string }> = ({ status }) => (
-  <span title="Tactic approval status" className={`${pill} ${STATUS_BADGE[status] || STATUS_BADGE.draft}`}>
-    Tactic · {statusLabel(status)}
-  </span>
+/** The campaign's approval flag (tactics need no approval); a campaign with no tactic shows a dashed "No tactic" marker. */
+export const StatusFlags: React.FC<{ campaign: CampaignTaxonomy }> = ({ campaign: c }) => (
+  <>
+    <CampaignFlag status={c.status} />
+    {!hasTactic(c) && <span className={`${pill} border-dashed border-slate-300 text-slate-400`}>No tactic</span>}
+  </>
 );
-
-/**
- * The campaign flag, and the tactic flag next to it. The tactic flag is left out while the campaign
- * hasn't been approved; a campaign with no tactic at all shows a dashed "No tactic" marker instead.
- */
-export const StatusFlags: React.FC<{ campaign: CampaignTaxonomy }> = ({ campaign: c }) => {
-  const t = visibleTacticStatus(c);
-  return (
-    <>
-      <CampaignFlag status={c.status} />
-      {t ? (
-        <TacticFlag status={t} />
-      ) : tacticStatusOf(c) ? null : (
-        <span className={`${pill} border-dashed border-slate-300 text-slate-400`}>No tactic</span>
-      )}
-    </>
-  );
-};

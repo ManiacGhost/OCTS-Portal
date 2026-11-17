@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Activity, Plus, ListChecks } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+import { canAuthor } from '../auth/permissions';
 import { usePersona } from '../context/PersonaContext';
 import { TacticList } from '../components/common/TacticList';
 import { hasTactic, isApproved } from '../data/approvalStatus';
@@ -97,9 +98,9 @@ export const OverviewPage: React.FC = () => {
             <ListChecks />
             Campaigns
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Campaigns and tactics, with their approval status.</p>
+          <p className="text-sm text-slate-500 mt-1">Campaigns with their approval status, and their tactics.</p>
         </div>
-        {user.role === 'agency' && (
+        {canAuthor(user.role) && (
           <button
             type="button"
             onClick={() => navigate('/campaigns/new')}

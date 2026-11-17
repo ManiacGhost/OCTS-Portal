@@ -1,9 +1,8 @@
 import { CampaignTaxonomy } from '../types';
 
 /**
- * A campaign is approved in two parts: the campaign itself (its taxonomy formula) and its tactic
- * (channel, publisher, placement, …). They're tracked separately. A tactic only comes up for the
- * marketer once its campaign is approved.
+ * Only the campaign (its taxonomy formula) is approved by the marketer. Tactics need no approval: a tactic
+ * can be added once its campaign is approved, and is ready to use as soon as it is saved.
  */
 
 type Status = CampaignTaxonomy['status'];
@@ -18,10 +17,9 @@ export function hasTactic(c: CampaignTaxonomy): boolean {
 /** The tactic's own ID (falls back to the record id when none was assigned). */
 export const tacticCode = (c: CampaignTaxonomy): string => c.tacticId || c.id;
 
-/** The tactic's own approval status, or undefined when the campaign has no tactic yet. */
+/** A saved tactic is always ready ("approved"): tactics have no approval step. Undefined when there is no tactic yet. */
 export function tacticStatusOf(c: CampaignTaxonomy): Status | undefined {
-  if (!hasTactic(c)) return undefined;
-  return c.tacticStatus ?? c.status;
+  return hasTactic(c) ? 'approved' : undefined;
 }
 
 /**
@@ -49,21 +47,14 @@ export function statusLabel(s: string | undefined): string {
 
 export type ApprovalPart = 'campaign' | 'tactic';
 
-/** The parts of this campaign currently waiting for the marketer. */
+/** The parts of this campaign currently waiting for the marketer (only ever the campaign itself). */
 export function pendingParts(c: CampaignTaxonomy): ApprovalPart[] {
-  const parts: ApprovalPart[] = [];
-  if (c.status === 'submitted') parts.push('campaign');
-  // the tactic is reviewed only after its campaign is approved
-  if (isApproved(c.status) && tacticStatusOf(c) === 'submitted') parts.push('tactic');
-  return parts;
+  return c.status === 'submitted' ? ['campaign'] : [];
 }
 
-/** Ready to be sent to the marketer: has a tactic and still has a draft / rejected part. */
+/** Ready to be sent to the marketer: a draft or rejected campaign. */
 export function canSubmit(c: CampaignTaxonomy): boolean {
-  if (!hasTactic(c)) return false;
-  const ts = tacticStatusOf(c);
-  const open = (s?: Status) => s === 'draft' || s === 'rejected';
-  return open(c.status) || open(ts);
+  return c.status === 'draft' || c.status === 'rejected';
 }
 
 /** The system-generated campaign ID (falls back to the record id for anything created before IDs existed). */

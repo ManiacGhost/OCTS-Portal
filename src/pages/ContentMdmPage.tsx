@@ -1,34 +1,48 @@
 import React from 'react';
 import { Database } from 'lucide-react';
-import { FieldMappingTable, MappedField } from '../components/common/FieldMappingTable';
+import { MetadataRecordsTable, RecordColumn, brandOfAsset, dateFor, ymd, pickFrom } from '../components/common/MetadataRecordsTable';
 
-/** The Content MDM fields, as defined in the client's sheet, each mapped to its dictionary field. */
-const FIELDS: MappedField[] = [
-  { field: 'vault_asset_id', text: 'FDA-approved asset code from PromoMats (join key).', dictKey: 'aset_id', example: 'US-YES-00248' },
-  { field: 'vault_global_id', text: 'Version-agnostic global asset ID.', dictKey: 'global_id', example: '4075_660750' },
-  { field: 'name', text: 'Asset name in VVPM.', dictKey: 'asset_name', addLabel: 'Asset name', example: 'Yescarta - www-banner - US-YES-00248' },
-  { field: 'topic', text: 'Primary content topic.', dictKey: 'topic', example: 'Efficacy' },
-  { field: 'subtopic', text: 'Secondary topic.', dictKey: 'sub_topic', example: 'Overall Survival' },
-  { field: 'indication', text: 'Approved indication (e.g. LBCL, MCL).', dictKey: 'indc', example: '2L LBCL (multi-value, e.g. 2L LBCL, 3L LBCL)' },
-  { field: 'brand', text: 'Product (Yescarta / Tecartus).', dictKey: 'brd', example: 'Yescarta' },
-  { field: 'status', text: 'VVPM status of the asset.', dictKey: 'vvpm_status', example: 'Approved for Use' },
-  { field: 'metadata_status', text: 'Active / Inactive flag NBA filters on.', dictKey: 'metadata_status', example: 'Active' },
-  { field: 'use_case', text: 'Treater / Referrer / Bispecific journey split.', dictKey: 'use_case', example: 'MVP-1' },
-  { field: 'audience_id', text: 'DeepIntent NPI target audience segment.', dictKey: 'audience_id', example: '41104' },
+const titleCase = (v: string) => v.charAt(0) + v.slice(1).toLowerCase();
+
+// an asset's indication follows its brand, so a record never pairs Tecartus with a Yescarta indication
+const INDICATIONS: Record<string, string[]> = { YESCARTA: ['DLBCL', 'LBCL', 'FL'], TECARTUS: ['MCL', 'ALL'] };
+
+/** The Content MDM record: every field, with values from the dictionary. Hover a header for its definition. */
+const COLUMNS: RecordColumn[] = [
+  { field: 'vault_asset_id', definition: 'FDA-approved asset code from PromoMats (join key).', dictKey: 'aset_id' },
+  { field: 'vault_global_id', definition: 'Version-agnostic global asset ID.', dictKey: 'global_id' },
   {
-    field: 'utm_source',
-    text: 'Platform that delivered the asset (deepintent, medscape, relevate-health, sfmc, veeva-crm, equals5, impiricus, doximity, OpenEvidence, BioPharm).',
-    dictKey: 'utm_source',
-    example: 'deepintent',
+    field: 'name',
+    definition: 'Asset name in VVPM.',
+    derive: ({ row, index }) => {
+      const brand = brandOfAsset(row.vault_asset_id);
+      return `${brand === 'UNBRANDED' ? 'Kite' : titleCase(brand)} - ${pickFrom(`fmt|${index}`, ['www-banner', 'email', 'display', 'brand-alert'])} - ${row.vault_asset_id}`;
+    },
   },
-  { field: 'utm_medium', text: 'Channel type (display / email).', dictKey: 'utm_medium', example: 'display' },
-  { field: 'tactic_name', text: "Tactic label for NBA's weekly DeepIntent alert table.", dictKey: 'tactic_name', example: 'kite-bispecifics-audience (or ID 40931)' },
-  { field: 'vendor_channel', text: 'Delivery channel/vendor label.', dictKey: 'vendor_channel', addLabel: 'Vendor channel', example: 'Email - Veeva' },
-  { field: 'expiration_date', text: 'Asset expiry date.', dictKey: 'expiration_date', example: '2027-08-01' },
-  { field: 'asset_url', text: 'Direct VVPM link to the asset.', dictKey: 'asset_url' },
-  { field: 'source_file_date', text: 'Date of the Campaign Metadata extract used.', dictKey: 'source_file_date', example: '20260924' },
-  { field: 'last_modified_date', text: 'Date the asset record was last changed.', dictKey: 'last_modified_date' },
-  { field: 'nba_flag', text: 'Whether the asset is used by NBA.', dictKey: 'nba_flag', addLabel: 'NBA flag', example: 'Yes' },
+  { field: 'brand', definition: 'Product (Yescarta / Tecartus).', derive: ({ row }) => brandOfAsset(row.vault_asset_id) },
+  { field: 'topic', definition: 'Primary content topic.', dictKey: 'topic' },
+  { field: 'subtopic', definition: 'Secondary topic.', dictKey: 'sub_topic' },
+  {
+    field: 'indication',
+    definition: 'Approved indication (e.g. LBCL, MCL).',
+    derive: ({ row, index, pick }) => {
+      const list = INDICATIONS[row.brand];
+      return list ? pickFrom(`indc|${index}`, list) : pick('indc', 'indication');
+    },
+  },
+  { field: 'status', definition: 'VVPM status of the asset.', dictKey: 'vvpm_status' },
+  { field: 'metadata_status', definition: 'Active / Inactive flag NBA filters on.', dictKey: 'metadata_status' },
+  { field: 'use_case', definition: 'Treater / Referrer / Bispecific journey split.', dictKey: 'use_case' },
+  { field: 'audience_id', definition: 'DeepIntent NPI target audience segment.', dictKey: 'audience_id' },
+  { field: 'utm_source', definition: 'Platform that delivered the asset.', dictKey: 'utm_source' },
+  { field: 'utm_medium', definition: 'Channel type (display / email).', dictKey: 'medium' },
+  { field: 'tactic_name', definition: "Tactic label for NBA's weekly DeepIntent alert table.", dictKey: 'tactic_name' },
+  { field: 'vendor_channel', definition: 'Delivery channel/vendor label.', dictKey: 'vendor_channel' },
+  { field: 'expiration_date', definition: 'Asset expiry date.', derive: ({ index }) => ymd(dateFor(`exp|${index}`, new Date(2027, 0, 1), 540)) },
+  { field: 'asset_url', definition: 'Direct VVPM link to the asset.', dictKey: 'asset_url', truncate: true },
+  { field: 'source_file_date', definition: 'Date of the Campaign Metadata extract used.', derive: ({ index }) => ymd(dateFor(`src|${index}`, new Date(2026, 8, 1), 75), '') },
+  { field: 'last_modified_date', definition: 'Date the asset record was last changed.', derive: ({ index }) => ymd(dateFor(`mod|${index}`, new Date(2026, 4, 1), 190)) },
+  { field: 'nba_flag', definition: 'Whether the asset is used by NBA.', derive: ({ index }) => pickFrom(`nba|${index}`, ['Yes', 'No']) },
 ];
 
 export const ContentMdmPage: React.FC = () => (
@@ -38,8 +52,8 @@ export const ContentMdmPage: React.FC = () => (
         <Database />
         Content MDM
       </h1>
-      <p>Latest content metadata directly from VVPM: every field the content master holds, and the dictionary field behind it.</p>
+      <p>Latest content metadata directly from VVPM: one row per asset, with values from the dictionary. Hover a column for its definition.</p>
     </div>
-    <FieldMappingTable rows={FIELDS} textHeading="Definition" />
+    <MetadataRecordsTable columns={COLUMNS} count={24} seed="mdm" noun="assets" />
   </div>
 );

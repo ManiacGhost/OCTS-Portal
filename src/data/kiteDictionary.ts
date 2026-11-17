@@ -200,7 +200,7 @@ const EXTRAS: { key: string; abbreviation: string; label: string; kind: FieldKin
   { key: 'campaign_name', abbreviation: 'cpgn_nm', label: 'Campaign name', kind: 'free', usedIn: ['campaign'], note: 'Free text' },
   { key: 'segment_name', abbreviation: 'segmentname', label: 'Segment name', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
   { key: 'segment_value', abbreviation: 'segmentvalue', label: 'Segment value', kind: 'free', usedIn: ['campaign'], note: 'Free text (part of the Campaign Name formula)' },
-  { key: 'campaign_dates', abbreviation: 'cpgn_dt', label: 'Campaign dates', kind: 'free', usedIn: ['campaign'], note: 'Year and month for always-on, or a start and end date. Not part of the formula' },
+  { key: 'campaign_dates', abbreviation: 'cpgn_dt', label: 'Campaign dates', kind: 'free', usedIn: ['campaign'], note: 'Year and month for always-on, or a start and end date. In the formula as the date token, YYYYMM-YYYYMM' },
   { key: 'tactic_id', abbreviation: 'tact_id', label: 'Tactic ID', kind: 'system', usedIn: ['tactic', 'utm'], note: 'System-generated, e.g. TACT-2026-0201' },
   { key: 'placement', abbreviation: 'plact_nm', label: 'Placement', kind: 'free', usedIn: ['tactic'], note: 'Free text' },
   { key: 'landing_url', abbreviation: 'url', label: 'Landing page URL', kind: 'free', usedIn: ['tactic', 'utm'], note: 'Free text: the base of the tracking link' },

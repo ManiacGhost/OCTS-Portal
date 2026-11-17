@@ -2,7 +2,7 @@ import { firstName } from '../utils/names';
 import { BrandLogo } from '../components/common/BrandLogo';
 import React from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Route, BookOpen, Link2, Tags, Database, FileText, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
+import { Route, BookOpen, Link2, Tags, ArrowRight, LogOut, LucideIcon } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 
@@ -14,13 +14,16 @@ interface Tile {
   soon?: boolean;
 }
 
-/** The four components of Kite's content tagging & taxonomy model then Dictionary. */
+/** The four areas of the portal: tagging strategy, campaigns, content tagging / mapping, and the dictionary. */
 const TILES: Tile[] = [
   { to: '/tagging-strategy', label: 'Brand Tagging Strategy', icon: Route, desc: 'Review and Edit Channel-wise tagging strategy' },
   { to: '/overview', label: 'Campaign Management (GA/UTM)', icon: Link2, desc: 'Create campaigns with the approved taxonomy formula, then generate the UTMs for content trafficking.' },
-  { to: '/autotag', label: 'Content Tagging/Mapping', icon: Tags, desc: 'Review tagging of assets/other engagements (Calls, speaker programs, etc.) with content metadata.' },
-  { to: '/content-mdm', label: 'Content MDM', icon: Database, desc: 'Latest content metadata directly from VVPM.' },
-  { to: '/content-metadata', label: 'Journey Metadata', icon: FileText, desc: 'The data leveraged across channels to follow each audience journey: step, tactic, creative and audience IDs tied to every engagement.' },
+  {
+    to: '/content-metadata',
+    label: 'Content Tagging/Mapping',
+    icon: Tags,
+    desc: 'Review tagging of assets/other engagements (Calls, speaker programs, etc.) with content metadata: Journey Metadata, Content MDM, IVA and HVA.',
+  },
   { to: '/dictionary', label: 'Dictionary and Templates', icon: BookOpen, desc: 'The Kite Digital Taxonomy: approved values and abbreviations, in one shared language.' },
 ];
 
@@ -212,7 +215,7 @@ export const LauncherPage: React.FC = () => {
 
       {/* Tiles — pulled up to overlap the hero */}
       <div className="max-w-6xl mx-auto w-full px-6 sm:px-10 -mt-28 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {TILES.map(({ to, label, desc, icon: Icon, soon }, i) => (
             <Link
               key={to}

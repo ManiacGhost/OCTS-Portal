@@ -2,10 +2,11 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Inbox, Link2, Pencil, Search } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
+import { canAuthor } from '../../auth/permissions';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
 import { hasTactic, tacticStatusOf, isApproved, tacticCode, campaignIdOf, channelLabel } from '../../data/approvalStatus';
-import { TacticFlag, CampaignFlag } from './StatusFlags';
+import { CampaignFlag } from './StatusFlags';
 import { fuzzyFilter } from './fuzzy';
 import { CampaignDetailModal } from './CampaignsByChannel';
 import { Pagination, usePaged, useFitRows } from './Pagination';
@@ -19,7 +20,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
   const { user } = useAuth();
   const navigate = useNavigate();
   const canUtm = !!user && user.role !== 'superadmin';
-  const isAgency = user?.role === 'agency';
+  const isAgency = canAuthor(user?.role);
   const [channel, setChannel] = useState('all');
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<CampaignTaxonomy | null>(null);
@@ -79,7 +80,6 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
       ) : (
         <div ref={listRef} className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 space-y-2">
           {paged.items.map(c => {
-            const ts = tacticStatusOf(c)!;
             return (
               <div key={c.id} data-row className="flex items-stretch gap-2">
                 <button
@@ -110,12 +110,7 @@ export const TacticList: React.FC<{ campaigns: CampaignTaxonomy[] }> = ({ campai
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {/* the tactic flag only shows once its campaign is approved (or the tactic already is) */}
-                    {isApproved(c.status) || isApproved(ts) ? (
-                      <TacticFlag status={ts} />
-                    ) : (
-                      <span className="text-[10px] font-bold text-slate-400">awaiting campaign approval</span>
-                    )}
+                    {!isApproved(c.status) && <span className="text-[10px] font-bold text-slate-400">awaiting campaign approval</span>}
                     <ChevronRight className="w-4 h-4 text-slate-300" />
                   </div>
                 </button>

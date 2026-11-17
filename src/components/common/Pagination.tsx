@@ -64,7 +64,14 @@ export function useFitRows(listRef: React.RefObject<HTMLElement | null>, initial
     if (overflowedAt.current.height !== h) overflowedAt.current = { height: h, size: Infinity };
     if (natural > h + 1) overflowedAt.current.size = Math.min(overflowedAt.current.size, size);
     const fits = Math.floor((h - overhead - last.height) / perRow) + 1;
-    const next = Math.max(min, Math.min(max, fits, overflowedAt.current.size - 1));
+    const overflowing = natural > h + 1;
+    // shrink only when the page really overflows, grow only when there is room and that size has not
+    // overflowed before: rows of different heights can no longer push the size back and forth
+    const next = overflowing
+      ? Math.max(min, Math.min(size - 1, fits))
+      : fits > size
+      ? Math.max(min, Math.min(max, fits, overflowedAt.current.size - 1))
+      : size;
     if (next !== size) setSize(next);
   });
   void tick;

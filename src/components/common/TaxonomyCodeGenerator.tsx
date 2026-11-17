@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Code, Copy, Check, Link2, Layers } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
-import { hasTactic, isApproved, tacticStatusOf, statusLabel, tacticCode, campaignIdOf, channelLabel } from '../../data/approvalStatus';
+import { hasTactic, isApproved, tacticStatusOf, tacticCode, campaignIdOf, channelLabel } from '../../data/approvalStatus';
 import { VaultCombobox } from './VaultCombobox';
 import { VaultItem } from '../../data/assetVault';
 import { CampaignTaxonomy } from '../../types';
@@ -67,7 +67,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
 
   const parentOf = (t: CampaignTaxonomy) => campaigns.find(c => c.id === (t.parentCampaignId ?? t.id)) || t;
 
-  // approved tactics of approved campaigns (plus the one we were sent here with)
+  // tactics of approved campaigns (plus the one we were sent here with); tactics need no approval
   const tactics = useMemo(
     () =>
       campaigns.filter(
@@ -87,7 +87,6 @@ export const TaxonomyCodeGenerator: React.FC = () => {
   const tactic = tactics.find(t => t.id === tacticId) || null;
   const campaign = tactic ? parentOf(tactic) : null;
   const brand = campaign ? brands.find(b => b.id === campaign.brandId) : undefined;
-  const ts = tactic ? tacticStatusOf(tactic) : undefined;
 
   // Only four UTM parameters go into the link — more would make the URL too long (client's call).
   const utmParams = useMemo(() => {
@@ -159,7 +158,7 @@ export const TaxonomyCodeGenerator: React.FC = () => {
         />
         {items.length === 0 && (
           <p className="text-[11px] text-slate-500">
-            No approved tactics yet. A tactic appears here once it and its campaign are approved.
+            No tactics yet. A tactic appears here once its campaign is approved and the tactic is saved.
           </p>
         )}
       </div>
@@ -186,7 +185,6 @@ export const TaxonomyCodeGenerator: React.FC = () => {
             <Row label="Creative / Asset ID" mono>{tactic.assetId}</Row>
             <Row label="Landing page URL" mono>{tactic.tactic?.landingPageUrl}</Row>
             <Row label="Start – end">{tactic.tactic ? `${tactic.tactic.startDate} → ${tactic.tactic.endDate}` : ''}</Row>
-            <Row label="Tactic status">{ts ? statusLabel(ts) : ''}</Row>
           </div>
 
           <div>

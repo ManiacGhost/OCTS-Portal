@@ -2,14 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ChevronRight, Inbox, X, Copy, Check, Link2, CopyPlus, Pencil, Search, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { canAuthor, selfApproves } from '../../auth/permissions';
 import { usePersona } from '../../context/PersonaContext';
 import { CampaignTaxonomy } from '../../types';
 import { CAMPAIGN_FORMULA } from '../../data/taxonomyFormulas';
 import { fuzzyFilter } from './fuzzy';
-import { campaignIdOf, campaignDates, tacticCode, tacticStatusOf, visibleTacticStatus, hasTactic, isApproved, statusLabel, channelLabel } from '../../data/approvalStatus';
+import { campaignIdOf, campaignDates, tacticCode, hasTactic, isApproved, statusLabel, channelLabel } from '../../data/approvalStatus';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Pagination, usePaged, useFitRows } from './Pagination';
-import { CampaignFlag, TacticFlag, STATUS_BADGE } from './StatusFlags';
+import { CampaignFlag, STATUS_BADGE } from './StatusFlags';
 
 export type CampaignStatusFilter = 'all' | 'draft' | 'submitted' | 'approved' | 'rejected' | 'notactic';
 
@@ -67,7 +68,6 @@ const TacticItem: React.FC<{
   onUtm: () => void;
 }> = ({ t, isAgency, canUtm, onDelete, onEdit, onUtm }) => {
   const [open, setOpen] = useState(false);
-  const status = tacticStatusOf(t);
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-3 py-2">
@@ -93,8 +93,7 @@ const TacticItem: React.FC<{
           </div>
         </button>
         <div className="flex items-center gap-2 shrink-0">
-          {status && <TacticFlag status={status} />}
-          {isAgency && (status === 'submitted' || status === 'draft') && (
+          {isAgency && (
             <button
               type="button"
               onClick={onDelete}
@@ -249,7 +248,7 @@ export const CampaignDetailModal: React.FC<{
               <Section
                 title={`Tactics (${tactics.length})`}
                 action={
-                  user?.role === 'agency' && isApproved(c.status) && (
+                  canAuthor(user?.role) && isApproved(c.status) && (
                     <button
                       type="button"
                       onClick={() => navigate(`/campaigns/${c.id}/tactic${hasTactic(c) ? '?new=1' : ''}`)}
@@ -268,7 +267,7 @@ export const CampaignDetailModal: React.FC<{
                       <TacticItem
                         key={t.id}
                         t={t}
-                        isAgency={user?.role === 'agency'}
+                        isAgency={canAuthor(user?.role)}
                         canUtm={!!user && user.role !== 'superadmin'}
                         onUtm={() => navigate(`/utm?tactic=${t.id}`)}
                         onDelete={() => setConfirmDel({ kind: 'tactic', t })}
@@ -288,7 +287,6 @@ export const CampaignDetailModal: React.FC<{
             <Row label="Campaign ID" mono>{campaignIdOf(c)}</Row>
             <Row label="Campaign code" mono>{c.campaignCode}</Row>
             <Row label="Campaign status">{statusLabel(c.status)}</Row>
-            {visibleTacticStatus(c) && <Row label="Tactic status">{statusLabel(visibleTacticStatus(c))}</Row>}
             <Row label="Compliance">{c.complianceScore}%</Row>
           </Section>
 
@@ -359,9 +357,9 @@ export const CampaignDetailModal: React.FC<{
         {/* Actions */}
         {user && user.role !== 'superadmin' && (
           <div className="flex flex-wrap items-center justify-end gap-2 p-4 border-t border-slate-100">
-            {user.role === 'agency' && (
+            {canAuthor(user.role) && (
               <>
-                {(c.status === 'submitted' || c.status === 'draft') && (
+                {(c.status === 'submitted' || c.status === 'draft' || selfApproves(user.role)) && (
                   <button
                     type="button"
                     onClick={() => setConfirmDel({ kind: 'campaign' })}
@@ -414,8 +412,10 @@ export const CampaignDetailModal: React.FC<{
             confirmDel.kind === 'campaign'
               ? c.status === 'draft'
                 ? 'This draft will be removed, along with any tactic on it. This cannot be undone.'
+                : isApproved(c.status)
+                ? 'This campaign is approved. Deleting it also removes its tactic. This cannot be undone.'
                 : 'This campaign is pending approval. Deleting it also removes its tactic. This cannot be undone.'
-              : 'This tactic has not been approved yet. Deleting it cannot be undone.'
+              : 'Deleting this tactic cannot be undone.'
           }
           confirmLabel="Delete"
           busy={deleting}
@@ -458,7 +458,7 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
   // the UTM Generator is open to agencies, marketers and analytics
   const canUtm = !!user && user.role !== 'superadmin';
   // agencies build campaigns: they can add / edit a tactic and clone a campaign
-  const isAgency = user?.role === 'agency';
+  const isAgency = canAuthor(user?.role);
   const [detail, setDetail] = useState<CampaignTaxonomy | null>(null);
   const [query, setQuery] = useState('');
 
