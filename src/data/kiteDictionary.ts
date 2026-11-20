@@ -213,18 +213,18 @@ const EXTRAS: { key: string; abbreviation: string; label: string; kind: FieldKin
 /** The headline of the history entry once a change has been approved. */
 const ACTION_OF: Record<ChangeType, string> = {
   add_field: 'New field added',
-  add_value: 'New attribute added',
-  update_value: 'Attribute updated',
-  remove_value: 'Attribute removed',
+  add_value: 'New value added',
+  update_value: 'Value updated',
+  remove_value: 'Value removed',
   update_owner: 'Business owner changed',
 };
 
 /** The headline while the change is still only a request. */
 const REQUEST_OF: Record<ChangeType, string> = {
   add_field: 'New field requested',
-  add_value: 'New attribute requested',
-  update_value: 'Attribute update requested',
-  remove_value: 'Attribute removal requested',
+  add_value: 'New value requested',
+  update_value: 'Value update requested',
+  remove_value: 'Value removal requested',
   update_owner: 'Business owner change requested',
 };
 
@@ -331,8 +331,8 @@ function seedState(): DictState {
 const LS_KEY = 'tagging360.dictionary.v1';
 /** Fields taken out of the dictionary on purpose: dropped from saved copies too. */
 const RETIRED_FIELDS = new Set(['segment']);
-/** Fields whose values are set by the client, not the sheet: saved copies take exactly the seeded values. */
-const FIXED_VALUE_FIELDS = new Set(['segment_name', 'segment_value']);
+/** Fields whose values are set by the client (segment fields, and the channel / sub-channel mapping), not the sheet: saved copies take exactly the seeded values. */
+const FIXED_VALUE_FIELDS = new Set(['segment_name', 'segment_value', 'chnl', 'sub_chnl']);
 
 function load(): DictState {
   const seed = seedState();
@@ -519,7 +519,7 @@ export function proposeChange(input: ProposalInput, actor: Actor): { ok: boolean
           ...state.log,
         ],
         notifications: [
-          notification(key, label, 'Field added', `${actor.name} added the field “${label}” (${abbreviation}) with ${attributes.length} attribute${attributes.length === 1 ? '' : 's'}.`, [
+          notification(key, label, 'Field added', `${actor.name} added the field “${label}” (${abbreviation}) with ${attributes.length} value${attributes.length === 1 ? '' : 's'}.`, [
             { kind: 'agency', label: 'Agency (all agency users)' },
             { kind: 'owner', label: `Business owner: ${owner}` },
           ]),
@@ -676,16 +676,16 @@ export function describeChange(
     case 'add_field': {
       const attrs = c.field?.attributes || [];
       const list = attrs.length ? `: ${attrs.map(a => a.value).join(', ')}` : '';
-      return `New field “${c.field?.label}” (${c.field?.abbreviation}) created with ${attrs.length} attribute${attrs.length === 1 ? '' : 's'}${list}. Business owner: ${c.field?.owner || 'not set'}.`;
+      return `New field “${c.field?.label}” (${c.field?.abbreviation}) created with ${attrs.length} value${attrs.length === 1 ? '' : 's'}${list}. Business owner: ${c.field?.owner || 'not set'}.`;
     }
     case 'add_value':
-      return `New attribute “${c.value}” added${fieldLabel ? ` to the field “${fieldLabel}”` : ''}${extras ? `: ${extras}` : ''}.`;
+      return `New value “${c.value}” added${fieldLabel ? ` to the field “${fieldLabel}”` : ''}${extras ? `: ${extras}` : ''}.`;
     case 'update_value':
       return c.value === c.newValue
-        ? `Details of the attribute “${c.value}” updated${inField}${extras ? `: now ${extras}` : ''}.`
-        : `Attribute “${c.value}” renamed to “${c.newValue}”${inField}${extras ? `: ${extras}` : ''}.`;
+        ? `Details of the value “${c.value}” updated${inField}${extras ? `: now ${extras}` : ''}.`
+        : `Value “${c.value}” renamed to “${c.newValue}”${inField}${extras ? `: ${extras}` : ''}.`;
     case 'remove_value':
-      return `Attribute “${c.value}” removed${fieldLabel ? ` from the field “${fieldLabel}”` : ''}.`;
+      return `Value “${c.value}” removed${fieldLabel ? ` from the field “${fieldLabel}”` : ''}.`;
     case 'update_owner':
       return `Business owner${fieldLabel ? ` of the field “${fieldLabel}”` : ''} changed${prevOwner ? ` from “${prevOwner}”` : ''} to “${c.owner}”.`;
   }
@@ -810,6 +810,9 @@ const CHANNEL_TYPE_OF: Record<string, MediaChannelType> = {
   DISPLAY: 'Digital',
   RTE: 'Email',
   WEB: 'Website',
+  'REP CALLS': 'IVA',
+  'LEADERSHIP CALLS': 'IVA',
+  'SPEAKER PROGRAMS / IVA': 'IVA',
 };
 export const channelTypeOf = (chnl: string): MediaChannelType => CHANNEL_TYPE_OF[chnl.trim().toUpperCase()] || 'Digital';
 

@@ -264,7 +264,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
             Dictionary and Templates
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            The Kite dictionary: every field, its attributes and abbreviation, who owns it and who last changed it. Changes need approval.
+            The Kite dictionary: every field, its values and abbreviation, who owns it and who last changed it. Changes need approval.
           </p>
         </div>
       )}
@@ -285,7 +285,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                 type="search"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Search fields, abbreviations, attributes, owners…"
+                placeholder="Search fields, abbreviations, values, owners…"
                 aria-label="Search the dictionary"
                 className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-navy-500 shadow-sm"
               />
@@ -321,7 +321,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                   <th className={`${TH} w-8`} />
                   <th className={TH}>Field</th>
                   <th className={TH}>Abbreviation</th>
-                  <th className={TH}>Attributes</th>
+                  <th className={TH}>Values</th>
                   <th className={TH}>Used in</th>
                   <th className={TH}>Business owner</th>
                   <th className={TH}>Last updated by</th>
@@ -348,7 +348,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                         <td className={TD}>
                           <button
                             type="button"
-                            aria-label={`View ${f.label} attributes`}
+                            aria-label={`View ${f.label} values`}
                             className="text-slate-400 hover:text-navy-700"
                             onClick={e => {
                               e.stopPropagation();
@@ -451,7 +451,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                               <table className="w-full border-collapse">
                                 <thead className="bg-slate-50 border-b border-slate-200">
                                   <tr>
-                                    <th className={TH}>Attribute</th>
+                                    <th className={TH}>Value</th>
                                     <th className={TH}>Business owner</th>
                                   </tr>
                                 </thead>
@@ -656,7 +656,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
           className="fixed inset-0 z-[120] bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
-          aria-label={`${vf.label} attributes`}
+          aria-label={`${vf.label} values`}
           onClick={() => setViewing(null)}
         >
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-6xl h-[85vh] flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -716,15 +716,15 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                     autoFocus
                     value={attrQuery}
                     onChange={e => setAttrQuery(e.target.value)}
-                    placeholder={`Search ${vf.attributes.length} attributes…`}
-                    aria-label={`Search ${vf.label} attributes`}
+                    placeholder={`Search ${vf.attributes.length} values…`}
+                    aria-label={`Search ${vf.label} values`}
                     className="bg-white border border-slate-200 rounded-lg pl-8 pr-2 py-1.5 text-xs font-medium w-72 focus:outline-none focus:border-navy-500"
                   />
                 </div>
               )}
               {vf.kind === 'dictionary' && (
                 <span className="text-[11px] font-semibold text-navy-700">
-                  {vAttrs.length === vf.attributes.length ? `${vAttrs.length} attributes` : `${vAttrs.length} of ${vf.attributes.length} attributes`}
+                  {vAttrs.length === vf.attributes.length ? `${vAttrs.length} values` : `${vAttrs.length} of ${vf.attributes.length} values`}
                 </span>
               )}
               <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -734,7 +734,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                     onClick={() => setProposal({ fieldKey: vf.key, type: 'add_value' })}
                     className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-navy-600 hover:bg-navy-700 rounded-lg px-3 py-1.5 transition"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Add attribute
+                    <Plus className="w-3.5 h-3.5" /> Add value
                   </button>
                 )}
                 <button
@@ -756,14 +756,14 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
 
             {vf.kind !== 'dictionary' ? (
               <div className="flex-1 flex items-center justify-center p-10">
-                <p className="text-sm text-slate-500 text-center max-w-md">{KIND_LABEL[vf.kind]} field: it has no list of attributes.</p>
+                <p className="text-sm text-slate-500 text-center max-w-md">{KIND_LABEL[vf.kind]} field: it has no list of values.</p>
               </div>
             ) : (
               <div className="flex-1 min-h-0 overflow-auto">
                 <table className="w-full border-collapse">
                   <thead className="bg-navy-100 sticky top-0 z-10 border-b border-navy-200">
                     <tr>
-                      <th className={ATH}>Attribute</th>
+                      <th className={ATH}>Value</th>
                       {vf.attributes.some(a => a.definition) && <th className={ATH}>Definition</th>}
                       <th className={ATH}>Business owner</th>
                       <th className={ATH}>Last updated by</th>
@@ -774,7 +774,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                   <tbody>
                     {vAttrs.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="p-8 text-center text-xs text-slate-400">No attributes match.</td>
+                        <td colSpan={7} className="p-8 text-center text-xs text-slate-400">No values match.</td>
                       </tr>
                     )}
                     {vAttrs.map(a => {
@@ -798,7 +798,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                           <td className={`${TD} text-right whitespace-nowrap`}>
                             <button
                               type="button"
-                              title="Propose a new value for this attribute"
+                              title="Propose a new name for this value"
                               aria-label={`Edit ${a.value}`}
                               onClick={() => setProposal({ fieldKey: vf.key, type: 'update_value', value: a.value })}
                               className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:text-navy-700 hover:bg-slate-50"
@@ -807,7 +807,7 @@ export const DictionaryView: React.FC<{ initialTab?: Tab; embedded?: boolean; hi
                             </button>
                             <button
                               type="button"
-                              title="Propose removing this attribute"
+                              title="Propose removing this value"
                               aria-label={`Remove ${a.value}`}
                               onClick={() => setProposal({ fieldKey: vf.key, type: 'remove_value', value: a.value })}
                               className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:text-red-700 hover:bg-red-50 ml-1"
@@ -892,7 +892,7 @@ const ProposalDialog: React.FC<{
 
   const title =
     proposal.type === 'add_value'
-      ? `Add an attribute to ${field.label}`
+      ? `Add a value to ${field.label}`
       : proposal.type === 'update_value'
       ? `Change “${proposal.value}” in ${field.label}`
       : proposal.type === 'remove_value'
@@ -924,7 +924,7 @@ const ProposalDialog: React.FC<{
 
         {proposal.type === 'add_value' && (
           <div>
-            <label htmlFor="dp-value" className="block text-xs font-bold text-slate-700 mb-1">New attribute value *</label>
+            <label htmlFor="dp-value" className="block text-xs font-bold text-slate-700 mb-1">New value *</label>
             <input id="dp-value" autoFocus value={value} onChange={e => setValue(e.target.value)} className={INPUT} placeholder="e.g. Webinar" />
           </div>
         )}
@@ -1052,18 +1052,18 @@ const AddFieldDialog: React.FC<{
 
         <div>
           <div className="flex items-center justify-between mb-1">
-            <span className="block text-xs font-bold text-slate-700">Attributes <span className="font-normal text-slate-400">(each with its own details)</span></span>
+            <span className="block text-xs font-bold text-slate-700">Values <span className="font-normal text-slate-400">(each with its own details)</span></span>
             <button
               type="button"
               onClick={() => setRows(r => [...r, { value: '', abbreviation: '', owner: '' }])}
               className="flex items-center gap-1 text-[11px] font-bold text-navy-700 hover:text-navy-900"
             >
-              <Plus className="w-3.5 h-3.5" /> Add attribute
+              <Plus className="w-3.5 h-3.5" /> Add value
             </button>
           </div>
           <div className="border border-slate-200 rounded-xl overflow-hidden">
             <div className="grid grid-cols-[1.4fr_1.2fr_2rem] gap-2 bg-slate-50 border-b border-slate-200 px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              <span>Attribute</span>
+              <span>Value</span>
               <span>Business owner</span>
               <span />
             </div>
@@ -1071,14 +1071,14 @@ const AddFieldDialog: React.FC<{
               {rows.map((r, i) => (
                 <div key={i} className="grid grid-cols-[1.4fr_1.2fr_2rem] gap-2 px-2.5 py-1.5 items-center">
                   <input
-                    aria-label={`Attribute ${i + 1} name`}
+                    aria-label={`Value ${i + 1} name`}
                     value={r.value}
                     onChange={e => setRows(rs => rs.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))}
                     className={INPUT}
-                    placeholder={i === 0 ? 'e.g. Webinar' : 'Attribute'}
+                    placeholder={i === 0 ? 'e.g. Webinar' : 'Value'}
                   />
                   <input
-                    aria-label={`Attribute ${i + 1} business owner`}
+                    aria-label={`Value ${i + 1} business owner`}
                     list="af-owners"
                     value={r.owner}
                     onChange={e => setRows(rs => rs.map((x, j) => (j === i ? { ...x, owner: e.target.value } : x)))}
@@ -1087,7 +1087,7 @@ const AddFieldDialog: React.FC<{
                   />
                   <button
                     type="button"
-                    aria-label={`Remove attribute ${i + 1}`}
+                    aria-label={`Remove value ${i + 1}`}
                     onClick={() => setRows(rs => (rs.length === 1 ? [{ value: '', abbreviation: '', owner: '' }] : rs.filter((_, j) => j !== i)))}
                     className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-700 hover:bg-red-50"
                   >

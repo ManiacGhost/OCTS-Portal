@@ -8,7 +8,7 @@ import { useDictValues, channelTypeOf, channelFromType } from '../data/kiteDicti
 import { hasTactic, isApproved, tacticStatusOf, tacticCode, campaignIdOf, campaignDates } from '../data/approvalStatus';
 import { StatusFlags } from '../components/common/StatusFlags';
 import type { MediaChannelType } from '../types';
-import { publishersFor } from '../data/channelPublishers';
+import { publishersFor, subChannelsFor } from '../data/channelPublishers';
 
 const CHANNEL_ID: Record<MediaChannelType, string> = {
   Digital: 'chan-digital',
@@ -49,13 +49,24 @@ export const TacticPage: React.FC = () => {
   const channelType: MediaChannelType = channelTypeOf(channel);
   const [subChannel, setSubChannel] = useState('');
   const [publisher, setPublisher] = useState('');
-  // only the publishers that run on the chosen channel are offered
-  const forChannel = useMemo(() => publishersFor(channel, publishers), [channel, publishers]);
+  // the client's channel / sub-channel / publisher mapping: only the sub-channels of the chosen channel, then
+  // only the publishers of the chosen sub-channel, are offered
+  const subsForChannel = useMemo(() => subChannelsFor(channel, subChannels), [channel, subChannels]);
+  const needsSub = !subsForChannel.mapped || subsForChannel.available.length > 0;
+  const forChannel = useMemo(() => publishersFor(channel, subChannel, publishers), [channel, subChannel, publishers]);
+  /** Keep the sub-channel and publisher valid; an owned / field channel's publisher is filled in (or a lone one). */
+  const settle = (ch: string, sub: string) => {
+    const subs = subChannelsFor(ch, subChannels);
+    const nextSub = sub && subs.mapped && !subs.available.includes(sub) ? '' : !sub && subs.available.length === 1 ? subs.available[0] : sub;
+    setSubChannel(nextSub);
+    const pubs = publishersFor(ch, nextSub, publishers);
+    setPublisher(cur => (pubs.auto || (nextSub && pubs.available.length === 1) ? pubs.available[0] : cur && pubs.mapped && !pubs.available.includes(cur) ? '' : cur));
+  };
   const chooseChannel = (next: string) => {
     setChannel(next);
-    const allowed = publishersFor(next, publishers).available;
-    if (publisher && !allowed.includes(publisher)) setPublisher('');
+    settle(next, subChannel);
   };
+  const chooseSubChannel = (next: string) => settle(channel, next);
   const [placement, setPlacement] = useState('');
   const [assetId, setAssetId] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
@@ -90,9 +101,10 @@ export const TacticPage: React.FC = () => {
   const problems = useMemo(() => {
     const p: Record<string, string> = {};
     if (!channel) p.channel = 'Choose the channel.';
-    if (!subChannel) p.subChannel = 'Choose the sub-channel.';
-    if (!publisher.trim()) p.publisher = channel && forChannel.available.length === 0 ? `No publisher is set up for ${channel} yet.` : 'Choose the publisher or platform.';
-    else if (channel && !forChannel.available.includes(publisher)) p.publisher = `${publisher} does not run on ${channel}. Pick one of its publishers.`;
+    if (!subChannel && needsSub) p.subChannel = 'Choose the sub-channel.';
+    else if (subChannel && channel && subsForChannel.mapped && !subsForChannel.available.includes(subChannel)) p.subChannel = `${subChannel} is not a sub-channel of ${channel}. Pick one of its sub-channels.`;
+    if (!publisher.trim()) p.publisher = channel && forChannel.mapped && forChannel.available.length === 0 ? `No publisher is set up for ${channel} yet.` : 'Choose the publisher or platform.';
+    else if (channel && forChannel.mapped && !forChannel.available.includes(publisher)) p.publisher = `${publisher} does not deliver ${subChannel || channel}. Pick one of its publishers.`;
     if (!placement.trim()) p.placement = 'Enter the placement.';
     if (!assetId.trim()) p.assetId = 'Choose the creative / asset ID.';
     if (!/^https?:\/\/\S+\.\S+/i.test(landingPageUrl.trim())) p.landingPageUrl = 'Enter a full URL, starting with https://';
@@ -100,7 +112,7 @@ export const TacticPage: React.FC = () => {
     if (!endDate) p.endDate = 'Pick an end date.';
     else if (startDate && endDate < startDate) p.endDate = 'The end date is before the start date.';
     return p;
-  }, [channel, subChannel, publisher, placement, targetAudience, assetId, landingPageUrl, startDate, endDate, forChannel]);
+  }, [channel, subChannel, publisher, placement, targetAudience, assetId, landingPageUrl, startDate, endDate, forChannel, subsForChannel, needsSub]);
 
   if (isLoading) return <div className="p-10 text-center text-sm text-slate-400">Loading…</div>;
   if (!campaign) {
@@ -273,10 +285,16 @@ export const TacticPage: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="t-subchannel" className="block text-xs font-bold text-slate-700 mb-1">Sub-channel{req}</label>
-            <select id="t-subchannel" value={subChannel} onChange={e => setSubChannel(e.target.value)} className={`${FIELD_CLS} ${fieldErr('subChannel')}`}>
-              <option value="">Select…</option>
-              {withCurrent(subChannels, subChannel).map(v => (
+            <label htmlFor="t-subchannel" className="block text-xs font-bold text-slate-700 mb-1">Sub-channel{needsSub && req}</label>
+            <select
+              id="t-subchannel"
+              value={subChannel}
+              onChange={e => chooseSubChannel(e.target.value)}
+              disabled={!channel || !needsSub}
+              className={`${FIELD_CLS} ${fieldErr('subChannel')} disabled:bg-slate-50 disabled:text-slate-400`}
+            >
+              <option value="">{!channel ? 'Choose the channel first' : needsSub ? 'Select…' : `No sub-channel for ${channel}`}</option>
+              {withCurrent(subsForChannel.mapped ? subsForChannel.available : subChannels, subChannel).map(v => (
                 <option key={v} value={v}>{v}</option>
               ))}
             </select>
@@ -289,14 +307,17 @@ export const TacticPage: React.FC = () => {
               id="t-publisher"
               value={publisher}
               onChange={e => setPublisher(e.target.value)}
-              disabled={!channel}
-              className={`${FIELD_CLS} ${fieldErr('publisher')} disabled:bg-slate-50 disabled:text-slate-400`}
+              disabled={!channel || forChannel.auto}
+              className={`${FIELD_CLS} ${fieldErr('publisher')} disabled:bg-slate-50 disabled:text-slate-500`}
             >
               <option value="">{channel ? 'Select…' : 'Choose the channel first'}</option>
-              {withCurrent(forChannel.available, publisher).map(v => (
+              {withCurrent(forChannel.mapped ? forChannel.available : publishers, publisher).map(v => (
                 <option key={v} value={v}>{v}</option>
               ))}
             </select>
+            {channel && forChannel.auto && (
+              <p className="text-[11px] text-slate-500 mt-1">Set by the channel ({forChannel.channelType.toLowerCase()}).</p>
+            )}
             {channel && !forChannel.mapped && (
               <p className="text-[11px] text-amber-700 mt-1">No publishers are mapped to {channel} yet.</p>
             )}

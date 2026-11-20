@@ -1,36 +1,43 @@
+import { CHANNEL_MAPPING, ChannelMappingRow } from './channelMappingSeed';
+
 /**
- * Which publishers run on which channel, from the client's channel / sub-channel publisher list. A tactic can
- * only pick a publisher that runs on its channel, so a tactic never pairs a channel with a publisher that does
- * not deliver it. Keys are the dictionary's channel values (chnl); names are matched to the dictionary's
- * sources / platforms (src) whatever their case or spacing.
+ * The client's channel / sub-channel / publisher mapping (Kite_Channel_Subchannel_Publisher_Mapping_v1.xlsx).
+ * A tactic picks a channel, then one of that channel's sub-channels, then one of the publishers that deliver
+ * that sub-channel, so a tactic never pairs a channel, sub-channel and publisher that do not go together.
+ * Names are matched to the dictionary's values whatever their case or spacing, and shown in the dictionary's
+ * own spelling.
  */
-export const CHANNEL_PUBLISHERS: Record<string, string[]> = {
-  // Digital
-  '3P EMAIL': ['Biopharm', 'Medscape', 'Onclive', 'ReachMD'],
-  DISPLAY: ['Biopharm', 'DeepIntent', 'Doximity', 'JCO', 'Medscape', 'Onclive', 'Open Evidence', 'ReachMD', 'Relevate Health'],
-  '3P SMS': ['Impiricus'],
-  // Email (direct)
-  EMAIL: ['RTE', 'SFMC'],
-  RTE: ['RTE'],
-  // Social
-  SOCIAL: ['Equals5'],
-};
 
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, '');
+const same = (a: string, b: string) => norm(a) === norm(b);
+
+const rowsOf = (channel: string, subChannel?: string): ChannelMappingRow[] =>
+  CHANNEL_MAPPING.filter(r => same(r.channel, channel) && (subChannel === undefined || same(r.subChannel, subChannel)));
+
+/** In the dictionary's spelling when the dictionary has the value, else as the mapping writes it. */
+const spell = (v: string, dictionary: string[]) => dictionary.find(d => same(d, v)) || v;
+
+/** The sub-channels of a channel. `mapped` is false for a channel the mapping does not list. */
+export function subChannelsFor(channel: string, dictionarySubChannels: string[]): { mapped: boolean; available: string[] } {
+  const rows = rowsOf(channel);
+  return { mapped: rows.length > 0, available: [...new Set(rows.map(r => spell(r.subChannel, dictionarySubChannels)))] };
+}
 
 /**
- * The publishers a channel can use: `available` in the dictionary's own spelling, and `missing` — on the
- * client's list but not yet a value of the dictionary's sources / platforms.
+ * The publishers that deliver a channel's sub-channel (or, before a sub-channel is chosen, the whole channel).
+ * `auto` is true when the mapping fixes the publisher (owned and field channels): it is filled in, not picked.
  */
-export function publishersFor(channel: string, dictionarySources: string[]): { mapped: boolean; available: string[]; missing: string[] } {
-  const list = CHANNEL_PUBLISHERS[channel.trim().toUpperCase()];
-  if (!list) return { mapped: false, available: [], missing: [] };
-  const available: string[] = [];
-  const missing: string[] = [];
-  list.forEach(p => {
-    const hit = dictionarySources.find(s => norm(s) === norm(p));
-    if (hit) available.push(hit);
-    else missing.push(p);
-  });
-  return { mapped: true, available, missing };
+export function publishersFor(
+  channel: string,
+  subChannel: string,
+  dictionarySources: string[]
+): { mapped: boolean; available: string[]; auto: boolean; channelType: string } {
+  const rows = rowsOf(channel, subChannel || undefined);
+  const available = [...new Set(rows.map(r => spell(r.publisher, dictionarySources)))];
+  return {
+    mapped: rowsOf(channel).length > 0,
+    available,
+    auto: rows.length > 0 && rows.every(r => r.publisherRequired === 'auto') && available.length === 1,
+    channelType: rows[0]?.channelType || '',
+  };
 }

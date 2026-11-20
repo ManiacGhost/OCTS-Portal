@@ -1,0 +1,11 @@
+// Cloudflare deploy settings: a static-assets Worker serving the built SPA.
+// Every unknown path (e.g. /campaigns/new on a refresh) falls back to index.html, which replaces the old
+// public/_redirects rule "/* /index.html 200" (Workers reject it as an infinite redirect loop).
+{
+  "name": "octs-portal",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

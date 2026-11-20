@@ -33,7 +33,7 @@ export const DictionaryPage: React.FC = () => {
         <p className="text-sm text-slate-500 mt-0.5">
           {view === 'templates'
             ? 'Templates built strictly from dictionary values.'
-            : 'The Kite dictionary: every field, its attributes and abbreviation, who owns it and who last changed it. Changes need approval.'}
+            : 'The Kite dictionary: every field, its values and abbreviation, who owns it and who last changed it. Changes need approval.'}
         </p>
       </div>
 

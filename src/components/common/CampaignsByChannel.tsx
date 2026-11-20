@@ -547,8 +547,9 @@ export const CampaignList: React.FC<Props> = ({ campaigns: allRecords, statusFil
                   <div className="text-xs font-bold text-slate-900 truncate">
                     {brandName(c.brandId)} <span className="text-slate-400 font-normal">·</span> {c.campaignName}
                   </div>
-                  <div className="text-[10px] font-mono text-slate-500 truncate">
-                    <span className="font-bold text-navy-700">{campaignIdOf(c)}</span> · {c.quarter}
+                  {/* the campaign's name as per the taxonomy (client: the system ID and the quarter add nothing here) */}
+                  <div className="text-[10px] font-mono font-semibold text-navy-700 truncate" title={c.taxonomyString}>
+                    {c.taxonomyString}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

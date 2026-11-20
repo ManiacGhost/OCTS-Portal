@@ -49,7 +49,9 @@ export const KITE_DICTIONARY_SEED: SeedField[] = [
       "Doximity",
       "JCO",
       "OncLive",
-      "Veeva CRM"
+      "Veeva CRM",
+      "TBD (speaker bureau)",
+      "Kite Website (yescartahcp.com)"
     ],
     "valueAbbr": {
       "DEEPINTENT": "DEEPINTENT",
@@ -73,15 +75,16 @@ export const KITE_DICTIONARY_SEED: SeedField[] = [
     "label": "Channel / medium",
     "sheetHeader": "chnl/medium",
     "values": [
-      "3P SMS",
       "3P EMAIL",
-      "EMAIL",
-      "SOCIAL",
+      "3P SMS",
       "DISPLAY",
-      "RTE",
-      "WEB",
+      "EMAIL",
+      "LEADERSHIP CALLS",
       "REP CALLS",
-      "LEADERSHIP CALLS"
+      "RTE",
+      "SOCIAL",
+      "SPEAKER PROGRAMS / IVA",
+      "WEB"
     ],
     "valueAbbr": {}
   },
@@ -308,22 +311,21 @@ export const KITE_DICTIONARY_SEED: SeedField[] = [
     "label": "Sub-channel",
     "sheetHeader": "sub_chnl",
     "values": [
-      "Email",
-      "Email Alert",
-      "Email Open",
-      "Page View",
-      "tactic_name",
-      "Banner",
-      "Media",
-      "KAM",
-      "Brand Alert",
+      "Publisher Email Alert",
+      "Alert Marketing Email",
+      "SMS",
+      "Programmatic Display",
       "Brand Alert 360",
-      "Fast Five Quiz",
       "Research Capsule (ReCAP)",
-      "Reverb Engagement",
-      "Participation",
-      "EHR",
-      "Display"
+      "EHR / Point of Care",
+      "HQ Email",
+      "Leadership / KAM Call",
+      "IVA Presentation",
+      "KAM Engagement",
+      "Approved Email Template",
+      "Paid Social",
+      "Speaker Program",
+      "Website / Landing Page"
     ],
     "valueAbbr": {}
   },

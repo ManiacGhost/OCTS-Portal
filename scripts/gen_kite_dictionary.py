@@ -219,6 +219,27 @@ FIXED_FIELDS = [
     ('segment_value', 'segmentvalue', 'Segment value', ['P1', 'P2', 'P3']),
 ]
 out = [e for e in out if e['key'] not in DROP_FIELDS]
+
+# channels and sub-channels are exactly the ones of the client's channel / sub-channel / publisher mapping, and
+# every publisher of that mapping is a value of the sources / platforms (src)
+SRC_MAP = 'Kite_Channel_Subchannel_Publisher_Mapping_v1.xlsx'
+map_rows = []
+_ws = openpyxl.load_workbook(SRC_MAP, data_only=True).active
+_rows = list(_ws.iter_rows(values_only=True))
+_head = next(i for i, r in enumerate(_rows) if r and str(r[0] or '').strip() == 'Channel')
+for r in _rows[_head + 1:]:
+    if r and r[0] and r[1]:
+        map_rows.append([str(x or '').strip() for x in r[:5]])
+uniq = lambda xs: list(dict.fromkeys(xs))
+FIXED_FIELDS += [
+    ('chnl', 'chnl', 'Channel', uniq(r[0] for r in map_rows)),
+    ('sub_chnl', 'sub_chnl', 'Sub-channel', uniq(r[1] for r in map_rows)),
+]
+_norm = lambda v: ''.join(ch for ch in v.lower() if ch.isalnum())
+_src = next(e for e in out if e['key'] == 'src')
+for pub in uniq(r[2] for r in map_rows):
+    if not any(_norm(v) == _norm(pub) for v in _src['values']):
+        _src['values'].append(pub)
 for key, abbr, name, values in FIXED_FIELDS:
     entry = next((e for e in out if e['key'] == key), None)
     if entry is None:
